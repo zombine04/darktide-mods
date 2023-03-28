@@ -32,17 +32,21 @@ return {
 	qp_auto = {
 		en = "Auto Queue",
 		ja = "自動キュー",
+		["zh-cn"] = "自动匹配",
 	},
 	qp_enable_auto = {
 		en = "Enable Auto Queue",
 		ja = "自動キューを有効にする",
+		["zh-cn"] = "启用自动匹配",
 	},
 	qp_cancel_auto = {
 		en = "Keybind for Canceling",
 		ja = "キャンセル用キーバインド",
+		["zh-cn"] = "取消快捷键",
 	},
 	qp_canceled_notif = {
 		en = "Auto Queue Canceled.",
 		ja = "自動キューがキャンセルされました。",
+		["zh-cn"] = "自动匹配已取消。",
 	}
 }
