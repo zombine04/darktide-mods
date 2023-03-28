@@ -28,5 +28,21 @@ return {
 		en = "You have not met the required level.\nRequirement: ",
 		ja = "必要レベルを満たしていません。\n必要レベル: ",
 		["zh-cn"] = "你没有达到所需的等级。\n需要等级：",
+	},
+	qp_auto = {
+		en = "Auto Queue",
+		ja = "自動キュー",
+	},
+	qp_enable_auto = {
+		en = "Enable Auto Start",
+		ja = "自動キューを有効にする",
+	},
+	qp_cancel_auto = {
+		en = "Keybind for Canceling",
+		ja = "キャンセル用キーバインド",
+	},
+	qp_canceled_notif = {
+		en = "Auto Queue Canceled.",
+		ja = "自動キューがキャンセルされました。",
 	}
 }

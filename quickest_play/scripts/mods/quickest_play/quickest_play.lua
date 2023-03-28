@@ -2,11 +2,12 @@
     title: quickest_play
     author: Zombine
     date: 28/03/2023
-    version: 1.0.0
+    version: 1.1.0
 ]]
 
 local mod = get_mod("quickest_play")
 local DangerSettings = require("scripts/settings/difficulty/danger_settings")
+local canceled = false
 
 local is_in_hub = function()
     local game_mode_manager = Managers.state.game_mode
@@ -38,10 +39,10 @@ local is_unlocked = function(required_level)
     return false
 end
 
-mod.start_quickplay = function()
+local _start_quickplay = function()
     local ui_manager = Managers.ui
 
-    if is_in_hub() and not ui_manager:chat_using_input() then
+    if not ui_manager:chat_using_input() then
         local save_data = Managers.save:account_data()
         local danger = get_difficulty(save_data)
         local required_level = DangerSettings.by_index[danger].required_level
@@ -54,3 +55,29 @@ mod.start_quickplay = function()
         end
     end
 end
+
+mod.cancel_auto_queue = function()
+    canceled = true
+end
+
+mod.start_quickplay = function()
+    if is_in_hub() then
+        _start_quickplay()
+    end
+end
+
+mod:hook_safe("GameModeManager", "game_mode_ready", function()
+    if is_in_hub() and mod:get("qp_enable_auto") then
+        if canceled then
+            mod:notify(mod:localize("qp_canceled_notif"))
+        else
+            _start_quickplay()
+        end
+    end
+end)
+
+mod:hook_safe("LoadingView", "on_enter", function()
+    if canceled then
+        canceled = false
+    end
+end)
