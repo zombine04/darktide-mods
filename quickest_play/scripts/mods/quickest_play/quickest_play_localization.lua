@@ -34,7 +34,7 @@ return {
 		ja = "自動キュー",
 	},
 	qp_enable_auto = {
-		en = "Enable Auto Start",
+		en = "Enable Auto Queue",
 		ja = "自動キューを有効にする",
 	},
 	qp_cancel_auto = {
