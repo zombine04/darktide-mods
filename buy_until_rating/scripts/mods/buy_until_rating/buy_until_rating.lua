@@ -51,19 +51,11 @@ local print_result = function()
 end
 
 local is_enabled = function(cfg)
-    if mod:get("enable_" .. cfg) then
-        return true
-    end
-
-    return false
+    return mod:get("enable_" .. cfg)
 end
 
 local is_lower_than_desired = function(rating)
-    if rating < desired_rating then
-        return true
-    end
-
-    return false
+    return rating < desired_rating
 end
 
 local is_under_limit = function()
@@ -75,6 +67,22 @@ local is_under_limit = function()
     end
 
     return false
+end
+
+local has_notifications = function()
+    return is_enabled("rating_notif") or is_enabled("discard_notif") or is_enabled("default_notif")
+end
+
+local clear_notifications = function()
+    local notif_limit = 2
+
+    if not (is_enabled("discard_notif") and is_enabled("default_notif")) then
+        notif_limit = 5
+    end
+
+    if has_notifications() and item_count % notif_limit == 0 then
+        Managers.event:trigger("event_clear_notifications")
+    end
 end
 
 local notify_settings = function()
@@ -156,6 +164,8 @@ mod:hook_safe("CreditsGoodsVendorView", "_on_purchase_complete", function(self)
     local delay = 0
     local item = self._result_item
     local rating = ItemUtils.calculate_stats_rating(item)
+
+    clear_notifications()
 
     if is_enabled("rating_notif") then
         mod:notify("#" .. item_count .. ": " .. rating)
