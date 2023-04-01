@@ -11,8 +11,8 @@ mod:hook("CreditsGoodsVendorView", "_convert_offers_to_layout_entries", function
     local layout = func(self, item_offers)
 
     table.sort(layout, function (a, b)
-		return b.icon < a.icon
-	end)
+        return b.icon < a.icon
+    end)
 
     return layout
 end)
