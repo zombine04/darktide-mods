@@ -9,7 +9,7 @@ return {
 			{
 				setting_id = "wb_grimoire",
 				type = "dropdown",
-				default_value = "content/ui/materials/icons/mission_types/mission_type_08",
+				default_value = "content/ui/materials/icons/circumstances/nurgle_manifestation_01",
 				options = {
 					{text = "wb_default", value = "content/ui/materials/icons/mission_types/mission_type_08"},
 					{text = "icon_nurgle", value = "content/ui/materials/icons/circumstances/nurgle_manifestation_01"},
