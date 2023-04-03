@@ -9,9 +9,13 @@ return {
 			{
 				setting_id = "wb_grimoire",
 				type = "dropdown",
-				default_value = "content/ui/materials/icons/circumstances/nurgle_manifestation_01",
+				default_value = "content/ui/materials/icons/pocketables/hud/small/party_grimoire",
 				options = {
 					{text = "wb_default", value = "content/ui/materials/icons/mission_types/mission_type_08"},
+					{text = "icon_grimoire", value = "content/ui/materials/icons/pocketables/hud/small/party_grimoire"},
+					{text = "icon_grimoire_book", value = "content/ui/materials/icons/pocketables/hud/grimoire"},
+					{text = "icon_scripture", value = "content/ui/materials/icons/pocketables/hud/small/party_scripture"},
+					{text = "icon_scripture_book", value = "content/ui/materials/icons/pocketables/hud/scripture"},
 					{text = "icon_nurgle", value = "content/ui/materials/icons/circumstances/nurgle_manifestation_01"},
 					{text = "icon_preset_01", value = "content/ui/materials/icons/presets/preset_01"},
 					{text = "icon_preset_02", value = "content/ui/materials/icons/presets/preset_02"},
@@ -43,9 +47,13 @@ return {
 			{
 				setting_id = "wb_scripture",
 				type = "dropdown",
-				default_value = "content/ui/materials/icons/presets/preset_12",
+				default_value = "content/ui/materials/icons/pocketables/hud/small/party_scripture",
 				options = {
 					{text = "wb_default", value = "content/ui/materials/icons/mission_types/mission_type_08"},
+					{text = "icon_grimoire", value = "content/ui/materials/icons/pocketables/hud/small/party_grimoire"},
+					{text = "icon_grimoire_book", value = "content/ui/materials/icons/pocketables/hud/grimoire"},
+					{text = "icon_scripture", value = "content/ui/materials/icons/pocketables/hud/small/party_scripture"},
+					{text = "icon_scripture_book", value = "content/ui/materials/icons/pocketables/hud/scripture"},
 					{text = "icon_nurgle", value = "content/ui/materials/icons/circumstances/nurgle_manifestation_01"},
 					{text = "icon_preset_01", value = "content/ui/materials/icons/presets/preset_01"},
 					{text = "icon_preset_02", value = "content/ui/materials/icons/presets/preset_02"},

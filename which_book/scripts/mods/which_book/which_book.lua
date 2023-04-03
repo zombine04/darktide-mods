@@ -1,8 +1,8 @@
 --[[
     title: Which Book
     aouthor: Zombine
-    date: 02/04/2023
-    version: 1.0.0
+    date: 03/04/2023
+    version: 1.1.0
 ]]
 
 local mod = get_mod("which_book")
@@ -11,6 +11,8 @@ local MissionBoardViewDefinitions = require("scripts/ui/views/mission_board_view
 local MissionObjectiveTemplates = require("scripts/settings/mission_objective/mission_objective_templates")
 
 mod:hook("MissionBoardView", "init", function(func, self, settings)
+    Managers.package:load("packages/ui/hud/player_weapon/player_weapon", "MissionBoardView", nil)
+
     local objective_2_icon = MissionBoardViewDefinitions.mission_small_widget_template.style.objective_2_icon
     objective_2_icon.size_addition = nil
     if mod:get("wb_custom_color") then
@@ -25,4 +27,3 @@ mod:hook("MissionBoardView", "init", function(func, self, settings)
 
     func(self, settings)
 end)
-
