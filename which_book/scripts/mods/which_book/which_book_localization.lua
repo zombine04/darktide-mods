@@ -32,4 +32,20 @@ return {
 	wb_custom_a = {
 		en = "A",
 	},
+	wb_scrip_color = {
+		en = "Set individual color for Scriptures",
+		ja = "聖書に個別のカラーを設定する",
+	},
+	wb_scrip_r = {
+		en = "R",
+	},
+	wb_scrip_g = {
+		en = "G",
+	},
+	wb_scrip_b = {
+		en = "B",
+	},
+	wb_scrip_a = {
+		en = "A",
+	},
 }

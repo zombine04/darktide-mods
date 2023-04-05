@@ -112,7 +112,38 @@ return {
 						range = {0, 255},
 					},
 				}
-			}
+			},
+			{
+				setting_id = "wb_scrip_color",
+				type = "checkbox",
+				default_value = false,
+				sub_widgets = {
+					{
+						setting_id = "wb_scrip_r",
+						type = "numeric",
+						default_value = 255,
+						range = {0, 255},
+					},
+					{
+						setting_id = "wb_scrip_g",
+						type = "numeric",
+						default_value = 255,
+						range = {0, 255},
+					},
+					{
+						setting_id = "wb_scrip_b",
+						type = "numeric",
+						default_value = 255,
+						range = {0, 255},
+					},
+					{
+						setting_id = "wb_scrip_a",
+						type = "numeric",
+						default_value = 255,
+						range = {0, 255},
+					},
+				}
+			},
 		}
 	}
 }
