@@ -1,9 +1,13 @@
 return {
+	mod_name = {
+		en = "Quickest Play",
+		ru = "Быстрейшая игра",
+	},
 	mod_description = {
 		en = "Add hotkey to start quickplay.",
 		ja = "クイックプレイを開始するホットキーを追加します。",
 		["zh-cn"] = "添加开始快速游戏的快捷键。",
-		ru = "Добавьте горячую клавишу для запуска Быстрой игры.",
+		ru = "Добавьте горячую клавишу для запуска Быстрой игры из любого места.",
 	},
 	qp_difficulty = {
 		en = "Difficulty Settings",
@@ -45,7 +49,7 @@ return {
 		en = "Enable Auto Queue",
 		ja = "自動キューを有効にする",
 		["zh-cn"] = "启用自动匹配",
-		ru = "Включить автоподбор Быстрой игры",
+		ru = "Включить автоподбор",
 	},
 	qp_cancel_auto = {
 		en = "Keybind for Canceling",
