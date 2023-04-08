@@ -2,6 +2,7 @@ return {
 	mod_name = {
 		en = "Quickest Play",
 		ru = "Быстрейшая игра",
+		["zh-cn"] = "快速游戏",
 	},
 	mod_description = {
 		en = "Add hotkey to start quickplay.",
