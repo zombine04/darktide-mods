@@ -35,6 +35,7 @@ return {
 	wb_scrip_color = {
 		en = "Set individual color for Scriptures",
 		ja = "聖書に個別のカラーを設定する",
+		["zh-cn"] = "为圣经设置单独的颜色",
 	},
 	wb_scrip_r = {
 		en = "R",
