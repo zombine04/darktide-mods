@@ -2,7 +2,7 @@
     title: quickest_play
     author: Zombine
     date: 09/04/2023
-    version: 1.1.4
+    version: 1.1.5
 ]]
 
 local mod = get_mod("quickest_play")
