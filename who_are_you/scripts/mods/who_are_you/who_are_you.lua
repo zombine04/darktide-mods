@@ -28,10 +28,6 @@ local style_sub_name = function(name)
     return name
 end
 
-mod.on_all_mods_loaded = function()
-    Managers.event:trigger("event_clear_notifications")
-end
-
 mod:hook_require("scripts/ui/hud/elements/player_panel_base/hud_element_player_panel_base", function(instance)
     mod:hook(instance, "_set_player_name", function(func, self, player_name, current_level)
         local display_style = mod:get("display_style")
