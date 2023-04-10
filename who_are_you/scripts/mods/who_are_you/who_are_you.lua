@@ -2,7 +2,7 @@
     title: who_are_you
     author: Zombine
     date: 10/04/2023
-    version: 1.0.1
+    version: 1.0.2
 ]]
 
 local mod = get_mod("who_are_you")
@@ -67,11 +67,11 @@ mod:hook_require("scripts/ui/hud/elements/player_panel_base/hud_element_player_p
 
         if account_id then
             local account_name = get_account_name_from_id(account_id)
-            local name_prefix = self._player_name_prefix
+            local name_prefix = self._player_name_prefix or ""
 
             name = change_display_name(name, account_name, account_id, true)
             name = name_prefix .. name
-            self._current_player_name = account_name
+            self._current_player_name = name
 
             func(self, name, current_level)
         else
