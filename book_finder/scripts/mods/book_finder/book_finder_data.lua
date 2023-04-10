@@ -47,6 +47,19 @@ return {
 						type = "checkbox",
 						default_value = false,
 					},
+					{
+						setting_id = "enable_repeat_notif",
+						type = "checkbox",
+						default_value = false,
+						sub_widgets = {
+							{
+								setting_id = "notif_delay",
+								type = "numeric",
+								default_value = 1000,
+								range = {0, 3000},
+							}
+						}
+					},
 				}
 			},
 			{

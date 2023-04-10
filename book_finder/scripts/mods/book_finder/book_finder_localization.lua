@@ -33,12 +33,6 @@ return {
 		["zh-cn"] = "通知",
 		ru = "Уведомления",
 	},
-	enable_pickup_notif = {
-		en = "Notify when someone picked up",
-		ja = "誰かが拾った際に通知する",
-		["zh-cn"] = "有人拾取时通知",
-		ru = "Показывать уведомление, когда кто-то поднимает гримуар/писание.",
-	},
 	enable_chat_notif = {
 		en = "Enable Chat Notification",
 		ja = "チャットでの通知を有効にする",
@@ -50,6 +44,20 @@ return {
 		ja = "ポップアップでの通知を有効にする",
 		["zh-cn"] = "启用弹出式通知",
 		ru = "Всплывающее уведомление",
+	},
+	enable_pickup_notif = {
+		en = "Notify when someone picked up",
+		ja = "誰かが拾った際に通知する",
+		["zh-cn"] = "有人拾取时通知",
+		ru = "Показывать уведомление, когда кто-то поднимает гримуар/писание.",
+	},
+	enable_repeat_notif = {
+		en = "Notify when you're in the certain range again",
+		ja = "再び一定距離に入った際に通知する",
+	},
+	notif_delay = {
+		en = "Delay before notifying again (ms)",
+		ja = "再度通知するまでの間隔 (ms)",
 	},
 	book_sensed_grimoire = {
 		en = "Feel the presence of a grimoire nearby...",

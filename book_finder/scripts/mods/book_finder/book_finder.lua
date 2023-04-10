@@ -1,8 +1,8 @@
 --[[
     title: book_finder
     author: Zombine
-    date: 09/04/2023
-    version: 1.0.5
+    date: 10/04/2023
+    version: 1.1.0
 ]]
 
 local mod = get_mod("book_finder")
@@ -10,12 +10,16 @@ local mod = get_mod("book_finder")
 local player_unit
 local book_units
 local book_picked
+local timer
+local delay
 local debug_mode
 
 local init = function()
     player_unit = nil
     book_units = {}
     book_picked = {}
+    timer = 0
+    delay = mod:get("notif_delay") / 1000
     debug_mode = mod:get("enable_debug_mode")
 end
 
@@ -74,14 +78,16 @@ mod:hook_safe("BroadphaseExtension", "_add_to_broadphase", function(self)
     end
 end)
 
-mod:hook_safe("PickupSystem", "update", function()
+mod:hook_safe("PickupSystem", "update", function(self, system_context, dt, t)
+    local is_repeatable = mod:get("enable_repeat_notif")
+
     if not player_unit or not book_units then
         return
     end
 
     for unit, unit_data in pairs(book_units) do
         if mod:get("enable_" .. unit_data.name) then
-            if unit_data.notified then
+            if unit_data.notified and not is_repeatable then
                 return
             end
 
@@ -94,10 +100,23 @@ mod:hook_safe("PickupSystem", "update", function()
 
             local distance_sq = Vector3.distance_squared(target_pos, player_pos)
             if is_in_range(distance_sq) then
-                book_units[unit].notified = true
-                show_notification("book_sensed_" .. unit_data.name)
-                if debug_mode then
-                    mod:echo(math.sqrt(distance_sq))
+                timer = 0
+                if not unit_data.notified then
+                    book_units[unit].notified = true
+                    show_notification("book_sensed_" .. unit_data.name)
+                    if debug_mode then
+                        mod:echo(math.sqrt(distance_sq))
+                    end
+                end
+            elseif is_repeatable then
+                if timer < delay then
+                    timer = timer + dt
+                    if debug_mode then
+                        mod:echo(timer)
+                    end
+                else
+                    timer = 0
+                    book_units[unit].notified = false
                 end
             end
         else
