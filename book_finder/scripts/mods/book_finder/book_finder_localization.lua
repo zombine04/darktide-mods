@@ -57,7 +57,7 @@ return {
 		ru = "Уведомлять, когда вы снова будете находиться на определенном расстоянии",
 	},
 	notif_delay = {
-		en = "Delay before notifying again (ms)",
+		en = "Delay before notify again (ms)",
 		ja = "再度通知するまでの間隔 (ms)",
 		ru = "Задержка перед повторным уведомлением (мс)",
 	},
