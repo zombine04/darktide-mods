@@ -2,7 +2,7 @@
     title: book_finder
     author: Zombine
     date: 11/04/2023
-    version: 1.1.1
+    version: 1.1.2
 ]]
 
 local mod = get_mod("book_finder")
