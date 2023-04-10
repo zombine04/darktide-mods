@@ -1,8 +1,8 @@
 --[[
     title: book_finder
     author: Zombine
-    date: 10/04/2023
-    version: 1.1.0
+    date: 11/04/2023
+    version: 1.1.1
 ]]
 
 local mod = get_mod("book_finder")
@@ -94,7 +94,7 @@ mod:hook_safe("PickupSystem", "update", function(self, system_context, dt, t)
             local player_pos = player_unit and POSITION_LOOKUP[player_unit]
             local target_pos = unit and POSITION_LOOKUP[unit]
 
-            if not target_pos then
+            if not player_pos or not target_pos then
                 return
             end
 
