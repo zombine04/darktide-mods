@@ -1,11 +1,13 @@
 --[[
     title: who_are_you
     author: Zombine
-    date: 10/04/2023
-    version: 1.0.2
+    date: 11/04/2023
+    version: 1.1.0
 ]]
 
 local mod = get_mod("who_are_you")
+
+local debug_mode = false
 
 local is_my_self = function(account_id)
     local local_player = Managers.player:local_player(1)
@@ -35,7 +37,7 @@ local style_sub_name = function(name)
     return name
 end
 
-local change_display_name = function(name, account_name, account_id, enable_custom)
+local modify_display_name = function(name, account_name, account_id, enable_custom)
     local display_style = mod:get("display_style")
 
     if display_style == "character_only" or (not mod:get("enable_display_self") and is_my_self(account_id)) then
@@ -59,17 +61,41 @@ local change_display_name = function(name, account_name, account_id, enable_cust
     return name
 end
 
+local modify_participant_name = function(participant)
+    if mod:get("enable_chat") and participant.displayname and not participant.wru_modified then
+        local account_id = participant.account_id
+
+        if account_id then
+            local account_name = get_account_name_from_id(account_id)
+
+            if account_name == "N/A" or account_name == "[unknown]" then
+                return participant
+            end
+
+            participant.displayname = modify_display_name(participant.displayname, account_name, account_id)
+            table.insert(participant, "wru_modified")
+            participant.wru_modified = true
+        end
+    end
+
+    return participant
+end
+
+-- ##############################
+-- Team Player Panel
+-- ##############################
+
 mod:hook_require("scripts/ui/hud/elements/player_panel_base/hud_element_player_panel_base", function(instance)
     mod:hook(instance, "_set_player_name", function(func, self, player_name, current_level)
         local player = self._player
         local name = player:name()
         local account_id = player:account_id()
 
-        if account_id then
+        if mod:get("enable_team_hud") and account_id then
             local account_name = get_account_name_from_id(account_id)
             local name_prefix = self._player_name_prefix or ""
 
-            name = change_display_name(name, account_name, account_id, true)
+            name = modify_display_name(name, account_name, account_id, true)
             name = name_prefix .. name
             self._current_player_name = name
 
@@ -78,4 +104,26 @@ mod:hook_require("scripts/ui/hud/elements/player_panel_base/hud_element_player_p
             func(self, player_name, current_level)
         end
     end)
+end)
+
+-- ##############################
+-- Chat
+-- ##############################
+
+mod:hook("ConstantElementChat", "cb_chat_manager_message_recieved", function(func, self, channel_handle, participant, message)
+    participant = modify_participant_name(participant)
+
+    func(self, channel_handle, participant, message)
+end)
+
+mod:hook("ConstantElementChat", "cb_chat_manager_participant_added", function(func, self, channel_handle, participant)
+    participant = modify_participant_name(participant)
+
+    func(self, channel_handle, participant)
+end)
+
+mod:hook("ConstantElementChat", "cb_chat_manager_participant_removed", function(func, self, channel_handle, participant_uri, participant)
+    participant = modify_participant_name(participant)
+
+    func(self, channel_handle, participant_uri, participant)
 end)

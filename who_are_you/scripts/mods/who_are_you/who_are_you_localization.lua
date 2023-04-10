@@ -38,10 +38,26 @@ return {
 		ja = "自身のアカウント名も表示する",
 		ru = "Видимость имени вашей учётной записи",
 	},
+	modify_target = {
+		en = "Applied to",
+		ja = "変更対象",
+	},
+	enable_team_hud = {
+		en = "Team HUD",
+		ja = "チームHUD",
+	},
+	enable_chat = {
+		en = "Chat",
+		ja = "チャット",
+	},
 	sub_name_settings = {
 		en = "Sub name settings",
 		ja = "サブネーム設定",
 		ru = "Настройки дополнительной части имени",
+	},
+	tooltip_sub_name = {
+		en = "This doesn't affect to chat name.",
+		ja = "この設定はチャット欄には反映されません。",
 	},
 	enable_custom_size = {
 		en = "Change sub name size",

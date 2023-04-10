@@ -23,6 +23,22 @@ return {
 				default_value = true,
 			},
 			{
+				setting_id = "modify_target",
+				type = "group",
+				sub_widgets = {
+					{
+						setting_id = "enable_team_hud",
+						type = "checkbox",
+						default_value = true,
+					},
+					{
+						setting_id = "enable_chat",
+						type = "checkbox",
+						default_value = true,
+					},
+				}
+			},
+			{
 				setting_id = "sub_name_settings",
 				type = "group",
 				sub_widgets = {
@@ -30,6 +46,7 @@ return {
 						setting_id = "enable_custom_size",
 						type = "checkbox",
 						default_value = false,
+						tooltip = "tooltip_sub_name",
 						sub_widgets = {
 							{
 								setting_id = "sub_name_size",
@@ -43,6 +60,7 @@ return {
 						setting_id = "enable_custom_color",
 						type = "checkbox",
 						default_value = false,
+						tooltip = "tooltip_sub_name",
 						sub_widgets = {
 							{
 								setting_id = "color_r",
