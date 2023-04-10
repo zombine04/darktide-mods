@@ -54,10 +54,12 @@ return {
 	enable_repeat_notif = {
 		en = "Notify when you're in the certain range again",
 		ja = "再び一定距離に入った際に通知する",
+		ru = "Уведомлять, когда вы снова будете находиться на определенном расстоянии",
 	},
 	notif_delay = {
 		en = "Delay before notifying again (ms)",
 		ja = "再度通知するまでの間隔 (ms)",
+		ru = "Задержка перед повторным уведомлением (мс)",
 	},
 	book_sensed_grimoire = {
 		en = "Feel the presence of a grimoire nearby...",
