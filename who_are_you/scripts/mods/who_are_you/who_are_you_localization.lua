@@ -62,18 +62,22 @@ local locres = {
 	cycle_style = {
 		en = "Cycle Style",
 		ja = "スタイルの切り替え",
+		["zh-cn"] = "循环切换样式",
 	},
 	key_cycle_style = {
 		en = "Keybind: Next style",
 		ja = "キーバインド：次のスタイル",
+		["zh-cn"] = "快捷键：下一个样式",
 	},
 	enable_cycle_notif = {
 		en = "Notify current style",
 		ja = "現在のスタイルを通知する",
+		["zh-cn"] = "通知提醒当前的样式",
 	},
 	current_style = {
 		en = "current style: ",
 		ja = "現在のスタイル: ",
+		["zh-cn"] = "当前样式：",
 	},
 	enable_display_self = {
 		en = "Display your own account name",
@@ -84,26 +88,32 @@ local locres = {
 	modify_target = {
 		en = "Applied to",
 		ja = "変更対象",
+		["zh-cn"] = "应用到",
 	},
 	global = {
 		en = "Global",
 		ja = "グローバル",
+		["zh-cn"] = "全局",
 	},
 	enable_team_hud = {
 		en = "Team HUD",
 		ja = "チームHUD",
+		["zh-cn"] = "团队 HUD",
 	},
 	enable_chat = {
 		en = "Chat",
 		ja = "チャット",
+		["zh-cn"] = "聊天栏",
 	},
 	enable_lobby = {
 		en = "Lobby",
 		ja = "ロビー",
+		["zh-cn"] = "小队",
 	},
 	enable_nameplate = {
 		en = "Nameplate",
 		ja = "ネームプレート",
+		["zh-cn"] = "名称标签",
 	},
 	sub_name_settings = {
 		en = "Sub name settings",
@@ -114,10 +124,12 @@ local locres = {
 	tooltip_sub_name = {
 		en = "This doesn't affect to chat name.",
 		ja = "この設定はチャット欄には反映されません。",
+		["zh-cn"] = "这不会影响聊天名字。",
 	},
 	enable_override = {
 		en = "Override global settings",
 		ja = "グローバル設定を上書きする",
+		["zh-cn"] = "覆盖全局设置",
 	},
 	enable_custom_size = {
 		en = "Change sub name size",
