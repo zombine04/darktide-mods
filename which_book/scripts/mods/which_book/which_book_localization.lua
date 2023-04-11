@@ -22,15 +22,19 @@ return {
 	},
 	wb_custom_r = {
 		en = "R",
+		["zh-cn"] = "红",
 	},
 	wb_custom_g = {
 		en = "G",
+		["zh-cn"] = "绿",
 	},
 	wb_custom_b = {
 		en = "B",
+		["zh-cn"] = "蓝",
 	},
 	wb_custom_a = {
 		en = "A",
+		["zh-cn"] = "不透明度",
 	},
 	wb_scrip_color = {
 		en = "Set individual color for Scriptures",
@@ -39,14 +43,18 @@ return {
 	},
 	wb_scrip_r = {
 		en = "R",
+		["zh-cn"] = "红",
 	},
 	wb_scrip_g = {
 		en = "G",
+		["zh-cn"] = "绿",
 	},
 	wb_scrip_b = {
 		en = "B",
+		["zh-cn"] = "蓝",
 	},
 	wb_scrip_a = {
 		en = "A",
+		["zh-cn"] = "不透明度",
 	},
 }

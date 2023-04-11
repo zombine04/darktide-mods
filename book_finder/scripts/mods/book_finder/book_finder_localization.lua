@@ -2,6 +2,7 @@ return {
 	mod_name = {
 		en = "Book Finder",
 		ru = "Книгоискатель",
+		["zh-cn"] = "书籍搜寻",
 	},
 	mod_description = {
 		en = "Display a notification when you're in the certain distance of grimoires / scriptures.",
@@ -55,11 +56,13 @@ return {
 		en = "Notify when you're in the certain range again",
 		ja = "再び一定距離に入った際に通知する",
 		ru = "Уведомлять, когда вы снова будете находиться на определенном расстоянии",
+		["zh-cn"] = "再次进入一定距离时通知",
 	},
 	notif_delay = {
 		en = "Delay before notify again (ms)",
 		ja = "再度通知するまでの間隔 (ms)",
 		ru = "Задержка перед повторным уведомлением (мс)",
+		["zh-cn"] = "再次通知的延迟（毫秒）",
 	},
 	book_sensed_grimoire = {
 		en = "Feel the presence of a grimoire nearby...",
