@@ -2,7 +2,7 @@
     title: who_are_you
     author: Zombine
     date: 11/04/2023
-    version: 2.0.0
+    version: 2.1.0
 ]]
 
 local mod = get_mod("who_are_you")
@@ -78,11 +78,11 @@ local modify_participant_name = function(participant)
     return participant
 end
 
-local modify_nameplate = function (widget, is_combat)
-    local data = widget.data
+local modify_nameplate = function (marker, is_combat)
+    local data = marker.data
     local account_id = data._account_id
     local profile = data._profile
-    local content = widget.widget.content
+    local content = marker.widget.content
 
     if mod:get("enable_nameplate") and account_id and profile and content.header_text then
         local character_name = profile and profile.name or ""
@@ -94,9 +94,11 @@ local modify_nameplate = function (widget, is_combat)
             local player_slot = data._slot
             local player_slot_color = UISettings.player_slot_colors[player_slot] or Color.ui_hud_green_light(255, true)
             local color_string = "{#color(" .. player_slot_color[2] .. "," .. player_slot_color[3] .. "," .. player_slot_color[4] .. ")}"
+            local archetype = profile and profile.archetype
+            local string_symbol = archetype and archetype.string_symbol or ""
 
-            content.header_text = color_string .. "{#reset()} " .. character_name
-            content.icon_text = color_string .. "{#reset()}"
+            content.header_text = color_string .. string_symbol .. "{#reset()} " .. character_name
+            content.icon_text = color_string .. string_symbol .. "{#reset()}"
         else
             local character_level = profile and profile.current_level or 1
             local archetype = profile and profile.archetype
@@ -156,22 +158,19 @@ end)
 -- Nameplate
 -- ##############################
 
-mod:hook_require("scripts/ui/hud/elements/world_markers/templates/world_marker_template_nameplate", function(instance)
-    mod:hook_safe(instance, "update_function", function(self, parent, ui_renderer, widget, marker, template, dt, t)
-        modify_nameplate(widget)
-    end)
-end)
+mod:hook_safe("HudElementWorldMarkers", "_calculate_markers", function(self, dt, t)
+    local markers_by_type = self._markers_by_type
 
-mod:hook_require("scripts/ui/hud/elements/world_markers/templates/world_marker_template_nameplate_party_hud", function(instance)
-    mod:hook_safe(instance, "update_function", function(self, parent, ui_renderer, widget, marker, template, dt, t)
-        modify_nameplate(widget)
-    end)
-end)
+    for marker_type, markers in pairs(markers_by_type) do
+        if marker_type == "nameplate" or marker_type == "nameplate_party_hud" or marker_type == "nameplate_party"then
+            for i = 1, #markers do
+                local marker = markers[i]
+                local is_combat = marker_type == "nameplate_party"
 
-mod:hook_require("scripts/ui/hud/elements/world_markers/templates/world_marker_template_nameplate_combat", function(instance)
-    mod:hook_safe(instance, "update_function", function(self, parent, ui_renderer, widget, marker, template, dt, t)
-        modify_nameplate(widget, true)
-    end)
+                modify_nameplate(marker, is_combat)
+            end
+        end
+    end
 end)
 
 -- ##############################
@@ -181,18 +180,23 @@ end)
 mod:hook_require("scripts/ui/hud/elements/player_panel_base/hud_element_player_panel_base", function(instance)
     mod:hook(instance, "_set_player_name", function(func, self, player_name, current_level)
         local player = self._player
-        local name = player:name()
+        local character_name = player:name()
         local account_id = player:account_id()
 
         if mod:get("enable_team_hud") and account_id then
             local account_name = get_account_name_from_id(account_id)
             local name_prefix = self._player_name_prefix or ""
 
-            name = modify_display_name(name, account_name, account_id, "team_hud")
-            name = name_prefix .. name
-            self._current_player_name = name
+            if account_name == "N/A" or account_name == "[unknown]" then
+                self._current_player_name = account_name
+            else
+                self._current_player_name = character_name
+            end
 
-            func(self, name, current_level)
+            character_name = modify_display_name(character_name, account_name, account_id, "team_hud")
+            character_name = name_prefix .. character_name
+
+            func(self, character_name, current_level)
         else
             func(self, player_name, current_level)
         end
