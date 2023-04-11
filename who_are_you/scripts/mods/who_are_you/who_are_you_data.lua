@@ -36,6 +36,11 @@ return {
 						type = "checkbox",
 						default_value = true,
 					},
+					{
+						setting_id = "enable_lobby",
+						type = "checkbox",
+						default_value = true,
+					},
 				}
 			},
 			{

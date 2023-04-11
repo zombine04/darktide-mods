@@ -2,7 +2,7 @@
     title: who_are_you
     author: Zombine
     date: 11/04/2023
-    version: 1.1.0
+    version: 1.2.0
 ]]
 
 local mod = get_mod("who_are_you")
@@ -126,4 +126,28 @@ mod:hook("ConstantElementChat", "cb_chat_manager_participant_removed", function(
     participant = modify_participant_name(participant)
 
     func(self, channel_handle, participant_uri, participant)
+end)
+
+-- ##############################
+-- Lobby
+-- ##############################
+
+mod:hook_safe("LobbyView", "_sync_player", function(self, unique_id, player)
+	local spawn_slots = self._spawn_slots
+	local slot_id = self:_player_slot_id(unique_id)
+	local slot = spawn_slots[slot_id]
+    local account_id = player:account_id()
+
+    if mod:get("enable_lobby") and account_id and slot and slot.synced then
+        local panel_widget = slot.panel_widget
+        local panel_content = panel_widget.content
+        local profile = player:profile()
+        local character_name = player:name()
+        local character_level = tostring(profile.current_level) .. " "
+        local account_name = get_account_name_from_id(account_id)
+
+        character_name = modify_display_name(character_name, account_name, account_id, true)
+        panel_content.character_name = string.format("%s %s", character_level, character_name)
+    end
+
 end)

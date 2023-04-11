@@ -50,6 +50,10 @@ return {
 		en = "Chat",
 		ja = "チャット",
 	},
+	enable_lobby = {
+		en = "Lobby",
+		ja = "ロビー",
+	},
 	sub_name_settings = {
 		en = "Sub name settings",
 		ja = "サブネーム設定",
