@@ -2,17 +2,17 @@
     title: book_finder
     author: Zombine
     date: 12/04/2023
-    version: 1.1.3
+    version: 1.2.0
 ]]
 
 local mod = get_mod("book_finder")
 
-local player_unit
-local book_units
-local book_picked
-local timer
-local delay
-local debug_mode
+local player_unit = nil
+local book_units = {}
+local book_picked = {}
+local timer = 0
+local delay = mod:get("notif_delay") / 1000
+local debug_mode = mod:get("enable_debug_mode")
 
 local init = function()
     player_unit = nil
@@ -23,11 +23,15 @@ local init = function()
     debug_mode = mod:get("enable_debug_mode")
 end
 
-local show_notification = function(key)
+local show_notification = function(key, player_pos)
     if mod:get("enable_chat_notif") then
         mod:echo(mod:localize(key))
     end
     if mod:get("enable_popup_notif") then
+        if player_pos then
+            local fx_system = Managers.state.extension:system("fx_system")
+            fx_system:trigger_wwise_event("wwise/events/player/play_pick_up_tome", player_pos)
+        end
         mod:notify(mod:localize(key))
     end
 end
@@ -103,7 +107,7 @@ mod:hook_safe("PickupSystem", "update", function(self, system_context, dt, t)
                 timer = 0
                 if not unit_data.notified then
                     book_units[unit].notified = true
-                    show_notification("book_sensed_" .. unit_data.name)
+                    show_notification("book_sensed_" .. unit_data.name, player_pos)
                     if debug_mode then
                         mod:echo(math.sqrt(distance_sq))
                     end
