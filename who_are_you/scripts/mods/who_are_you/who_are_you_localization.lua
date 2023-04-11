@@ -1,4 +1,23 @@
-return {
+local mod = get_mod("who_are_you")
+
+mod.modified_elements = {
+	"_chat",
+	"_lobby",
+	"_nameplate",
+	"_team_hud",
+}
+
+mod.sub_name_options = {
+	"color_r",
+	"color_g",
+	"color_b",
+	"enable_custom_color",
+	"enable_custom_size",
+	"enable_override",
+	"sub_name_size",
+}
+
+local locres = {
 	mod_name = {
 		en = "Who Are You",
 		ru = "Кто ты",
@@ -42,6 +61,10 @@ return {
 		en = "Applied to",
 		ja = "変更対象",
 	},
+	global = {
+		en = "Global",
+		ja = "グローバル",
+	},
 	enable_team_hud = {
 		en = "Team HUD",
 		ja = "チームHUD",
@@ -66,6 +89,10 @@ return {
 	tooltip_sub_name = {
 		en = "This doesn't affect to chat name.",
 		ja = "この設定はチャット欄には反映されません。",
+	},
+	enable_override = {
+		en = "Override global settings",
+		ja = "グローバル設定を上書きする",
 	},
 	enable_custom_size = {
 		en = "Change sub name size",
@@ -95,3 +122,26 @@ return {
 		ru = "Синий",
 	},
 }
+
+for _, element in ipairs(mod.modified_elements) do
+	local local_name = "sub_name_settings" .. element
+	locres[local_name] = {}
+	for lang, text in pairs(locres.sub_name_settings) do
+		if (locres["enable" .. element][lang]) then
+			locres[local_name][lang] = text .. " (" .. locres["enable" .. element][lang] .. ")"
+		end
+	end
+end
+for lang, text in pairs(locres.sub_name_settings) do
+	if locres.global[lang] then
+		locres.sub_name_settings[lang] = text .. " (" .. locres.global[lang] .. ")"
+	end
+end
+
+for _, element in ipairs(mod.modified_elements) do
+	for _, option in ipairs(mod.sub_name_options) do
+		locres[option .. element] = locres[option]
+	end
+end
+
+return locres

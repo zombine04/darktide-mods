@@ -1,6 +1,6 @@
 local mod = get_mod("who_are_you")
 
-return {
+local data = {
 	name = mod:localize("mod_name"),
 	description = mod:localize("mod_description"),
 	is_togglable = true,
@@ -25,28 +25,7 @@ return {
 			{
 				setting_id = "modify_target",
 				type = "group",
-				sub_widgets = {
-					{
-						setting_id = "enable_team_hud",
-						type = "checkbox",
-						default_value = true,
-					},
-					{
-						setting_id = "enable_chat",
-						type = "checkbox",
-						default_value = true,
-					},
-					{
-						setting_id = "enable_lobby",
-						type = "checkbox",
-						default_value = true,
-					},
-					{
-						setting_id = "enable_nameplate",
-						type = "checkbox",
-						default_value = true,
-					},
-				}
+				sub_widgets = {}
 			},
 			{
 				setting_id = "sub_name_settings",
@@ -56,7 +35,6 @@ return {
 						setting_id = "enable_custom_size",
 						type = "checkbox",
 						default_value = false,
-						tooltip = "tooltip_sub_name",
 						sub_widgets = {
 							{
 								setting_id = "sub_name_size",
@@ -70,7 +48,6 @@ return {
 						setting_id = "enable_custom_color",
 						type = "checkbox",
 						default_value = false,
-						tooltip = "tooltip_sub_name",
 						sub_widgets = {
 							{
 								setting_id = "color_r",
@@ -97,3 +74,69 @@ return {
 		}
 	}
 }
+
+local widgets = data.options.widgets
+
+for _, element in ipairs(mod.modified_elements) do
+	local modify_targets = widgets[3].sub_widgets
+
+	modify_targets[#modify_targets + 1] = {
+		setting_id = "enable" .. element,
+		type = "checkbox",
+		default_value = true,
+	}
+
+	widgets[#widgets + 1] = {
+		setting_id = "sub_name_settings" .. element,
+		type = "group",
+		sub_widgets = {
+			{
+				setting_id = "enable_override" .. element,
+				type = "checkbox",
+				default_value = false,
+				sub_widgets = {
+					{
+						setting_id = "enable_custom_size" .. element,
+						type = "checkbox",
+						default_value = false,
+						sub_widgets = {
+							{
+								setting_id = "sub_name_size" .. element,
+								type = "numeric",
+								default_value = 25,
+								range = {1, 50},
+							},
+						}
+					},
+					{
+						setting_id = "enable_custom_color" .. element,
+						type = "checkbox",
+						default_value = false,
+						sub_widgets = {
+							{
+								setting_id = "color_r" .. element,
+								type = "numeric",
+								default_value = 255,
+								range = {1, 255},
+							},
+							{
+								setting_id = "color_g" .. element,
+								type = "numeric",
+								default_value = 255,
+								range = {1, 255},
+							},
+							{
+								setting_id = "color_b" .. element,
+								type = "numeric",
+								default_value = 255,
+								range = {1, 255},
+							},
+						}
+					}
+				}
+			}
+		}
+	}
+end
+
+return data

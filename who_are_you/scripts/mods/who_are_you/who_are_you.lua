@@ -2,7 +2,7 @@
     title: who_are_you
     author: Zombine
     date: 11/04/2023
-    version: 1.3.0
+    version: 2.0.0
 ]]
 
 local mod = get_mod("who_are_you")
@@ -22,21 +22,27 @@ local get_account_name_from_id = function(account_id)
     return account_name
 end
 
-local style_sub_name = function(name)
-    name = " (" .. name .. "){#reset()}"
+local style_sub_name = function(name, element)
+    local suffix = ""
 
-    if mod:get("enable_custom_size") then
-        name = "{#size(" .. mod:get("sub_name_size") .. ")}" .. name
+    if element and mod:get("enable_override_" .. element) then
+        suffix = "_" .. element
     end
 
-    if mod:get("enable_custom_color") then
-        name = "{#color(" .. mod:get("color_r") .. "," .. mod:get("color_g") .. "," .. mod:get("color_b") .. ")}" .. name
+    name = " (" .. name .. "){#reset()}"
+
+    if mod:get("enable_custom_size" .. suffix) then
+        name = "{#size(" .. mod:get("sub_name_size" .. suffix) .. ")}" .. name
+    end
+
+    if mod:get("enable_custom_color" .. suffix) then
+        name = "{#color(" .. mod:get("color_r" .. suffix) .. "," .. mod:get("color_g" .. suffix) .. "," .. mod:get("color_b" .. suffix) .. ")}" .. name
     end
 
     return name
 end
 
-local modify_display_name = function(name, account_name, account_id, enable_custom)
+local modify_display_name = function(name, account_name, account_id, element)
     local display_style = mod:get("display_style")
 
     if display_style == "character_only" or (not mod:get("enable_display_self") and is_my_self(account_id)) then
@@ -44,17 +50,9 @@ local modify_display_name = function(name, account_name, account_id, enable_cust
     elseif display_style == "account_only" then
         name = account_name
     elseif display_style == "character_first" then
-        if enable_custom then
-            name =  name .. style_sub_name(account_name)
-        else
-            name = name .. " (" .. account_name .. ")"
-        end
+        name =  name .. style_sub_name(account_name, element)
     elseif display_style == "account_first" then
-        if enable_custom then
-            name =  account_name .. style_sub_name(name)
-        else
-            name = account_name .. " (" .. name .. ")"
-        end
+        name =  account_name .. style_sub_name(name, element)
     end
 
     return name
@@ -71,7 +69,7 @@ local modify_participant_name = function(participant)
                 return participant
             end
 
-            participant.displayname = modify_display_name(participant.displayname, account_name, account_id)
+            participant.displayname = modify_display_name(participant.displayname, account_name, account_id, "chat")
             table.insert(participant, "wru_modified")
             participant.wru_modified = true
         end
@@ -90,7 +88,7 @@ local modify_nameplate = function (widget, is_combat)
         local character_name = profile and profile.name or ""
         local account_name = get_account_name_from_id(account_id)
 
-        character_name = modify_display_name(character_name, account_name, account_id, true)
+        character_name = modify_display_name(character_name, account_name, account_id, "nameplate")
 
         if is_combat then
             local player_slot = data._slot
@@ -108,31 +106,6 @@ local modify_nameplate = function (widget, is_combat)
         end
     end
 end
-
--- ##############################
--- Team Player Panel
--- ##############################
-
-mod:hook_require("scripts/ui/hud/elements/player_panel_base/hud_element_player_panel_base", function(instance)
-    mod:hook(instance, "_set_player_name", function(func, self, player_name, current_level)
-        local player = self._player
-        local name = player:name()
-        local account_id = player:account_id()
-
-        if mod:get("enable_team_hud") and account_id then
-            local account_name = get_account_name_from_id(account_id)
-            local name_prefix = self._player_name_prefix or ""
-
-            name = modify_display_name(name, account_name, account_id, true)
-            name = name_prefix .. name
-            self._current_player_name = name
-
-            func(self, name, current_level)
-        else
-            func(self, player_name, current_level)
-        end
-    end)
-end)
 
 -- ##############################
 -- Chat
@@ -174,7 +147,7 @@ mod:hook_safe("LobbyView", "_sync_player", function(self, unique_id, player)
         local character_level = tostring(profile.current_level) .. " "
         local account_name = get_account_name_from_id(account_id)
 
-        character_name = modify_display_name(character_name, account_name, account_id, true)
+        character_name = modify_display_name(character_name, account_name, account_id, "lobby")
         panel_content.character_name = string.format("%s %s", character_level, character_name)
     end
 end)
@@ -189,17 +162,39 @@ mod:hook_require("scripts/ui/hud/elements/world_markers/templates/world_marker_t
     end)
 end)
 
---[[
--- This will cause attempting to rehook active hook warning
 mod:hook_require("scripts/ui/hud/elements/world_markers/templates/world_marker_template_nameplate_party_hud", function(instance)
     mod:hook_safe(instance, "update_function", function(self, parent, ui_renderer, widget, marker, template, dt, t)
         modify_nameplate(widget)
     end)
 end)
-]]
 
 mod:hook_require("scripts/ui/hud/elements/world_markers/templates/world_marker_template_nameplate_combat", function(instance)
     mod:hook_safe(instance, "update_function", function(self, parent, ui_renderer, widget, marker, template, dt, t)
         modify_nameplate(widget, true)
+    end)
+end)
+
+-- ##############################
+-- Team Player Panel
+-- ##############################
+
+mod:hook_require("scripts/ui/hud/elements/player_panel_base/hud_element_player_panel_base", function(instance)
+    mod:hook(instance, "_set_player_name", function(func, self, player_name, current_level)
+        local player = self._player
+        local name = player:name()
+        local account_id = player:account_id()
+
+        if mod:get("enable_team_hud") and account_id then
+            local account_name = get_account_name_from_id(account_id)
+            local name_prefix = self._player_name_prefix or ""
+
+            name = modify_display_name(name, account_name, account_id, "team_hud")
+            name = name_prefix .. name
+            self._current_player_name = name
+
+            func(self, name, current_level)
+        else
+            func(self, player_name, current_level)
+        end
     end)
 end)
