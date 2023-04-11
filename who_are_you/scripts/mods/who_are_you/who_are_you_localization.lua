@@ -21,36 +21,43 @@ local locres = {
 	mod_name = {
 		en = "Who Are You",
 		ru = "Кто ты",
+		["zh-cn"] = "到底是谁",
 	},
 	mod_description = {
 		en = "Display players' account name next to their character name.",
 		ja = "キャラクター名の横にプレイヤーのアカウントネームを表示します。",
 		ru = "Who Are You - Отображет имя учётной записи игрока рядом с именем его персонажа.",
+		["zh-cn"] = "在玩家的角色名字旁边显示账户名字。",
 	},
 	display_style = {
 		en = "Display style",
 		ja = "表示スタイル",
 		ru = "Стиль отображения",
+		["zh-cn"] = "显示样式",
 	},
 	character_first = {
 		en = "Character Name (Account Name)",
 		ja = "キャラクター名 (アカウント名)",
 		ru = "Имя персонажа (Учётная запись)",
+		["zh-cn"] = "角色名字（账户名字）",
 	},
 	account_first = {
 		en = "Account Name (Character Name)",
 		ja = "アカウント名 (キャラクター名)",
 		ru = "Учётная запись (Имя персонажа)",
+		["zh-cn"] = "账户名字（角色名字）",
 	},
 	character_only = {
 		en = "Character Name",
 		ja = "キャラクター名",
 		ru = "Имя персонажа",
+		["zh-cn"] = "角色名字",
 	},
 	account_only = {
 		en = "Account Name",
 		ja = "アカウント名",
 		ru = "Учётная запись",
+		["zh-cn"] = "账户名字",
 	},
 	cycle_style = {
 		en = "Cycle Style",
@@ -72,6 +79,7 @@ local locres = {
 		en = "Display your own account name",
 		ja = "自身のアカウント名も表示する",
 		ru = "Видимость имени вашей учётной записи",
+		["zh-cn"] = "显示你自己的账户名字",
 	},
 	modify_target = {
 		en = "Applied to",
@@ -101,6 +109,7 @@ local locres = {
 		en = "Sub name settings",
 		ja = "サブネーム設定",
 		ru = "Настройки дополнительной части имени",
+		["zh-cn"] = "附加名字设置",
 	},
 	tooltip_sub_name = {
 		en = "This doesn't affect to chat name.",
@@ -114,28 +123,34 @@ local locres = {
 		en = "Change sub name size",
 		ja = "サブネームの大きさを変更する",
 		ru = "Изменить размер доп. имени",
+		["zh-cn"] = "更改附加名字大小",
 	},
 	sub_name_size = {
 		en = "Size",
 		ja = "大きさ",
 		ru = "Размер",
+		["zh-cn"] = "大小",
 	},
 	enable_custom_color = {
 		en = "Change sub name color",
 		ja = "サブネームの色を変更する",
 		ru = "Изменить цвет доп. имени",
+		["zh-cn"] = "更改附加名字颜色",
 	},
 	color_r = {
 		en = "R",
 		ru = "Красный",
+		["zh-cn"] = "红",
 	},
 	color_g = {
 		en = "G",
 		ru = "Зелёный",
+		["zh-cn"] = "绿",
 	},
 	color_b = {
 		en = "B",
 		ru = "Синий",
+		["zh-cn"] = "蓝",
 	},
 }
 
