@@ -2,12 +2,11 @@
     title: who_are_you
     author: Zombine
     date: 11/04/2023
-    version: 1.2.0
+    version: 1.3.0
 ]]
 
 local mod = get_mod("who_are_you")
-
-local debug_mode = false
+local UISettings = require("scripts/settings/ui/ui_settings")
 
 local is_my_self = function(account_id)
     local local_player = Managers.player:local_player(1)
@@ -81,6 +80,35 @@ local modify_participant_name = function(participant)
     return participant
 end
 
+local modify_nameplate = function (widget, is_combat)
+    local data = widget.data
+    local account_id = data._account_id
+    local profile = data._profile
+    local content = widget.widget.content
+
+    if mod:get("enable_nameplate") and account_id and profile and content.header_text then
+        local character_name = profile and profile.name or ""
+        local account_name = get_account_name_from_id(account_id)
+
+        character_name = modify_display_name(character_name, account_name, account_id, true)
+
+        if is_combat then
+            local player_slot = data._slot
+            local player_slot_color = UISettings.player_slot_colors[player_slot] or Color.ui_hud_green_light(255, true)
+            local color_string = "{#color(" .. player_slot_color[2] .. "," .. player_slot_color[3] .. "," .. player_slot_color[4] .. ")}"
+
+            content.header_text = color_string .. "{#reset()} " .. character_name
+            content.icon_text = color_string .. "{#reset()}"
+        else
+            local character_level = profile and profile.current_level or 1
+            local archetype = profile and profile.archetype
+            local string_symbol = archetype and archetype.string_symbol or ""
+
+            content.header_text = string_symbol .. " " .. character_name .. " - " .. tostring(character_level) .. " "
+        end
+    end
+end
+
 -- ##############################
 -- Team Player Panel
 -- ##############################
@@ -149,5 +177,29 @@ mod:hook_safe("LobbyView", "_sync_player", function(self, unique_id, player)
         character_name = modify_display_name(character_name, account_name, account_id, true)
         panel_content.character_name = string.format("%s %s", character_level, character_name)
     end
+end)
 
+-- ##############################
+-- Nameplate
+-- ##############################
+
+mod:hook_require("scripts/ui/hud/elements/world_markers/templates/world_marker_template_nameplate", function(instance)
+    mod:hook_safe(instance, "update_function", function(self, parent, ui_renderer, widget, marker, template, dt, t)
+        modify_nameplate(widget)
+    end)
+end)
+
+--[[
+-- This will cause attempting to rehook active hook warning
+mod:hook_require("scripts/ui/hud/elements/world_markers/templates/world_marker_template_nameplate_party_hud", function(instance)
+    mod:hook_safe(instance, "update_function", function(self, parent, ui_renderer, widget, marker, template, dt, t)
+        modify_nameplate(widget)
+    end)
+end)
+]]
+
+mod:hook_require("scripts/ui/hud/elements/world_markers/templates/world_marker_template_nameplate_combat", function(instance)
+    mod:hook_safe(instance, "update_function", function(self, parent, ui_renderer, widget, marker, template, dt, t)
+        modify_nameplate(widget, true)
+    end)
 end)

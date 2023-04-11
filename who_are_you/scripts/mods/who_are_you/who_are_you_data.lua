@@ -41,6 +41,11 @@ return {
 						type = "checkbox",
 						default_value = true,
 					},
+					{
+						setting_id = "enable_nameplate",
+						type = "checkbox",
+						default_value = true,
+					},
 				}
 			},
 			{

@@ -54,6 +54,10 @@ return {
 		en = "Lobby",
 		ja = "ロビー",
 	},
+	enable_nameplate = {
+		en = "Nameplate",
+		ja = "ネームプレート",
+	},
 	sub_name_settings = {
 		en = "Sub name settings",
 		ja = "サブネーム設定",
