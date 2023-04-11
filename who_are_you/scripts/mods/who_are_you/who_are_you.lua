@@ -2,19 +2,29 @@
     title: who_are_you
     author: Zombine
     date: 11/04/2023
-    version: 2.2.0
+    version: 2.2.1
 ]]
 
 local mod = get_mod("who_are_you")
 local UISettings = require("scripts/settings/ui/ui_settings")
 
-local cycled = false
+local cycled_nameplate = false
+local cycled_team_hud = false
+
+local init = function()
+    cycled_nameplate = false
+    cycled_team_hud = false
+end
 
 local is_my_self = function(account_id)
     local local_player = Managers.player:local_player(1)
     local local_player_account_id = local_player:account_id()
 
     return account_id == local_player_account_id
+end
+
+local is_unknown = function(account_name)
+    return account_name == "N/A" or account_name == "[unknown]"
 end
 
 local get_account_name_from_id = function(account_id)
@@ -67,7 +77,7 @@ local modify_participant_name = function(participant)
         if account_id then
             local account_name = get_account_name_from_id(account_id)
 
-            if account_name == "N/A" or account_name == "[unknown]" then
+            if is_unknown(account_name) then
                 return participant
             end
 
@@ -92,6 +102,12 @@ local modify_nameplate = function (marker, is_combat)
 
         character_name = modify_display_name(character_name, account_name, account_id, "nameplate")
 
+        if is_unknown(account_name) then
+            marker.wru_modified = false
+        else
+            marker.wru_modified = true
+        end
+
         if is_combat then
             local player_slot = data._slot
             local player_slot_color = UISettings.player_slot_colors[player_slot] or Color.ui_hud_green_light(255, true)
@@ -113,8 +129,15 @@ end
 
 local modify_player_panel_name = function(self, player)
     local character_name = player:name()
+    local modified = self.wru_modified
 
-    if cycled or not self.wru_modified then
+    if cycled_team_hud and modified then
+        self.wru_modified = false
+    elseif cycled_team_hud and not modified then
+        cycled_team_hud = false
+    end
+
+    if cycled_team_hud or not self.wru_modified then
         local account_id = player:account_id()
         local profile = player and player:profile()
         local current_level = self._current_level or profile and profile.current_level
@@ -123,7 +146,7 @@ local modify_player_panel_name = function(self, player)
             local account_name = get_account_name_from_id(account_id)
             local name_prefix = self._player_name_prefix or ""
 
-            if account_name == "N/A" or account_name == "[unknown]" then
+            if is_unknown(account_name) then
                 self.wru_modified = false
             else
                 self.wru_modified = true
@@ -131,8 +154,6 @@ local modify_player_panel_name = function(self, player)
 
             character_name = modify_display_name(character_name, account_name, account_id, "team_hud")
             character_name = name_prefix .. character_name
-
-            cycled = false
         end
 
         self:_set_player_name(character_name, current_level)
@@ -196,11 +217,13 @@ mod:hook_safe("HudElementWorldMarkers", "_calculate_markers", function(self, dt,
             for i = 1, #markers do
                 local marker = markers[i]
                 local is_combat = marker_type == "nameplate_party"
-
-                modify_nameplate(marker, is_combat)
+                if cycled_nameplate or not marker.wru_modified then
+                    modify_nameplate(marker, is_combat)
+                end
             end
         end
     end
+    cycled_nameplate = false
 end)
 
 -- ##############################
@@ -247,10 +270,22 @@ mod.cycle_style = function()
             index = 1
         end
 
-        cycled = true
+        cycled_nameplate = true
+        cycled_team_hud = true
+
         mod:set("display_style", display_styles[index])
         if mod:get("enable_cycle_notif") then
             mod:echo(mod:localize("current_style") .. mod:localize(display_styles[index]))
         end
+    end
+end
+
+mod.on_all_mods_loaded = function()
+    init()
+end
+
+mod.on_game_state_changed = function(status, state_name)
+    if state_name == "StateLoading" and status == "enter" then
+        init()
     end
 end
