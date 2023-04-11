@@ -52,6 +52,22 @@ local locres = {
 		ja = "アカウント名",
 		ru = "Учётная запись",
 	},
+	cycle_style = {
+		en = "Cycle Style",
+		ja = "スタイルの切り替え",
+	},
+	key_cycle_style = {
+		en = "Keybind: Next style",
+		ja = "キーバインド：次のスタイル",
+	},
+	enable_cycle_notif = {
+		en = "Notify current style",
+		ja = "現在のスタイルを通知する",
+	},
+	current_style = {
+		en = "current style: ",
+		ja = "現在のスタイル: ",
+	},
 	enable_display_self = {
 		en = "Display your own account name",
 		ja = "自身のアカウント名も表示する",

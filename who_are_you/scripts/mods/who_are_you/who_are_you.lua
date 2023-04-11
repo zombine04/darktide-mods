@@ -2,11 +2,13 @@
     title: who_are_you
     author: Zombine
     date: 11/04/2023
-    version: 2.1.0
+    version: 2.2.0
 ]]
 
 local mod = get_mod("who_are_you")
 local UISettings = require("scripts/settings/ui/ui_settings")
+
+local cycled = false
 
 local is_my_self = function(account_id)
     local local_player = Managers.player:local_player(1)
@@ -109,6 +111,34 @@ local modify_nameplate = function (marker, is_combat)
     end
 end
 
+local modify_player_panel_name = function(self, player)
+    local character_name = player:name()
+
+    if cycled or not self.wru_modified then
+        local account_id = player:account_id()
+        local profile = player and player:profile()
+        local current_level = self._current_level or profile and profile.current_level
+
+        if mod:get("enable_team_hud") and account_id then
+            local account_name = get_account_name_from_id(account_id)
+            local name_prefix = self._player_name_prefix or ""
+
+            if account_name == "N/A" or account_name == "[unknown]" then
+                self.wru_modified = false
+            else
+                self.wru_modified = true
+            end
+
+            character_name = modify_display_name(character_name, account_name, account_id, "team_hud")
+            character_name = name_prefix .. character_name
+
+            cycled = false
+        end
+
+        self:_set_player_name(character_name, current_level)
+    end
+end
+
 -- ##############################
 -- Chat
 -- ##############################
@@ -177,28 +207,50 @@ end)
 -- Team Player Panel
 -- ##############################
 
-mod:hook_require("scripts/ui/hud/elements/player_panel_base/hud_element_player_panel_base", function(instance)
-    mod:hook(instance, "_set_player_name", function(func, self, player_name, current_level)
-        local player = self._player
-        local character_name = player:name()
-        local account_id = player:account_id()
-
-        if mod:get("enable_team_hud") and account_id then
-            local account_name = get_account_name_from_id(account_id)
-            local name_prefix = self._player_name_prefix or ""
-
-            if account_name == "N/A" or account_name == "[unknown]" then
-                self._current_player_name = account_name
-            else
-                self._current_player_name = character_name
-            end
-
-            character_name = modify_display_name(character_name, account_name, account_id, "team_hud")
-            character_name = name_prefix .. character_name
-
-            func(self, character_name, current_level)
-        else
-            func(self, player_name, current_level)
-        end
-    end)
+mod:hook_safe("HudElementPersonalPlayerPanel", "_update_player_features", function(self, dt, t, player)
+    modify_player_panel_name(self, player)
 end)
+
+mod:hook_safe("HudElementPersonalPlayerPanelHub", "_update_player_features", function(self, dt, t, player)
+    modify_player_panel_name(self, player)
+end)
+
+mod:hook_safe("HudElementTeamPlayerPanel", "_update_player_features", function(self, dt, t, player)
+    modify_player_panel_name(self, player)
+end)
+
+mod:hook_safe("HudElementTeamPlayerPanelHub", "_update_player_features", function(self, dt, t, player)
+    modify_player_panel_name(self, player)
+end)
+
+mod.cycle_style = function()
+    local ui_manager = Managers.ui
+
+    if not ui_manager:chat_using_input() then
+        local index = 1
+        local current_style = mod:get("display_style")
+        local display_styles = {
+            "character_first",
+            "account_first",
+            "character_only",
+            "account_only",
+        }
+
+        for i, style in ipairs(display_styles) do
+            if current_style == style then
+                index = i + 1
+                break
+            end
+        end
+
+        if index > #display_styles then
+            index = 1
+        end
+
+        cycled = true
+        mod:set("display_style", display_styles[index])
+        if mod:get("enable_cycle_notif") then
+            mod:echo(mod:localize("current_style") .. mod:localize(display_styles[index]))
+        end
+    end
+end

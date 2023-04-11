@@ -23,6 +23,25 @@ local data = {
 				default_value = true,
 			},
 			{
+				setting_id = "cycle_style",
+				type = "group",
+				sub_widgets = {
+					{
+						setting_id = "key_cycle_style",
+						type = "keybind",
+						default_value = {},
+						keybind_trigger = "pressed",
+						keybind_type = "function_call",
+						function_name = "cycle_style",
+					},
+					{
+						setting_id = "enable_cycle_notif",
+						type = "checkbox",
+						default_value = true,
+					}
+				}
+			},
+			{
 				setting_id = "modify_target",
 				type = "group",
 				sub_widgets = {}
@@ -78,7 +97,13 @@ local data = {
 local widgets = data.options.widgets
 
 for _, element in ipairs(mod.modified_elements) do
-	local modify_targets = widgets[3].sub_widgets
+	local modify_targets = {}
+
+	for i, widget in ipairs(widgets) do
+		if widget.setting_id == "modify_target" then
+			modify_targets = widgets[i].sub_widgets
+		end
+	end
 
 	modify_targets[#modify_targets + 1] = {
 		setting_id = "enable" .. element,
