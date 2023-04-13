@@ -3,6 +3,9 @@
 ]]
 
 return {
+	mod_name = {
+		en = "Buy Until Rating",
+	},
 	mod_description = {
 		en = "Automatically buying selected weapon from Brunt's Armoury until the weapon rating reaches you desired or higher (or reaches quantity limit) .",
 		ja = "ブラントの武器庫から、選択した武器が希望の評価を超えるまで（もしくは個数制限に到達するまで）購入し続けます。",
@@ -18,12 +21,12 @@ return {
 		ja = "追加の制限",
 		["zh-cn"] = "额外限制",
 	},
-	enable_qty_limit = {
+	enable_num_limit = {
 		en = "Enable Quantity Limit",
 		ja = "個数制限を有効にする",
 		["zh-cn"] = "启用数量限制",
 	},
-	qty_limit = {
+	num_limit = {
 		en = "Quantity Limit",
 		ja = "個数制限",
 		["zh-cn"] = "数量限制",
@@ -98,14 +101,14 @@ return {
 		ja = "無制限",
 		["zh-cn"] = "无限制",
 	},
-	quantity = {
+	num = {
 		en = "Quantity",
 		ja = "個数",
 		["zh-cn"] = "数量",
 	},
-	discard = {
+	discarded = {
 		en = "Discarded",
-		ja = "売却",
+		ja = "売却済",
 		["zh-cn"] = "已出售",
 	},
 	max = {

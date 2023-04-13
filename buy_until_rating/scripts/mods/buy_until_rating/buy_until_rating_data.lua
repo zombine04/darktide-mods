@@ -1,7 +1,7 @@
 local mod = get_mod("buy_until_rating")
 
 return {
-	name = "Buy Until Rating",
+	name = mod:localize("mod_name"),
 	description = mod:localize("mod_description"),
 	is_togglable = true,
 	options = {
@@ -26,16 +26,18 @@ return {
 				type            = "group",
 				sub_widgets     = {
 					{
-						setting_id      = "enable_qty_limit",
+						setting_id      = "enable_num_limit",
 						type            = "checkbox",
 						default_value   = true,
+						sub_widgets     = {
+							{
+								setting_id      = "num_limit",
+								type            = "numeric",
+								default_value   = 5,
+								range           = {1, 100},
+							},
+						}
 					},
-					{
-						setting_id      = "qty_limit",
-						type            = "numeric",
-						default_value   = 5,
-						range           = {1, 100},
-					}
 				}
 			},
 			{
@@ -46,13 +48,15 @@ return {
 						setting_id      = "enable_auto_discard",
 						type            = "checkbox",
 						default_value   = false,
+						sub_widgets     = {
+							{
+								setting_id      = "discard_threshold",
+								type            = "numeric",
+								default_value   = 349,
+								range           = {300, 380},
+							},
+						}
 					},
-					{
-						setting_id      = "discard_threshold",
-						type            = "numeric",
-						default_value   = 349,
-						range           = {300, 380},
-					}
 				}
 			},
 			{
@@ -65,23 +69,12 @@ return {
 						default_value   = true,
 					},
 					{
-						setting_id      = "enable_rating_notif",
-						type            = "checkbox",
-						default_value   = true,
-					},
-					{
 						setting_id      = "enable_discard_notif",
 						type            = "checkbox",
 						default_value   = true,
 					},
-					{
-						setting_id      = "enable_default_notif",
-						type            = "checkbox",
-						tooltip         = "notif_dot_caution",
-						default_value   = true,
-					}
 				}
-			}
+			},
 		}
 	}
 }
