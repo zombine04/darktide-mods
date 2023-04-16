@@ -5,7 +5,7 @@ local UIWidget = require("scripts/managers/ui/ui_widget")
 
 local decimals = mod:get("decimals")
 local font_size = mod:get("font_size")
-local size = {font_size * (decimals + 1), font_size}
+local size = {font_size * (decimals + 3), font_size}
 local opacity = mod:get("font_opacity")
 local position_x = mod:get("position_x")
 local position_y = mod:get("position_y")
@@ -119,6 +119,7 @@ function HudElementRangeFinder:_update_distance(distance)
 
     if distance == 0 then
         content.text = "N/A"
+        style.text.text_color = text_color
         return
     end
 
