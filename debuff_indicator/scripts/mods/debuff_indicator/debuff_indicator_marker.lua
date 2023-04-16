@@ -173,7 +173,7 @@ function template.update_function(parent, ui_renderer, widget, marker, template,
 
             local buff_template = BuffTemplates[buff_name]
             local max_stacks = buff_template and buff_template.max_stacks
-            local stacks = buff_ext:current_stacks(buff_name) or 0
+            local stacks = buff_ext:current_stacks(buff_name) or 1
 
             if max_stacks and stacks > max_stacks then
                 stacks = max_stacks
