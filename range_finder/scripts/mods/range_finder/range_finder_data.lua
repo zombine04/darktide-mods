@@ -7,6 +7,13 @@ return {
 	options = {
 		widgets = {
 			{
+				setting_id = "update_delay",
+				type = "numeric",
+				default_value = 100,
+				range = {0, 1000},
+				tooltip = "delay_caution",
+			},
+			{
 				setting_id = "decimals",
 				type = "numeric",
 				default_value = 2,

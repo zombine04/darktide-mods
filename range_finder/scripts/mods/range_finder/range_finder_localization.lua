@@ -8,6 +8,14 @@ local locres = {
 		en = "Display the distance to the aimed position.",
 		ja = "照準した位置までの距離を表示します。",
 	},
+	update_delay = {
+		en = "Update interval (ms)",
+		ja = "アップデート間隔 (ms)",
+	},
+	delay_caution = {
+		en = "Caution: Lowering this value will result in smoother execution, but may impact stability and performance.",
+		ja = "注意：この値を下げると動作がよりなめらかになりますが、安定性やパフォーマンスに影響を与える可能性があります。",
+	},
 	decimals = {
 		en = "Number of decimal places",
 		ja = "少数点以下の桁数",
