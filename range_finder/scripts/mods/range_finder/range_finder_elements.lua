@@ -5,21 +5,21 @@ local UIWidget = require("scripts/managers/ui/ui_widget")
 
 local decimals = mod:get("decimals")
 local font_size = mod:get("font_size")
-local size = {font_size * (decimals + 3), font_size}
+local size = { font_size * (decimals + 3), font_size }
 local opacity = mod:get("font_opacity")
 local position_x = mod:get("position_x")
 local position_y = mod:get("position_y")
 
 local scenegraph_definition = {
-	screen = UIWorkspaceSettings.screen,
-	range_finder = {
-		parent = "screen",
-		scale = "fit",
-		vertical_alignment = "center",
-		horizontal_alignment = "center",
-		size = size,
-		position = {position_x, position_y, 10},
-	},
+    screen = UIWorkspaceSettings.screen,
+    range_finder = {
+        parent = "screen",
+        scale = "fit",
+        vertical_alignment = "center",
+        horizontal_alignment = "center",
+        size = size,
+        position = { position_x, position_y, 10 },
+    },
 }
 
 local default_color = Color.terminal_text_header(opacity, true)
@@ -123,7 +123,7 @@ function HudElementRangeFinder:_update_distance(distance)
         return
     end
 
-    content.text = string.format("%." .. decimals .. "f", math.floor(distance * 10^decimals) / 10^decimals)
+    content.text = string.format("%." .. decimals .. "f", math.floor(distance * 10 ^ decimals) / 10 ^ decimals)
 
     for key, color in pairs(mod.color_table(opacity)) do
         local threshold = mod:get(key)
