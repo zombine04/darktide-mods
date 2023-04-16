@@ -2,7 +2,7 @@
     title: range_finder
     author: kanateko
     date: 16/04/2023
-    version: 1.1.0
+    version: 1.1.1
 ]]
 
 local mod = get_mod("range_finder")
