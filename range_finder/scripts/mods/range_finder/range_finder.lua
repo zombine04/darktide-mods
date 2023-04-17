@@ -50,6 +50,11 @@ mod.on_all_mods_loaded = function()
     recreate_hud()
 end
 
+mod.on_setting_changed = function()
+    mod._is_enabled = mod:is_enabled()
+    recreate_hud()
+end
+
 mod.on_enabled = function ()
     mod._is_enabled = true
 end
@@ -57,9 +62,3 @@ end
 mod.on_disabled = function ()
     mod._is_enabled = false
 end
-
-mod:hook_safe("UIViewHandler", "close_view", function(self, view_name)
-    if view_name == "dmf_options_view" then
-        recreate_hud()
-    end
-end)
