@@ -1,8 +1,8 @@
 --[[
     title: ime_enabler
     author: zombine
-    date: 14/04/2023
-    version: 1.1.0
+    date: 17/04/2023
+    version: 1.1.1
 ]]
 
 local mod = get_mod("ime_enabler")
