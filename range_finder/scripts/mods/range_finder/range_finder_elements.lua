@@ -63,7 +63,8 @@ end
 function HudElementRangeFinder:update(dt, t, ui_renderer, render_settings, input_service)
     HudElementRangeFinder.super.update(self, dt, t, ui_renderer, render_settings, input_service)
 
-    if self._is_in_hub then
+    if not mod._is_enabled or self._is_in_hub then
+        self._widgets_by_name.range_finder.content.text = ""
         return
     end
 
