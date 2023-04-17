@@ -78,9 +78,9 @@ function template.create_widget_defintion(template, scenegraph_id)
                 },
                 font_type = header_font_settings.font_type,
                 font_size = font_size,
-                default_font_size = header_font_settings.font_size,
-                text_color = {opacity, 255, 255, 255},
-                default_text_color = {opacity, 255, 255, 255},
+                default_font_size = font_size,
+                text_color = { opacity, 255, 255, 255 },
+                default_text_color = { opacity, 255, 255, 255 },
                 drop_shadow = true,
                 size = size,
             }
@@ -99,6 +99,51 @@ function template.on_enter(widget, marker, template)
     mod._update_delay = 0.5
 end
 
+local _update_settings = function(style, template)
+    local font_size = mod:get("font_size")
+    local opacity = mod:get("font_opacity")
+    local distance = mod:get("distance")
+    local size = {
+        font_size * 20,
+        1
+    }
+
+    style.body_text.font_size = font_size
+    style.body_text.default_font_size = font_size
+    style.body_text.text_color = { opacity, 255, 255, 255 }
+    style.body_text.default_text_color = { opacity, 255, 255, 255 }
+    style.body_text.offset = {
+        size[1] * 0.5,
+        -size[2],
+        3
+    }
+
+    template.size = size
+    template.min_size = {
+        size[1] * scale_fraction,
+        size[2] * scale_fraction
+    }
+    template.max_size = {
+        size[1],
+        size[2]
+    }
+    template.max_distance = distance
+    template.scale_settings = {
+        scale_to = 1,
+        scale_from = 0.5,
+        distance_max = template.max_distance,
+        distance_min = template.evolve_distance
+    }
+    template.fade_settings = {
+        fade_to = 1,
+        fade_from = 0,
+        default_fade = 1,
+        distance_max = template.max_distance,
+        distance_min = template.max_distance - template.evolve_distance * 2,
+        easing_function = math.easeCubic
+    }
+end
+
 function template.update_function(parent, ui_renderer, widget, marker, template, dt, t)
     if mod._update_timer < mod._update_delay then
         mod._update_timer = mod._update_timer + dt
@@ -110,6 +155,11 @@ function template.update_function(parent, ui_renderer, widget, marker, template,
     local unit = marker.unit
 
     content.body_text = ""
+
+    if mod._setting_changed then
+        _update_settings(style, marker.template)
+        mod._setting_changed = false
+    end
 
     if content.distance then
         marker.draw = true

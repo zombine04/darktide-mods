@@ -2,7 +2,7 @@
     title: debuff_indicator
     author: kanatkeo
     date: 17/04/2023
-    version: 1.0.0
+    version: 1.0.1
 ]]
 local mod = get_mod("debuff_indicator")
 
@@ -47,5 +47,6 @@ end
 mod:hook_safe("UIViewHandler", "close_view", function(self, view_name)
     if view_name == "dmf_options_view" then
         recreate_hud()
+        mod._setting_changed = true
     end
 end)
