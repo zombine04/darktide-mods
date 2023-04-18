@@ -290,7 +290,7 @@ function template.update_function(parent, ui_renderer, widget, marker, template,
     end
 
     if display_style == "count" then
-        content.body_text.gsub(content.body_text, "\n", " ")
+        content.body_text = string.gsub(content.body_text, "\n", " ")
     end
 
     mod._update_timer = 0
