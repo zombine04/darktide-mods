@@ -19,6 +19,19 @@ mod.dot_names = {
 	"warp_fire",
 }
 
+mod.display_style_names = {
+	"both",
+	"label",
+	"count",
+}
+
+mod.display_group_names = {
+	"debuff",
+	"dot",
+	"stagger",
+	"suppression",
+}
+
 local locres = {
 	mod_name = {
 		en = "Debuff Indicator",
@@ -29,22 +42,52 @@ local locres = {
 		ja = "敵に付与されたデバフとそのスタック数を表示します。",
 		["zh-cn"] = "显示敌人受到的负面效果和层数",
 	},
-	distance = {
-		en = "Max distance",
-		ja = "最大表示距離",
-		["zh-cn"] = "最大显示距离",
+	display_style = {
+		en = "Display style",
+		ja = "表示スタイル",
+		["zh-cn"] = "显示样式",
+	},
+	display_style_options = {
+		en = "\nBoth:\nShow debuff name and stack count." ..
+		     "\n\nLabel:\nShow debuff name only." ..
+			 "\n\nCount:\nShow stack count only (recommend to use with custom colors) .",
+		ja = "\n両方:\nデバフ名とスタック数を表示します。" ..
+			 "\n\nラベル:\nデバフ名のみを表示します。" ..
+			 "\n\nカウント:\nスタック数のカウントのみを表示します。 (カスタムカラーとの併用を推奨) .",
+	},
+	display_style_both = {
+		en = "Both",
+		ja = "両方",
+	},
+	display_style_label = {
+		en = "Label",
+		ja = "ラベル",
+	},
+	display_style_count = {
+		en = "Count",
+		ja = "カウント",
+	},
+	key_cycle_style = {
+		en = "Keybind: Cycle styles",
+		ja = "キーバインド：次のスタイル",
+		["zh-cn"] = "快捷键：下一个样式",
 	},
 	enable_filter = {
 		en = "Display major debuffs only",
 		ja = "主要なデバフのみ表示する",
 		["zh-cn"] = "仅显示主要负面效果",
 	},
-	disable_filter = {
+	filter_disabled = {
 		en = "Display all internal buff and debuff if disabled.",
 		ja = "無効にした場合、すべての内部的なバフやデバフが表示されます。",
 		["zh-cn"] = "如果禁用，则会显示所有内部增益和减益。",
 	},
-	toggle_display = {
+	distance = {
+		en = "Max distance",
+		ja = "最大表示距離",
+		["zh-cn"] = "最大显示距离",
+	},
+	display_group = {
 		en = "What to display",
 		ja = "表示対象",
 		["zh-cn"] = "显示对象",
@@ -83,6 +126,10 @@ local locres = {
 		en = "Opacity",
 		ja = "不透明度",
 		["zh-cn"] = "不透明度",
+	},
+	offset_z = {
+		en = "Position (height)",
+		ja = "表示位置 (高さ)",
 	},
 	custom_color = {
 		en = "Custom color",

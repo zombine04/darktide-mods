@@ -1,7 +1,63 @@
 local mod = get_mod("debuff_indicator")
 local Breeds = require("scripts/settings/breed/breeds")
 
+local get_options = function()
+	local options = {}
+
+	for _, v in ipairs(mod.display_style_names) do
+		options[#options + 1] = {
+			text = "display_style_" .. v,
+			value = v
+		}
+	end
+
+	return options
+end
+
+local get_groups = function()
+	local groups = {}
+
+	for _, v in ipairs(mod.display_group_names) do
+		local default = true
+
+		if v == "stagger" or v == "suppression" then
+			default = false
+		end
+
+		groups[#groups + 1] = {
+			setting_id = "enable_" .. v,
+			type = "checkbox",
+			default_value = default,
+		}
+	end
+
+	return groups
+end
+
 local widgets = {
+	{
+		setting_id = "display_style",
+		type = "dropdown",
+		default_value = "both",
+		tooltip = "display_style_options",
+		options = get_options(),
+		sub_widgets = {
+			{
+				setting_id = "key_cycle_style",
+				type = "keybind",
+				default_value = {},
+				keybind_trigger = "pressed",
+				keybind_type = "function_call",
+				function_name = "cycle_style",
+			},
+		}
+	},
+	{
+		setting_id = "enable_filter",
+		type = "checkbox",
+		default_value = true,
+		tooltip = "filter_disabled",
+	},
 	{
 		setting_id = "distance",
 		type = "numeric",
@@ -9,36 +65,10 @@ local widgets = {
 		range = { 5, 80 },
 	},
 	{
-		setting_id = "enable_filter",
-		type = "checkbox",
-		default_value = true,
-		tooltip = "disable_filter",
-	},
-	{
-		setting_id = "toggle_display",
-		type = "group",
-		sub_widgets = {
-			{
-				setting_id = "enable_debuff",
-				type = "checkbox",
-				default_value = true,
-			},
-			{
-				setting_id = "enable_dot",
-				type = "checkbox",
-				default_value = true,
-			},
-			{
-				setting_id = "enable_stagger",
-				type = "checkbox",
-				default_value = true,
-			},
-			{
-				setting_id = "enable_suppression",
-				type = "checkbox",
-				default_value = true,
-			},
-		}
+		setting_id = "offset_z",
+		type = "numeric",
+		default_value = 2,
+		range = { 0, 5 },
 	},
 	{
 		setting_id = "font",
@@ -57,7 +87,12 @@ local widgets = {
 				range = { 0, 255 },
 			},
 		}
-	}
+	},
+	{
+		setting_id = "display_group",
+		type = "group",
+		sub_widgets = get_groups()
+	},
 }
 
 local widgets_debuff = {}
@@ -130,6 +165,10 @@ for breed_name, breed in pairs(Breeds) do
 end
 
 for _type, sub_widgets in pairs(widgets_breed) do
+	table.sort(sub_widgets, function(a, b)
+		return a.setting_id < b.setting_id
+	end)
+
 	widgets[#widgets + 1] = {
 		setting_id = "breed_" .. _type,
 		type = "group",
