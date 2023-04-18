@@ -2,7 +2,7 @@
     title: debuff_indicator
     author: kanatkeo
     date: 18/04/2023
-    version: 1.1.0
+    version: 1.1.1
 ]]
 local mod = get_mod("debuff_indicator")
 local DebuffIndicatorMarker = mod:io_dofile("debuff_indicator/scripts/mods/debuff_indicator/debuff_indicator_marker")

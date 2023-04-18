@@ -7,7 +7,7 @@ local UIWidget = require("scripts/managers/ui/ui_widget")
 local font_size = mod:get("font_size")
 local opacity = mod:get("font_opacity")
 local distance = mod:get("distance")
-local offset_z = mod:get("offset_z")
+local offset_z = mod:get("offset_z") / 10
 local display_style = mod:get("display_style")
 
 local template = {}
@@ -61,7 +61,7 @@ local _update_settings = function(style, template)
     font_size = mod:get("font_size")
     opacity = mod:get("font_opacity")
     distance = mod:get("distance")
-    offset_z = mod:get("offset_z")
+    offset_z = mod:get("offset_z") / 10
     display_style = mod:get("display_style")
 
     size = {

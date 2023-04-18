@@ -67,8 +67,8 @@ local widgets = {
 	{
 		setting_id = "offset_z",
 		type = "numeric",
-		default_value = 2,
-		range = { 0, 5 },
+		default_value = 20,
+		range = { 0, 50 },
 	},
 	{
 		setting_id = "font",
