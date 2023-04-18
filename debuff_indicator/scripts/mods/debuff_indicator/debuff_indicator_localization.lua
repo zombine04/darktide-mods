@@ -54,18 +54,24 @@ local locres = {
 		ja = "\n両方:\nデバフ名とスタック数を表示します。" ..
 			 "\n\nラベル:\nデバフ名のみを表示します。" ..
 			 "\n\nカウント:\nスタック数のカウントのみを表示します。 (カスタムカラーとの併用を推奨) .",
+		["zh-cn"] = "\n全部:\n显示负面效果名称和层数。" ..
+			 "\n\n名称:\n只显示负面效果名称。" ..
+			 "\n\n层数:\n只显示层数（建议同时设置自定义颜色）。",
 	},
 	display_style_both = {
 		en = "Both",
 		ja = "両方",
+		["zh-cn"] = "全部",
 	},
 	display_style_label = {
 		en = "Label",
 		ja = "ラベル",
+		["zh-cn"] = "名称",
 	},
 	display_style_count = {
 		en = "Count",
 		ja = "カウント",
+		["zh-cn"] = "层数",
 	},
 	key_cycle_style = {
 		en = "Keybind: Cycle styles",
@@ -130,6 +136,7 @@ local locres = {
 	offset_z = {
 		en = "Position (height)",
 		ja = "表示位置 (高さ)",
+		["zh-cn"] = "位置（高度）",
 	},
 	custom_color = {
 		en = "Custom color",
