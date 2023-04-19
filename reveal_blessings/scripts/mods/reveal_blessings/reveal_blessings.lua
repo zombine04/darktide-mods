@@ -1,8 +1,8 @@
 --[[
-	title: reveal_blessings
-	author: Zombine
-	date: 20/04/2023
-	version: 1.0.0
+    title: reveal_blessings
+    author: Zombine
+    date: 20/04/2023
+    version: 1.0.0
 ]]
 local mod = get_mod("reveal_blessings")
 
@@ -10,24 +10,24 @@ local debug_mode = mod:get("enable_debug_mode")
 local ItemUtils = require("scripts/utilities/items")
 
 local get_new_blueprints = function(blueprints)
-	local blueprints_new = {}
+    local blueprints_new = {}
     blueprints_new = table.clone(blueprints)
     blueprints_new.unknown_trait = table.clone(blueprints.trait)
 
     local unknown_trait = blueprints_new.unknown_trait
 
-    unknown_trait.init = function (parent, widget, config, callback_name)
-		local content = widget.content
-		local style = widget.style
-		local trait_item = config.trait_item
-		local trait_rarity = config.trait_rarity
-		content.config = config
-		content.parent = parent
-		local texture_icon, texture_frame = ItemUtils.trait_textures(trait_item, trait_rarity)
-		local icon_material_values = style.icon.material_values
-		icon_material_values.icon = texture_icon
-		icon_material_values.frame = texture_frame
-	end
+    unknown_trait.init = function(parent, widget, config, callback_name)
+        local content = widget.content
+        local style = widget.style
+        local trait_item = config.trait_item
+        local trait_rarity = config.trait_rarity
+        content.config = config
+        content.parent = parent
+        local texture_icon, texture_frame = ItemUtils.trait_textures(trait_item, trait_rarity)
+        local icon_material_values = style.icon.material_values
+        icon_material_values.icon = texture_icon
+        icon_material_values.frame = texture_frame
+    end
 
     local pass_template = unknown_trait.pass_template
 
@@ -44,26 +44,26 @@ local get_new_blueprints = function(blueprints)
         end
     end
 
-	return blueprints_new
+    return blueprints_new
 end
 
 local get_new_layout = function(rank, sticker_book)
     local profile = Managers.player:local_player_backend_profile()
-	local character_id = profile and profile.character_id
+    local character_id = profile and profile.character_id
 
-	local layout_new = {
-		{ widget_type = "spacing_vertical_small" }
-	}
+    local layout_new = {
+        { widget_type = "spacing_vertical_small" }
+    }
 
-	for trait_name, seen_status in pairs(sticker_book) do
-		local status = seen_status[rank]
-		local widget_type = "invalid"
+    for trait_name, seen_status in pairs(sticker_book) do
+        local status = seen_status[rank]
+        local widget_type = "invalid"
 
         if status == "seen" then
             widget_type = "trait"
         elseif status == "unseen" then
-			widget_type = "unknown_trait"
-		end
+            widget_type = "unknown_trait"
+        end
 
         if widget_type ~= "invalid" then
             local fake_trait = {
@@ -88,11 +88,11 @@ local get_new_layout = function(rank, sticker_book)
                 trait_rarity = rank
             }
         end
-	end
+    end
 
-	layout_new[#layout_new + 1] = {
-		widget_type = "spacing_vertical"
-	}
+    layout_new[#layout_new + 1] = {
+        widget_type = "spacing_vertical"
+    }
 
     return layout_new
 end
@@ -106,20 +106,20 @@ mod:hook("ViewElementTraitInventory", "init", function(func, ...)
 end)
 
 mod:hook("ViewElementTraitInventory", "present_grid_layout", function(func, self, layout, blueprints, ...)
-	if not self._sticker_book then
-		func(self, layout, blueprints, ...)
-		return
-	end
+    if not self._sticker_book then
+        func(self, layout, blueprints, ...)
+        return
+    end
 
-	local blueprints_new = get_new_blueprints(blueprints)
-	local rank = self._rank
+    local blueprints_new = get_new_blueprints(blueprints)
+    local rank = self._rank
     local layout_new = get_new_layout(rank, self._sticker_book)
 
     if debug_mode then
-	    mod:dump(layout_new, "layout", 3)
+        mod:dump(layout_new, "layout", 3)
     end
 
-	func(self, layout_new, blueprints_new, ...)
+    func(self, layout_new, blueprints_new, ...)
 end)
 
 mod.on_setting_changed = function()
