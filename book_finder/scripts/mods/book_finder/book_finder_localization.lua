@@ -99,5 +99,13 @@ return {
 		ja = "デバッグモードを有効にする",
 		["zh-cn"] = "启用调试模式",
 		ru = "Включить режим отладки",
+	},
+	enable_sound_cue = {
+		en = "Enbale notification sound",
+		ja = "通知音を有効にする",
+	},
+	sound_cue = {
+		en = "Notification sound",
+		ja = "通知音",
 	}
 }
