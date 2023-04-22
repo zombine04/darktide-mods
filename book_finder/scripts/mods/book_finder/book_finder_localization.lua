@@ -103,9 +103,11 @@ return {
 	enable_sound_cue = {
 		en = "Enbale notification sound",
 		ja = "通知音を有効にする",
+		["zh-cn"] = "启用通知音效",
 	},
 	sound_cue = {
 		en = "Notification sound",
 		ja = "通知音",
+		["zh-cn"] = "通知音效",
 	}
 }

@@ -1,8 +1,12 @@
 return {
+	mod_name = {
+		en = "Which Book",
+		["zh-cn"] = "书籍任务图标",
+	},
 	mod_description = {
 		en = "Show individual icons for each side mission on the mission board.",
 		ja = "ミッションボードで各サイドミッションごとに固有のアイコンを表示します。",
-		["zh-cn"] = "在任务面板上，为支线任务显示独立的图标。"
+		["zh-cn"] = "在任务面板上，为次要目标显示独立的图标。"
 	},
 	wb_grimoire = {
 		en = Localize("loc_contract_task_pickup_type_grimoire"),
