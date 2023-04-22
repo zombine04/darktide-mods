@@ -5,6 +5,7 @@
 return {
 	mod_name = {
 		en = "Buy Until Rating",
+		["zh-cn"] = "自动购买指定评级物品",
 	},
 	mod_description = {
 		en = "Automatically buying selected weapon from Brunt's Armoury until the weapon rating reaches you desired or higher (or reaches quantity limit) .",
