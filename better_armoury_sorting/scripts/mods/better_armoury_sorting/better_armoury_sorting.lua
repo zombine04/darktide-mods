@@ -1,8 +1,8 @@
 --[[
     title: better_armoury_sorting
     author: Zombine
-    date: 02/04/2023
-    version: 1.0.0
+    date: 22/04/2023
+    version: 1.0.1
 ]]
 
 local mod = get_mod("better_armoury_sorting")

@@ -1,8 +1,8 @@
 --[[
     title: Which Book
     aouthor: Zombine
-    date: 12/04/2023
-    version: 1.2.2
+    date: 22/04/2023
+    version: 1.2.3
 ]]
 
 local mod = get_mod("which_book")
