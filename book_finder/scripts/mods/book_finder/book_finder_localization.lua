@@ -101,13 +101,15 @@ return {
 		ru = "Включить режим отладки",
 	},
 	enable_sound_cue = {
-		en = "Enbale notification sound",
+		en = "Enable notification sound",
 		ja = "通知音を有効にする",
 		["zh-cn"] = "启用通知音效",
+		ru = "Включить звук уведомления",
 	},
 	sound_cue = {
 		en = "Notification sound",
 		ja = "通知音",
 		["zh-cn"] = "通知音效",
+		ru = "Звук уведомления",
 	}
 }
