@@ -1,149 +1,119 @@
 local mod = get_mod("which_book")
 
+local get_icons = function (key)
+    return {
+        { text = "wb_default", value = "content/ui/materials/icons/mission_types/mission_type_08" },
+        { text = "icon_" .. key, value = "content/ui/materials/icons/pocketables/hud/small/party_" .. key },
+        { text = "icon_" .. key .. "_book", value = "content/ui/materials/icons/pocketables/hud/" .. key },
+        { text = "icon_nurgle", value = "content/ui/materials/icons/circumstances/nurgle_manifestation_01" },
+        { text = "icon_preset_01", value = "content/ui/materials/icons/presets/preset_01" },
+        { text = "icon_preset_02", value = "content/ui/materials/icons/presets/preset_02" },
+        { text = "icon_preset_03", value = "content/ui/materials/icons/presets/preset_03" },
+        { text = "icon_preset_04", value = "content/ui/materials/icons/presets/preset_04" },
+        { text = "icon_preset_05", value = "content/ui/materials/icons/presets/preset_05" },
+        { text = "icon_preset_06", value = "content/ui/materials/icons/presets/preset_06" },
+        { text = "icon_preset_07", value = "content/ui/materials/icons/presets/preset_07" },
+        { text = "icon_preset_08", value = "content/ui/materials/icons/presets/preset_08" },
+        { text = "icon_preset_09", value = "content/ui/materials/icons/presets/preset_09" },
+        { text = "icon_preset_10", value = "content/ui/materials/icons/presets/preset_10" },
+        { text = "icon_preset_11", value = "content/ui/materials/icons/presets/preset_11" },
+        { text = "icon_preset_12", value = "content/ui/materials/icons/presets/preset_12" },
+        { text = "icon_preset_13", value = "content/ui/materials/icons/presets/preset_13" },
+        { text = "icon_preset_14", value = "content/ui/materials/icons/presets/preset_14" },
+        { text = "icon_preset_15", value = "content/ui/materials/icons/presets/preset_15" },
+        { text = "icon_preset_16", value = "content/ui/materials/icons/presets/preset_16" },
+        { text = "icon_preset_17", value = "content/ui/materials/icons/presets/preset_17" },
+        { text = "icon_preset_18", value = "content/ui/materials/icons/presets/preset_18" },
+        { text = "icon_preset_19", value = "content/ui/materials/icons/presets/preset_19" },
+        { text = "icon_preset_20", value = "content/ui/materials/icons/presets/preset_20" },
+        { text = "icon_preset_21", value = "content/ui/materials/icons/presets/preset_21" },
+        { text = "icon_preset_22", value = "content/ui/materials/icons/presets/preset_22" },
+        { text = "icon_preset_23", value = "content/ui/materials/icons/presets/preset_23" },
+        { text = "icon_preset_24", value = "content/ui/materials/icons/presets/preset_24" },
+        { text = "icon_preset_25", value = "content/ui/materials/icons/presets/preset_25" },
+    }
+end
+
 return {
-	name = mod:localize("mod_name"),
-	description = mod:localize("mod_description"),
-	is_togglable = true,
-	options = {
-		widgets = {
-			{
-				setting_id = "wb_grimoire",
-				type = "dropdown",
-				default_value = "content/ui/materials/icons/pocketables/hud/small/party_grimoire",
-				options = {
-					{text = "wb_default", value = "content/ui/materials/icons/mission_types/mission_type_08"},
-					{text = "icon_grimoire", value = "content/ui/materials/icons/pocketables/hud/small/party_grimoire"},
-					{text = "icon_grimoire_book", value = "content/ui/materials/icons/pocketables/hud/grimoire"},
-					{text = "icon_scripture", value = "content/ui/materials/icons/pocketables/hud/small/party_scripture"},
-					{text = "icon_scripture_book", value = "content/ui/materials/icons/pocketables/hud/scripture"},
-					{text = "icon_nurgle", value = "content/ui/materials/icons/circumstances/nurgle_manifestation_01"},
-					{text = "icon_preset_01", value = "content/ui/materials/icons/presets/preset_01"},
-					{text = "icon_preset_02", value = "content/ui/materials/icons/presets/preset_02"},
-					{text = "icon_preset_03", value = "content/ui/materials/icons/presets/preset_03"},
-					{text = "icon_preset_04", value = "content/ui/materials/icons/presets/preset_04"},
-					{text = "icon_preset_05", value = "content/ui/materials/icons/presets/preset_05"},
-					{text = "icon_preset_06", value = "content/ui/materials/icons/presets/preset_06"},
-					{text = "icon_preset_07", value = "content/ui/materials/icons/presets/preset_07"},
-					{text = "icon_preset_08", value = "content/ui/materials/icons/presets/preset_08"},
-					{text = "icon_preset_09", value = "content/ui/materials/icons/presets/preset_09"},
-					{text = "icon_preset_10", value = "content/ui/materials/icons/presets/preset_10"},
-					{text = "icon_preset_11", value = "content/ui/materials/icons/presets/preset_11"},
-					{text = "icon_preset_12", value = "content/ui/materials/icons/presets/preset_12"},
-					{text = "icon_preset_13", value = "content/ui/materials/icons/presets/preset_13"},
-					{text = "icon_preset_14", value = "content/ui/materials/icons/presets/preset_14"},
-					{text = "icon_preset_15", value = "content/ui/materials/icons/presets/preset_15"},
-					{text = "icon_preset_16", value = "content/ui/materials/icons/presets/preset_16"},
-					{text = "icon_preset_17", value = "content/ui/materials/icons/presets/preset_17"},
-					{text = "icon_preset_18", value = "content/ui/materials/icons/presets/preset_18"},
-					{text = "icon_preset_19", value = "content/ui/materials/icons/presets/preset_19"},
-					{text = "icon_preset_20", value = "content/ui/materials/icons/presets/preset_20"},
-					{text = "icon_preset_21", value = "content/ui/materials/icons/presets/preset_21"},
-					{text = "icon_preset_22", value = "content/ui/materials/icons/presets/preset_22"},
-					{text = "icon_preset_23", value = "content/ui/materials/icons/presets/preset_23"},
-					{text = "icon_preset_24", value = "content/ui/materials/icons/presets/preset_24"},
-					{text = "icon_preset_25", value = "content/ui/materials/icons/presets/preset_25"},
-				}
-			},
-			{
-				setting_id = "wb_scripture",
-				type = "dropdown",
-				default_value = "content/ui/materials/icons/pocketables/hud/small/party_scripture",
-				options = {
-					{text = "wb_default", value = "content/ui/materials/icons/mission_types/mission_type_08"},
-					{text = "icon_grimoire", value = "content/ui/materials/icons/pocketables/hud/small/party_grimoire"},
-					{text = "icon_grimoire_book", value = "content/ui/materials/icons/pocketables/hud/grimoire"},
-					{text = "icon_scripture", value = "content/ui/materials/icons/pocketables/hud/small/party_scripture"},
-					{text = "icon_scripture_book", value = "content/ui/materials/icons/pocketables/hud/scripture"},
-					{text = "icon_nurgle", value = "content/ui/materials/icons/circumstances/nurgle_manifestation_01"},
-					{text = "icon_preset_01", value = "content/ui/materials/icons/presets/preset_01"},
-					{text = "icon_preset_02", value = "content/ui/materials/icons/presets/preset_02"},
-					{text = "icon_preset_03", value = "content/ui/materials/icons/presets/preset_03"},
-					{text = "icon_preset_04", value = "content/ui/materials/icons/presets/preset_04"},
-					{text = "icon_preset_05", value = "content/ui/materials/icons/presets/preset_05"},
-					{text = "icon_preset_06", value = "content/ui/materials/icons/presets/preset_06"},
-					{text = "icon_preset_07", value = "content/ui/materials/icons/presets/preset_07"},
-					{text = "icon_preset_08", value = "content/ui/materials/icons/presets/preset_08"},
-					{text = "icon_preset_09", value = "content/ui/materials/icons/presets/preset_09"},
-					{text = "icon_preset_10", value = "content/ui/materials/icons/presets/preset_10"},
-					{text = "icon_preset_11", value = "content/ui/materials/icons/presets/preset_11"},
-					{text = "icon_preset_12", value = "content/ui/materials/icons/presets/preset_12"},
-					{text = "icon_preset_13", value = "content/ui/materials/icons/presets/preset_13"},
-					{text = "icon_preset_14", value = "content/ui/materials/icons/presets/preset_14"},
-					{text = "icon_preset_15", value = "content/ui/materials/icons/presets/preset_15"},
-					{text = "icon_preset_16", value = "content/ui/materials/icons/presets/preset_16"},
-					{text = "icon_preset_17", value = "content/ui/materials/icons/presets/preset_17"},
-					{text = "icon_preset_18", value = "content/ui/materials/icons/presets/preset_18"},
-					{text = "icon_preset_19", value = "content/ui/materials/icons/presets/preset_19"},
-					{text = "icon_preset_20", value = "content/ui/materials/icons/presets/preset_20"},
-					{text = "icon_preset_21", value = "content/ui/materials/icons/presets/preset_21"},
-					{text = "icon_preset_22", value = "content/ui/materials/icons/presets/preset_22"},
-					{text = "icon_preset_23", value = "content/ui/materials/icons/presets/preset_23"},
-					{text = "icon_preset_24", value = "content/ui/materials/icons/presets/preset_24"},
-					{text = "icon_preset_25", value = "content/ui/materials/icons/presets/preset_25"},
-				}
-			},
-			{
-				setting_id = "wb_custom_color",
-				type = "checkbox",
-				default_value = false,
-				sub_widgets = {
-					{
-						setting_id = "wb_custom_r",
-						type = "numeric",
-						default_value = 255,
-						range = {0, 255},
-					},
-					{
-						setting_id = "wb_custom_g",
-						type = "numeric",
-						default_value = 255,
-						range = {0, 255},
-					},
-					{
-						setting_id = "wb_custom_b",
-						type = "numeric",
-						default_value = 255,
-						range = {0, 255},
-					},
-					{
-						setting_id = "wb_custom_a",
-						type = "numeric",
-						default_value = 255,
-						range = {0, 255},
-					},
-				}
-			},
-			{
-				setting_id = "wb_scrip_color",
-				type = "checkbox",
-				default_value = false,
-				sub_widgets = {
-					{
-						setting_id = "wb_scrip_r",
-						type = "numeric",
-						default_value = 255,
-						range = {0, 255},
-					},
-					{
-						setting_id = "wb_scrip_g",
-						type = "numeric",
-						default_value = 255,
-						range = {0, 255},
-					},
-					{
-						setting_id = "wb_scrip_b",
-						type = "numeric",
-						default_value = 255,
-						range = {0, 255},
-					},
-					{
-						setting_id = "wb_scrip_a",
-						type = "numeric",
-						default_value = 255,
-						range = {0, 255},
-					},
-				}
-			},
-		}
-	}
+    name = mod:localize("mod_name"),
+    description = mod:localize("mod_description"),
+    is_togglable = true,
+    options = {
+        widgets = {
+            {
+                setting_id = "wb_grimoire",
+                type = "dropdown",
+                default_value = "content/ui/materials/icons/pocketables/hud/small/party_grimoire",
+                options = get_icons("grimoire")
+            },
+            {
+                setting_id = "wb_scripture",
+                type = "dropdown",
+                default_value = "content/ui/materials/icons/pocketables/hud/small/party_scripture",
+                options = get_icons("scripture")
+            },
+            {
+                setting_id = "wb_custom_color",
+                type = "checkbox",
+                default_value = false,
+                sub_widgets = {
+                    {
+                        setting_id = "wb_custom_r",
+                        type = "numeric",
+                        default_value = 255,
+                        range = {0, 255},
+                    },
+                    {
+                        setting_id = "wb_custom_g",
+                        type = "numeric",
+                        default_value = 255,
+                        range = {0, 255},
+                    },
+                    {
+                        setting_id = "wb_custom_b",
+                        type = "numeric",
+                        default_value = 255,
+                        range = {0, 255},
+                    },
+                    {
+                        setting_id = "wb_custom_a",
+                        type = "numeric",
+                        default_value = 255,
+                        range = {0, 255},
+                    },
+                }
+            },
+            {
+                setting_id = "wb_scrip_color",
+                type = "checkbox",
+                default_value = false,
+                sub_widgets = {
+                    {
+                        setting_id = "wb_scrip_r",
+                        type = "numeric",
+                        default_value = 255,
+                        range = { 0, 255 },
+                    },
+                    {
+                        setting_id = "wb_scrip_g",
+                        type = "numeric",
+                        default_value = 255,
+                        range = { 0, 255 },
+                    },
+                    {
+                        setting_id = "wb_scrip_b",
+                        type = "numeric",
+                        default_value = 255,
+                        range = { 0, 255 },
+                    },
+                    {
+                        setting_id = "wb_scrip_a",
+                        type = "numeric",
+                        default_value = 255,
+                        range = { 0, 255 },
+                    },
+                }
+            },
+        }
+    }
 }

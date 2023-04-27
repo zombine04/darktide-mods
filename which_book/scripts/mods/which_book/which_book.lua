@@ -2,7 +2,7 @@
     title: Which Book
     aouthor: Zombine
     date: 28/04/2023
-    version: 1.2.5
+    version: 1.2.6
 ]]
 
 local mod = get_mod("which_book")
