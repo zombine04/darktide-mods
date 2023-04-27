@@ -7,7 +7,7 @@ return {
 	mod_description = {
 		en = "Show individual icons for each side mission on the mission board.",
 		ja = "ミッションボードで各サイドミッションごとに固有のアイコンを表示します。",
-		["zh-cn"] = "在任务面板上，为次要目标显示独立的图标。"
+		["zh-cn"] = "在任务面板上，为次要目标显示独立的图标。",
 		ru = "Which Book - Показывает в окне миссий, настраиваемые значки сбоку от картинки миссии, если в ней будут доступны книги.",
 	},
 	wb_grimoire = {
