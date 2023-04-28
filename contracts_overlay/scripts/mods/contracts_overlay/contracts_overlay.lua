@@ -2,7 +2,7 @@
     title: contracts_overlay
     author: Zombine
     date: 28/04/2023
-    version: 1.1.1
+    version: 1.1.2
 ]]
 local mod = get_mod("contracts_overlay")
 
@@ -392,10 +392,7 @@ end
 -- update tactical overlay
 
 mod:hook("HudElementTacticalOverlay", "init", function(func, ...)
-    if not mod._contract_data then
-        fetch_task_list()
-    end
-
+    fetch_task_list()
     Definitions = get_new_definitions()
 
     func(...)
