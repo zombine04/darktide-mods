@@ -1,8 +1,8 @@
 --[[
     title: contracts_overlay
     author: Zombine
-    date: 27/04/2023
-    version: 1.0.0
+    date: 28/04/2023
+    version: 1.1.0
 ]]
 local mod = get_mod("contracts_overlay")
 
@@ -11,11 +11,12 @@ local UIWidget = require("scripts/managers/ui/ui_widget")
 local ViewSettings = require("scripts/ui/views/contracts_view/contracts_view_settings")
 local WalletSettings = require("scripts/settings/wallet_settings")
 local debug_mode = mod:get("enable_debug_mode")
+local live_update = mod:get("enable_live_update")
 
 local margin = 20
 local font_size = 20
-mod._contract_base_size = font_size + 5
-local contract_total_size = mod._contract_total_size
+local contract_base_size = font_size + 5
+local contract_total_size = contract_base_size
 
 -- ##############################
 -- functions
@@ -139,7 +140,52 @@ local get_new_definitions = function()
     return Definitions
 end
 
-local _fetch_task_list = function()
+local _init_counter = function(tasks)
+    mod._live_counter = mod:persistent_table("live_counter")
+
+    if not table.is_empty(mod._live_counter) then
+        return
+    end
+
+    local live_counter = mod._live_counter
+
+    for _, task in pairs(tasks) do
+        if not task.rewarded then
+            local criteria = task.criteria
+            local task_type = criteria.taskType
+
+            if task_type == "CollectResource" then
+                local resource_type = criteria.resourceType or criteria.resourceTypes[1]
+
+                if not live_counter.resource then
+                    live_counter.resource = {}
+                end
+
+                live_counter.resource[resource_type] = 0
+            elseif task_type == "KillBosses" or task_type == "KillMinions" then
+                if not live_counter.kill then
+                    live_counter.kill = {}
+                end
+
+                if task_type == "KillBosses" then
+                    live_counter.kill.boss = 0
+                elseif task_type == "KillMinions" then
+                    local enemy_type = criteria.enemyType
+                    local weapon_type = criteria.weaponType
+
+                    live_counter.kill[enemy_type .. "_" .. weapon_type] = 0
+                end
+            end
+        end
+    end
+
+    if debug_mode then
+        mod:echo("counter initialized")
+        mod:dump(mod._live_counter, "coutner", 2)
+    end
+end
+
+local fetch_task_list = function()
     local profile = Managers.player:local_player_backend_profile()
     local character_id = profile and profile.character_id
 
@@ -151,25 +197,34 @@ local _fetch_task_list = function()
 
     if mod._completed then
         if debug_mode then
-            mod:echo("completed")
+            mod:echo("contract completed")
         end
         return
     end
 
-    local contract_manager = Managers.backend.interfaces.contracts
+    local promise = Managers.backend.interfaces.contracts:get_current_contract(character_id)
 
-    contract_manager:get_current_contract(character_id):next(function(data)
+    if not promise then
+        return
+    end
+    promise:next(function(data)
         mod._contract_data = data
         mod._update_tasks_list = true
 
-        if debug_mode then
-            mod:echo("fetched")
-            mod:dump(mod._contract_data, "contract", 3)
+        if live_update and not mod._live_counter then
+            _init_counter(data.tasks)
         end
+
+        if debug_mode then
+            mod:echo("contract fetched")
+            mod:dump(mod._contract_data, "contract", 4)
+        end
+    end):catch(function(e)
+        mod:dump(e, "error_fetch_task_list", 3)
     end)
 end
 
-local get_task_description_and_target = function(task_criteria)
+local _get_task_description_and_target = function(task_criteria)
     local task_parameter_strings = ViewSettings.task_parameter_strings
     local task_type = task_criteria.taskType
     local target_value = task_criteria.count
@@ -241,7 +296,34 @@ local get_task_description_and_target = function(task_criteria)
     return title, description, target_value
 end
 
-local _update_contract_list = function(self)
+local _is_countable = function(task_type)
+    return task_type == "CollectResource" or task_type == "KillBosses" or task_type == "KillMinions"
+end
+
+local _update_count = function(criteria)
+    local task_type = criteria.taskType
+    local value = criteria.value
+    local live_counter = nil
+
+    if task_type == "CollectResource" then
+        local resource_type = criteria.resourceType or criteria.resourceTypes[1]
+        live_counter = mod._live_counter.resource[resource_type]
+    elseif task_type == "KillBosses" then
+        live_counter = mod._live_counter.kill.boss
+    elseif task_type == "KillMinions" then
+        local enemy_type = criteria.enemyType
+        local weapon_type = criteria.weaponType
+        live_counter = mod._live_counter.kill[enemy_type .. "_" .. weapon_type]
+    end
+
+    if live_counter then
+        value = value + live_counter
+    end
+
+    return value
+end
+
+local update_contract_list = function(self)
     local widgets = self._widgets_by_name
 
     if not (mod._contract_data and mod._update_tasks_list) or not widgets.contract_info then
@@ -249,6 +331,10 @@ local _update_contract_list = function(self)
     end
 
     mod._update_tasks_list = false
+
+    if debug_mode then
+        mod:echo("task updated")
+    end
 
     local contract_info = widgets.contract_info
     local content = contract_info.content
@@ -263,18 +349,23 @@ local _update_contract_list = function(self)
             remained = remained - 1
         else
             local criteria = task.criteria
-            local title, _, target = get_task_description_and_target(criteria)
+            local title, _, target = _get_task_description_and_target(criteria)
+            local value = criteria.value
             local key_desc = "contract_desc_" .. index
             local key_count = "contract_count_" .. index
 
+            if live_update and mod._live_counter and _is_countable(criteria.taskType) then
+                value = _update_count(criteria)
+            end
+
             content[key_desc] = title
-            content[key_count] = string.format("%d/%d", criteria.value, target)
+            content[key_count] = string.format("%d/%d", value, target)
             style[key_desc].visible = true
             style[key_count].visible = true
 
-            if task.fullfilled then
-                style[key_desc].text_color = Color.dark_slate_gray(155, true)
-                style[key_count].text_color = Color.dark_slate_gray(155, true)
+            if value >= target then
+                style[key_desc].text_color = Color.dark_slate_gray(230, true)
+                style[key_count].text_color = Color.dark_slate_gray(230, true)
             end
 
             index = index + 1
@@ -282,29 +373,38 @@ local _update_contract_list = function(self)
     end
 
     if remained == 0 then
-        contract_total_size = mod._contract_base_size
+        contract_total_size = contract_base_size
         mod._completed = true
         content.contract_header = content.contract_header .. ": " .. Localize("loc_contracts_task_completed")
     else
-        contract_total_size = (font_size + margin) * remained + (mod._contract_base_size * 2)
+        contract_total_size = (font_size + margin) * remained + (contract_base_size * 2)
     end
+end
+
+local counter_update_notification = function(type, count)
+    mod:echo("counter updated: " .. type .. " (" .. count .. ")")
 end
 
 -- ##############################
 -- hooks
 -- ##############################
 
+-- update tactical overlay
+
 mod:hook("HudElementTacticalOverlay", "init", function(func, ...)
-    _fetch_task_list()
+    if not mod._contract_data then
+        fetch_task_list()
+    end
+
     Definitions = get_new_definitions()
 
     func(...)
 end)
 
 mod:hook_safe("HudElementTacticalOverlay", "set_scenegraph_position", function(self, id, _, y)
-    if id == "crafting_pickup_pivot" and mod._contract_base_size then
+    if id == "crafting_pickup_pivot" and contract_base_size then
         local scenegraph = self._ui_scenegraph
-        local size = scenegraph.plasteel_info_panel.size[2] * 2 + mod._contract_base_size
+        local size = scenegraph.plasteel_info_panel.size[2] * 2 + contract_base_size
 
         self:set_scenegraph_position("contract_pivot", nil, y + size)
     end
@@ -320,13 +420,78 @@ end)
 
 mod:hook_safe("HudElementTacticalOverlay", "update", function(self, ...)
     if not mod._completed then
-        _update_contract_list(self)
+        update_contract_list(self)
     end
 end)
 
 mod:hook_safe("HudElementTacticalOverlay", "_start_animation", function(self, animation_sequence_name)
-    if animation_sequence_name == "enter" then
-        _fetch_task_list()
+    if animation_sequence_name == "enter" and mod._ready_to_update_tasks_list then
+        mod._update_tasks_list = true
+        mod._ready_to_update_tasks_list = false
+    end
+end)
+
+-- update live counters
+
+mod:hook_safe("HudElementTacticalOverlay", "_update_materials_collected", function(self)
+    local resource_counter = mod._live_counter and mod._live_counter.resource
+
+    if live_update and resource_counter then
+        for resource_type, count in pairs(resource_counter) do
+            if resource_type == "plasteel" or resource_type == "diamantine" then
+                local collected_amount = self._widgets_by_name[resource_type .. "_info"].content[resource_type .. "_amount_id"]
+
+                if resource_counter[resource_type] ~= collected_amount then
+                    resource_counter[resource_type] = collected_amount
+                    mod._update_tasks_list = true
+
+                    if debug_mode then
+                        counter_update_notification(resource_type, collected_amount)
+                    end
+                end
+            end
+        end
+    end
+end)
+
+mod:hook_safe("AttackReportManager", "add_attack_result", function(self, _, unit, _, _, _, _, _, attack_result, attack_type)
+    if attack_result ~= "died" then
+        return
+    end
+
+    local kill_counter = mod._live_counter and mod._live_counter.kill
+
+    if live_update and kill_counter then
+        local unit_data_extension = ScriptUnit.extension(unit, "unit_data_system")
+        local breed = unit_data_extension and unit_data_extension:breed()
+
+        if not breed then
+            return
+        end
+
+        local sub_faction = breed.sub_faction_name
+
+        for task_type, count in pairs(kill_counter) do
+            if task_type == "boss" then
+                if breed.tags.monster or breed.tags.captain then
+                    kill_counter.boss = count + 1
+                    mod._ready_to_update_tasks_list = true
+
+                    if debug_mode then
+                        counter_update_notification(task_type, count)
+                    end
+                end
+            elseif sub_faction ~= "chaos" and attack_type then
+                if task_type == sub_faction .. "_" .. attack_type then
+                    kill_counter[task_type] = count + 1
+                    mod._ready_to_update_tasks_list = true
+
+                    if debug_mode then
+                        counter_update_notification(task_type, kill_counter[task_type])
+                    end
+                end
+            end
+        end
     end
 end)
 
@@ -357,5 +522,23 @@ end
 
 mod.on_setting_changed = function()
     debug_mode = mod:get("enable_debug_mode")
+    live_update = mod:get("enable_live_update")
     recreate_hud()
+end
+
+mod.on_game_state_changed = function(status, state_name)
+    if state_name == "StateLoading" and status == "enter" then
+        if mod._live_counter then
+            for k, _ in pairs(mod._live_counter) do
+                mod._live_counter[k] = nil
+            end
+        end
+
+        mod._live_counter = nil
+        mod._contract_data = nil
+
+        if debug_mode then
+            mod:echo("counter destroyed")
+        end
+    end
 end

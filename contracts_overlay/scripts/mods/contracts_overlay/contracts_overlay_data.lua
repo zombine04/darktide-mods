@@ -7,6 +7,12 @@ return {
 	options = {
 		widgets = {
 			{
+				setting_id = "enable_live_update",
+				type = "checkbox",
+				default_value = true,
+				tooltip = "live_update_desc",
+			},
+			{
 				setting_id = "enable_debug_mode",
 				type = "checkbox",
 				default_value = false,
