@@ -2,7 +2,7 @@
     title: contracts_overlay
     author: Zombine
     date: 28/04/2023
-    version: 1.1.0
+    version: 1.1.1
 ]]
 local mod = get_mod("contracts_overlay")
 
@@ -478,7 +478,7 @@ mod:hook_safe("AttackReportManager", "add_attack_result", function(self, _, unit
                     mod._ready_to_update_tasks_list = true
 
                     if debug_mode then
-                        counter_update_notification(task_type, count)
+                        counter_update_notification(task_type,  kill_counter[task_type])
                     end
                 end
             elseif sub_faction ~= "chaos" and attack_type then
