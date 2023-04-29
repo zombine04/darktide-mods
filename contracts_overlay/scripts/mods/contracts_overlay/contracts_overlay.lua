@@ -2,7 +2,7 @@
     title: contracts_overlay
     author: Zombine
     date: 28/04/2023
-    version: 1.1.2
+    version: 1.1.3
 ]]
 local mod = get_mod("contracts_overlay")
 
@@ -461,12 +461,11 @@ mod:hook_safe("AttackReportManager", "add_attack_result", function(self, _, unit
     if live_update and kill_counter then
         local unit_data_extension = ScriptUnit.extension(unit, "unit_data_system")
         local breed = unit_data_extension and unit_data_extension:breed()
+        local sub_faction = breed and breed.sub_faction_name
 
-        if not breed then
+        if not sub_faction then
             return
         end
-
-        local sub_faction = breed.sub_faction_name
 
         for task_type, count in pairs(kill_counter) do
             if task_type == "boss" then
@@ -532,7 +531,6 @@ mod.on_game_state_changed = function(status, state_name)
         end
 
         mod._live_counter = nil
-        mod._contract_data = nil
 
         if debug_mode then
             mod:echo("counter destroyed")
