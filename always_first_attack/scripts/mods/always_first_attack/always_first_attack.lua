@@ -26,6 +26,7 @@ local init = function()
     mod._proc_timing = mod:get("proc_timing")
     mod._proc_on_missed_swing = mod:get("enable_on_missed_swing")
     mod._auto_swing = mod:get("enable_auto_swing")
+    mod._start_on_enabled = mod:get("enable_auto_start")
     mod._hit_num = 0
     mod._request = {}
     mod._allow_manual_input = true
@@ -35,7 +36,6 @@ local init = function()
         action_two_hold = true,
         combat_ability_hold = true,
         grenade_ability_hold = true,
-        interact_hold = true,
         quick_wield = true,
         wield_2 = true,
         wield_3 = true,
@@ -237,7 +237,12 @@ mod.toggle_auto_swing = function()
     if not _is_in_hub() and not Managers.ui:chat_using_input() then
         mod:set("enable_auto_swing", not mod._auto_swing)
         init()
+
+        if mod._auto_swing and mod._start_on_enabled then
+            mod._request.wield_2 = true
+        end
+
         local state = mod._auto_swing and Localize("loc_settings_menu_on") or Localize("loc_settings_menu_off")
-        mod:notify(mod:localize("enable_auto_swing") .. ": " .. state)
+        mod:notify(mod:localize("auto_swing") .. ": " .. state)
     end
 end

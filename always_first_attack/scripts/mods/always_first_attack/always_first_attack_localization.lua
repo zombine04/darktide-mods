@@ -19,22 +19,26 @@ return {
         ja = "発動条件",
     },
     proc_timing_desc = {
-        en = "On Sweep Finish:\nEffective against multiple targets. Triggered even if no hits are made.\n\n" ..
-             "On Hit:\nEffective against single targets. Always triggered on first hit. Not triggered if no hits are made.",
+        en = "On sweep finish:\nEffective against multiple targets. Triggered even if no hits are made.\n\n" ..
+             "On hit:\nEffective against single targets. Always triggered on first hit. Not triggered if no hits are made.",
         ja = "振り終わり：\n複数の敵相手に最適です。ヒットがなくても発動します。\n\n" ..
              "ヒット時：\n単体の敵相手に最適です。常に最初のヒットで発動します。ヒットがない場合は発動しません。"
     },
     on_sweep_finish = {
-        en = "On Sweep Finish",
+        en = "On sweep finish",
         ja = "振り終わり",
     },
     on_hit = {
-        en = "On Hit",
+        en = "On hit",
         ja = "ヒット時",
     },
     enable_on_missed_swing = {
         en = "Trigger on missed swings",
         ja = "空振りでも発動させる",
+    },
+    auto_swing = {
+        en = "Auto Swing",
+        ja = "自動攻撃",
     },
     enable_auto_swing = {
         en = "Enable Auto Swing",
@@ -54,6 +58,16 @@ return {
         en = "Toggle Auto Swing",
         ja = "キーバインド：自動攻撃の切り替え",
     },
+    enable_auto_start = {
+        en = "Start swinging on enabled",
+        ja = "有効化時に攻撃を始める",
+    },
+	debug_mode = {
+		en = "Debug",
+		ja = "デバッグ",
+		["zh-cn"] = "调试",
+		ru = "Отладка",
+	},
 	enable_debug_mode = {
 		en = "Enable Debug Mode",
 		ja = "デバッグモードを有効にする",

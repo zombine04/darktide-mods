@@ -33,11 +33,22 @@ return {
                 }
             },
             {
-                setting_id = "enable_auto_swing",
-                type = "checkbox",
-                default_value = true,
-                tooltip = "auto_swing_desc",
+                setting_id = "auto_swing",
+                type = "group",
                 sub_widgets = {
+                    {
+                        setting_id = "enable_auto_swing",
+                        type = "checkbox",
+                        default_value = true,
+                        tooltip = "auto_swing_desc",
+                        sub_widgets = {
+                            {
+                                setting_id = "enable_auto_start",
+                                type = "checkbox",
+                                default_value = false,
+                            },
+                        }
+                    },
                     {
                         setting_id = "key_toggle_auto",
                         type = "keybind",
@@ -45,14 +56,20 @@ return {
                         keybind_trigger = "pressed",
                         keybind_type = "function_call",
                         function_name = "toggle_auto_swing",
-                    }
+                    },
                 }
             },
-			{
-				setting_id = "enable_debug_mode",
-				type = "checkbox",
-				default_value = false,
-			},
+            {
+                setting_id = "debug_mode",
+                type = "group",
+                sub_widgets = {
+                    {
+                        setting_id = "enable_debug_mode",
+                        type = "checkbox",
+                        default_value = false,
+                    },
+                }
+            },
         }
     }
 }
