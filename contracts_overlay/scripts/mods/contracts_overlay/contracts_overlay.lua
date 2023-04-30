@@ -1,8 +1,8 @@
 --[[
     title: contracts_overlay
     author: Zombine
-    date: 28/04/2023
-    version: 1.1.3
+    date: 30/04/2023
+    version: 1.1.4
 ]]
 local mod = get_mod("contracts_overlay")
 
