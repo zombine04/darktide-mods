@@ -7,7 +7,7 @@ return {
         ja = "最初の攻撃後に攻撃チェーンを中断します。",
     },
     key_toggle = {
-        en = "Toggle On/Off",
+        en = "Toggle ON/OFF",
         ja = "キーバインド：オン/オフ",
     },
     toggle_desc = {
@@ -31,6 +31,10 @@ return {
     on_hit = {
         en = "On Hit",
         ja = "ヒット時",
+    },
+    enable_on_missed_swing = {
+        en = "Trigger on missed swings",
+        ja = "空振りでも発動させる",
     },
     enable_auto_swing = {
         en = "Enable Auto Swing",

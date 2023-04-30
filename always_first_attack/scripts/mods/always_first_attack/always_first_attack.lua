@@ -2,7 +2,7 @@
     title: always_first_attack
     author: Zombine
     date: 01/05/2023
-    version: 1.0.0
+    version: 1.1.0
 ]]
 local mod = get_mod("always_first_attack")
 
@@ -24,6 +24,7 @@ local WIELD = {
 local init = function()
     mod._debug_mode = mod:get("enable_debug_mode")
     mod._proc_timing = mod:get("proc_timing")
+    mod._proc_on_missed_swing = mod:get("enable_on_missed_swing")
     mod._auto_swing = mod:get("enable_auto_swing")
     mod._hit_num = 0
     mod._request = {}
@@ -66,8 +67,8 @@ local _get_local_player_unit = function()
     return local_player and local_player.player_unit
 end
 
-local break_attack_chain = function(timing, attaking_unit, damage_profile)
-    if not mod._enabled or mod._proc_timing ~= timing then
+local break_attack_chain = function(triggers, attaking_unit, damage_profile)
+    if not mod._enabled or not triggers[mod._proc_timing] then
         return
     end
 
@@ -98,19 +99,27 @@ mod:hook_safe("ActionSweep", "_reset_sweep_component", function()
 end)
 
 mod:hook_safe("ActionSweep", "_process_hit", function(self)
-    if mod._proc_timing == "on_hit" then
-        mod._hit_num = mod._hit_num + 1
-    end
+    mod._hit_num = mod._hit_num + 1
 
-    break_attack_chain("on_hit", self._player_unit, self._damage_profile)
+    local triggers = {
+        on_hit = true
+    }
+
+    break_attack_chain(triggers, self._player_unit, self._damage_profile)
 end)
 
 mod:hook_safe("ActionSweep", "_exit_damage_window", function(self)
-    if mod._proc_timing == "on_hit" and mod._hit_num == 0 then
+    if not mod._proc_on_missed_swing and mod._hit_num == 0 then
         mod._allow_manual_input = true
+        return
     end
 
-    break_attack_chain("on_sweep_finish", self._player_unit, self._damage_profile)
+    local triggers = {
+        on_hit = true,
+        on_sweep_finish = true
+    }
+
+    break_attack_chain(triggers, self._player_unit, self._damage_profile)
 end)
 
 mod:hook_safe("ActionSweep", "finish", function(self)

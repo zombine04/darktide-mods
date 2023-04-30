@@ -23,6 +23,13 @@ return {
                 options = {
                     { text = "on_sweep_finish", value = "on_sweep_finish" },
                     { text = "on_hit",  value = "on_hit" },
+                },
+                sub_widgets = {
+                    {
+                        setting_id = "enable_on_missed_swing",
+                        type = "checkbox",
+                        default_value = true,
+                    },
                 }
             },
             {
