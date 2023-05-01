@@ -1,4 +1,6 @@
-return {
+local mod = get_mod("always_first_attack")
+
+local loc = {
     mod_name = {
         en = "Always First Attack",
     },
@@ -46,11 +48,11 @@ return {
     },
     auto_swing_desc = {
         en = "If enabled, automatically spamming light attack after the first swing.\n\n" ..
-             "Can be canceled by specific actions, such as heavy attack, block, hold interaction, etc.\n\n" ..
+             "Can be canceled by specific actions, such as heavy attack, block, combat ability etc.\n\n" ..
              "Note:\nDepending on the weapon, it may not be canceled due to attack speed or damage profile differences.\n" ..
              "Switching to another slot or using toggle keys will certainly cancel it.",
         ja = "有効な場合、最初の攻撃以降自動的に弱攻撃を連打します。\n\n" ..
-             "重攻撃やブロック、長押しインタラクトなど特定の行動でキャンセルされます。\n\n" ..
+             "重攻撃やブロック、戦闘アビリティなど特定の行動でキャンセルされます。\n\n" ..
              "注意：\n武器によっては、攻撃速度やダメージプロファイルの違いによりキャンセルされないことがあります。\n" ..
              "他のスロットへ切り替えたり、切り替えキーを使えば確実にキャンセルできます。",
     },
@@ -61,6 +63,49 @@ return {
     enable_auto_start = {
         en = "Start swinging on enabled",
         ja = "有効化時に攻撃を始める",
+    },
+    indicator = {
+        en = "Indicator",
+        ja = "インジケーター",
+    },
+    enable_indicator = {
+        en = "Enable Indicator",
+        ja = "インジケーターを有効にする",
+    },
+    indicator_desc = {
+        en = "Display a small icon to indicate the mod or auto-swing is currently active.",
+        ja = "Modや自動攻撃が現在有効かを示す小さなアイコンを表示します。",
+    },
+	icon_size = {
+		en = "Size",
+		ja = "大きさ",
+		["zh-cn"] = "大小",
+	},
+    color_auto_swing_enabled = {
+        en = "Color (Auto Swing Enabled)",
+        ja = "カラー (自動攻撃有効時)",
+    },
+    color_auto_swing_disabled = {
+        en = "Color (Auto Swing Disabled)",
+        ja = "カラー (自動攻撃無効時)",
+    },
+    opacity_enabled = {
+        en = "Opacity (Enabled)",
+        ja = "不透明度 (有効時)",
+    },
+    opacity_disabled = {
+        en = "Opacity (Disabled)",
+        ja = "不透明度 (無効時)",
+    },
+    position_x = {
+        en = "Position: X",
+        ja = "位置：X",
+        ["zh-cn"] = "位置：X",
+    },
+    position_y = {
+        en = "Position: Y",
+        ja = "位置：Y",
+        ["zh-cn"] = "位置：Y",
     },
 	debug_mode = {
 		en = "Debug",
@@ -75,3 +120,15 @@ return {
 		ru = "Включить режим отладки",
 	},
 }
+
+local list = Color.list
+
+for _, name in ipairs(list) do
+    local color = Color[name](255, true)
+
+    loc[name] = {
+        en = "{#color(" .. color[2] .. "," .. color[3] .. "," .. color[4] .. ")}" .. name .. "{#reset()}"
+    }
+end
+
+return loc

@@ -1,11 +1,40 @@
 --[[
     title: always_first_attack
     author: Zombine
-    date: 01/05/2023
-    version: 1.1.0
+    date: 02/05/2023
+    version: 1.2.0
 ]]
 local mod = get_mod("always_first_attack")
 
+-- ##############################
+-- Indicator
+-- ##############################
+
+mod:io_dofile("always_first_attack/scripts/mods/always_first_attack/always_first_attack_utils")
+
+local classname = "HudElementFirstAttack"
+local filename = "always_first_attack/scripts/mods/always_first_attack/always_first_attack_elements"
+
+mod:add_require_path(filename)
+
+mod:hook("UIHud", "init", function(func, self, elements, visibility_groups, params)
+    if not table.find_by_key(elements, "class_name", classname) then
+        table.insert(elements, {
+            class_name = classname,
+            filename = filename,
+            use_hud_scale = true,
+            visibility_groups = {
+                "alive",
+            },
+        })
+    end
+
+    return func(self, elements, visibility_groups, params)
+end)
+
+-- ##############################
+-- Main
+-- ##############################
 
 local ACTION_ONE = {
     action_one_pressed = true,
@@ -27,6 +56,7 @@ local init = function()
     mod._proc_on_missed_swing = mod:get("enable_on_missed_swing")
     mod._auto_swing = mod:get("enable_auto_swing")
     mod._start_on_enabled = mod:get("enable_auto_start")
+    mod._show_indicator = mod:get("enable_indicator")
     mod._hit_num = 0
     mod._request = {}
     mod._allow_manual_input = true
@@ -51,24 +81,8 @@ local init = function()
     end
 end
 
-local _is_in_hub = function()
-    local game_mode = Managers.state.game_mode and Managers.state.game_mode:game_mode_name()
-
-	return game_mode and game_mode == "hub"
-end
-
-local _get_local_player_unit = function()
-    if mod._local_player_unit then
-        return mod._local_player_unit
-    end
-
-    local local_player = Managers.player:local_player(1)
-
-    return local_player and local_player.player_unit
-end
-
 local break_attack_chain = function(triggers, attaking_unit, damage_profile)
-    if not mod._enabled or not triggers[mod._proc_timing] then
+    if not mod._is_enabled or not triggers[mod._proc_timing] then
         return
     end
 
@@ -76,7 +90,7 @@ local break_attack_chain = function(triggers, attaking_unit, damage_profile)
         mod._is_heavy = damage_profile and damage_profile.melee_attack_strength == "heavy"
     end
 
-    local local_player_unit = _get_local_player_unit()
+    local local_player_unit = mod.get_local_player_unit()
     local request = mod._request
 
     if attaking_unit == local_player_unit then
@@ -89,7 +103,7 @@ mod:hook_safe("ActionSweep", "init", init)
 mod:hook_safe("ActionSweep", "_reset_sweep_component", function()
     init()
 
-    if mod._enabled then
+    if mod._is_enabled then
         mod._allow_manual_input = false
     end
 
@@ -129,7 +143,7 @@ end)
 mod:hook("InputService", "get", function(func, self, action_name)
     local out = func(self, action_name)
 
-    if mod._enabled and mod._request then
+    if mod._is_enabled and mod._request then
         local request = mod._request
 
         if out then
@@ -181,7 +195,7 @@ end)
 mod:hook_safe("PlayerUnitWeaponExtension", "on_slot_wielded", function(self, slot_name)
     local request = mod._request
 
-    if not mod._enabled then
+    if not mod._is_enabled then
         return
     end
 
@@ -203,10 +217,12 @@ mod:hook_safe("PlayerUnitWeaponExtension", "update", function(self)
 end)
 
 mod.on_all_mods_loaded = function()
+    mod.recreate_hud()
     init()
 end
 
 mod.on_setting_changed = function()
+    mod.recreate_hud()
     init()
 end
 
@@ -217,24 +233,24 @@ mod.on_game_state_changed = function(status, state_name)
 end
 
 mod.on_enabled = function()
-    mod._enabled = true
+    mod._is_enabled = true
 end
 
 mod.on_disabled = function()
-    mod._enabled = false
+    mod._is_enabled = false
 end
 
 mod.toggle_mod = function()
-    if not _is_in_hub() and not Managers.ui:chat_using_input() then
+    if not mod.is_in_hub() and not Managers.ui:chat_using_input() then
         init()
-        mod._enabled = not mod._enabled
-        local state = mod._enabled and Localize("loc_settings_menu_on") or Localize("loc_settings_menu_off")
+        mod._is_enabled = not mod._is_enabled
+        local state = mod._is_enabled and Localize("loc_settings_menu_on") or Localize("loc_settings_menu_off")
         mod:notify(mod:localize("mod_name") .. ": " .. state)
     end
 end
 
 mod.toggle_auto_swing = function()
-    if not _is_in_hub() and not Managers.ui:chat_using_input() then
+    if not mod.is_in_hub() and not Managers.ui:chat_using_input() then
         mod:set("enable_auto_swing", not mod._auto_swing)
         init()
 
