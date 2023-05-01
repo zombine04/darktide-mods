@@ -5,8 +5,8 @@ local loc = {
         en = "Always First Attack",
     },
     mod_description = {
-        en = "Break attack chain after the first attack.",
-        ja = "最初の攻撃後に攻撃チェーンを中断します。",
+        en = "After the first attack is ended (or landed) , swap weapons as quickly as possible for breaking attack chain. ",
+        ja = "最初の攻撃終了 (もしくはヒット) 後に、可能な限り素早く武器を切り替えて攻撃チェーンを中断します。",
     },
     key_toggle = {
         en = "Toggle ON/OFF",

@@ -2,7 +2,7 @@
     title: always_first_attack
     author: Zombine
     date: 02/05/2023
-    version: 1.2.0
+    version: 1.2.1
 ]]
 local mod = get_mod("always_first_attack")
 
