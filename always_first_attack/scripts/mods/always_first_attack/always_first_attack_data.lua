@@ -44,7 +44,7 @@ return {
                 function_name = "toggle_mod",
                 tooltip = "toggle_desc",
             },
-            {
+            --[[{
                 setting_id = "proc_timing",
                 type = "dropdown",
                 default_value = "on_sweep_finish",
@@ -60,6 +60,11 @@ return {
                         default_value = true,
                     },
                 }
+            },]]
+            {
+                setting_id = "enable_on_missed_swing",
+                type = "checkbox",
+                default_value = true,
             },
             {
                 setting_id = "auto_swing",

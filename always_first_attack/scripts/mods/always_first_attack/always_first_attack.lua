@@ -2,7 +2,7 @@
     title: always_first_attack
     author: Zombine
     date: 02/05/2023
-    version: 1.2.1
+    version: 1.3.0
 ]]
 local mod = get_mod("always_first_attack")
 
@@ -38,7 +38,7 @@ end)
 
 local ACTION_ONE = {
     action_one_pressed = true,
-    action_one_hold = true,
+    -- action_one_hold = true,
     action_one_release = true,
 }
 local WIELD = {
@@ -52,12 +52,11 @@ local WIELD = {
 
 local init = function()
     mod._debug_mode = mod:get("enable_debug_mode")
-    mod._proc_timing = mod:get("proc_timing")
+    mod._proc_timing = "on_sweep_finish"
     mod._proc_on_missed_swing = mod:get("enable_on_missed_swing")
     mod._auto_swing = mod:get("enable_auto_swing")
     mod._start_on_enabled = mod:get("enable_auto_start")
     mod._show_indicator = mod:get("enable_indicator")
-    mod._hit_num = 0
     mod._request = {}
     mod._allow_manual_input = true
     mod._is_heavy = false
@@ -76,12 +75,10 @@ local init = function()
         weapon_reload_hold = true,
     }
 
-    if mod._debug_mode then
-        mod:echo("mod initialized")
-    end
+    mod.debug.echo("mod initialized")
 end
 
-local break_attack_chain = function(triggers, attaking_unit, damage_profile)
+local auto_input_attack = function(triggers, attaking_unit, damage_profile)
     if not mod._is_enabled or not triggers[mod._proc_timing] then
         return
     end
@@ -91,10 +88,9 @@ local break_attack_chain = function(triggers, attaking_unit, damage_profile)
     end
 
     local local_player_unit = mod.get_local_player_unit()
-    local request = mod._request
 
     if attaking_unit == local_player_unit then
-        request.wield_2 = true
+        mod._request.action_one_pressed = true
     end
 end
 
@@ -107,23 +103,19 @@ mod:hook_safe("ActionSweep", "_reset_sweep_component", function()
         mod._allow_manual_input = false
     end
 
-    if mod._debug_mode then
-        mod:echo("reset sweep component")
-    end
+    mod.debug.echo("reset sweep component")
 end)
 
 mod:hook_safe("ActionSweep", "_process_hit", function(self)
-    mod._hit_num = mod._hit_num + 1
-
     local triggers = {
         on_hit = true
     }
 
-    break_attack_chain(triggers, self._player_unit, self._damage_profile)
+    auto_input_attack(triggers, self._player_unit, self._damage_profile)
 end)
 
 mod:hook_safe("ActionSweep", "_exit_damage_window", function(self)
-    if not mod._proc_on_missed_swing and mod._hit_num == 0 then
+    if not mod._proc_on_missed_swing and self._num_hit_enemies == 0 then
         mod._allow_manual_input = true
         return
     end
@@ -133,11 +125,24 @@ mod:hook_safe("ActionSweep", "_exit_damage_window", function(self)
         on_sweep_finish = true
     }
 
-    break_attack_chain(triggers, self._player_unit, self._damage_profile)
+    auto_input_attack(triggers, self._player_unit, self._damage_profile)
 end)
 
 mod:hook_safe("ActionSweep", "finish", function(self)
     mod._allow_manual_input = true
+end)
+
+mod:hook("ActionHandler", "start_action", function(func, self, id, action_objects, action_name, ...)
+    local combo_count = self._registered_components[id].component.combo_count
+
+    if mod._is_enabled and mod._is_primary and string.match(action_name, "action_melee_start") and combo_count > 0 then
+        mod.debug.attack_aborted()
+        -- mod.debug.dump(action_settings, action_settings.name, 4)
+        mod._request = {}
+        mod._request.wield_2 = true
+    else
+        func(self, id, action_objects, action_name, ...)
+    end
 end)
 
 mod:hook("InputService", "get", function(func, self, action_name)
@@ -148,31 +153,24 @@ mod:hook("InputService", "get", function(func, self, action_name)
 
         if out then
             if not mod._allow_manual_input and (ACTION_ONE[action_name]) then
-                if mod._debug_mode then
-                    mod:echo("action disabled: " .. action_name)
-                end
-
+                mod.debug.action_disabled(action_name)
                 return false
-            end
-
-            if mod._auto_swing and mod._canceler[action_name] and mod._is_primary then
+            elseif mod._auto_swing and mod._canceler[action_name] and mod._is_primary then
                 mod._request = {}
                 mod._is_canceled = true
-
-                return out
+                return true
             end
         end
 
         for request_name, val in pairs(request) do
             if val and request_name == action_name then
-                if mod._debug_mode then
-                    mod:echo(request_name)
-                end
+                mod.debug.request(request_name)
 
                 if request_name == "wield_1" then
                     if mod._is_primary then
                         mod._allow_manual_input = true
                         request.wield_1 = false
+                        mod.debug.echo("### SWAP COMPLETED ###")
                     end
                 elseif request_name ~= "wield_2" then
                     request[request_name] = false
@@ -206,6 +204,8 @@ mod:hook_safe("PlayerUnitWeaponExtension", "on_slot_wielded", function(self, slo
         if mod._auto_swing and not mod._is_canceled and not mod._is_heavy then
             request.action_one_pressed = true
         end
+    elseif slot_name == "slot_unarmed" or slot_name == "none" then
+        mod._is_canceled = true
     end
 end)
 
