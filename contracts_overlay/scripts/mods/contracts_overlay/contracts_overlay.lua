@@ -1,8 +1,8 @@
 --[[
     title: contracts_overlay
     author: Zombine
-    date: 30/04/2023
-    version: 1.1.4
+    date: 02/05/2023
+    version: 1.1.5
 ]]
 local mod = get_mod("contracts_overlay")
 
@@ -207,6 +207,7 @@ local fetch_task_list = function()
     if not promise then
         return
     end
+
     promise:next(function(data)
         mod._contract_data = data
         mod._update_tasks_list = true
@@ -423,8 +424,12 @@ end)
 
 mod:hook_safe("HudElementTacticalOverlay", "_start_animation", function(self, animation_sequence_name)
     if animation_sequence_name == "enter" and mod._ready_to_update_tasks_list then
-        mod._update_tasks_list = true
-        mod._ready_to_update_tasks_list = false
+        if mod._contract_data and mod._contract_data.tasks then
+            mod._update_tasks_list = true
+            mod._ready_to_update_tasks_list = false
+        else
+            fetch_task_list()
+        end
     end
 end)
 
@@ -531,6 +536,7 @@ mod.on_game_state_changed = function(status, state_name)
         end
 
         mod._live_counter = nil
+        mod._contract_data = nil
 
         if debug_mode then
             mod:echo("counter destroyed")
