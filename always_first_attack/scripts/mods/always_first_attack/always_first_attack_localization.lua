@@ -20,24 +20,6 @@ local loc = {
         en = "Note:\nAs long as the mod isn't disabled in the toggle menu, it's always enabled at start of missions.",
         ja = "注意：\nトグルメニューからこのModを無効化しない限り、ミッション開始時には常に有効になります。",
     },
-    proc_timing = {
-        en = "Trigger",
-        ja = "発動条件",
-    },
-    proc_timing_desc = {
-        en = "On sweep finish:\nEffective against multiple targets. Triggered even if no hits are made.\n\n" ..
-             "On hit:\nEffective against single targets. Always triggered on first hit. Not triggered if no hits are made.",
-        ja = "振り終わり：\n複数の敵相手に最適です。ヒットがなくても発動します。\n\n" ..
-             "ヒット時：\n単体の敵相手に最適です。常に最初のヒットで発動します。ヒットがない場合は発動しません。"
-    },
-    on_sweep_finish = {
-        en = "On sweep finish",
-        ja = "振り終わり",
-    },
-    on_hit = {
-        en = "On hit",
-        ja = "ヒット時",
-    },
     enable_on_missed_swing = {
         en = "Trigger on missed swings",
         ja = "空振りでも発動させる",

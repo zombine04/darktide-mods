@@ -49,28 +49,12 @@ return {
                 function_name = "toggle_mod",
                 tooltip = "toggle_desc",
             },
-            --[[{
-                setting_id = "proc_timing",
-                type = "dropdown",
-                default_value = "on_sweep_finish",
-                tooltip = "proc_timing_desc",
-                options = {
-                    { text = "on_sweep_finish", value = "on_sweep_finish" },
-                    { text = "on_hit",  value = "on_hit" },
-                },
-                sub_widgets = {
-                    {
-                        setting_id = "enable_on_missed_swing",
-                        type = "checkbox",
-                        default_value = true,
-                    },
-                }
-            },]]
             {
                 setting_id = "enable_on_missed_swing",
                 type = "checkbox",
                 default_value = true,
             },
+            --[[
             {
                 setting_id = "breakpoint",
                 type = "numeric",
@@ -78,6 +62,7 @@ return {
                 range = { 1, 6 },
                 tooltip = "breakpoint_desc",
             },
+            ]]
             {
                 setting_id = "auto_swing",
                 type = "group",
