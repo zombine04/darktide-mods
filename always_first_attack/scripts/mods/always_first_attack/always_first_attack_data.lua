@@ -36,6 +36,11 @@ return {
     options = {
         widgets = {
             {
+                setting_id = "enable_on_start",
+                type = "checkbox",
+                default_value = true,
+            },
+            {
                 setting_id = "key_toggle",
                 type = "keybind",
                 default_value = {},
@@ -65,6 +70,13 @@ return {
                 setting_id = "enable_on_missed_swing",
                 type = "checkbox",
                 default_value = true,
+            },
+            {
+                setting_id = "breakpoint",
+                type = "numeric",
+                default_value = 1,
+                range = { 1, 6 },
+                tooltip = "breakpoint_desc",
             },
             {
                 setting_id = "auto_swing",

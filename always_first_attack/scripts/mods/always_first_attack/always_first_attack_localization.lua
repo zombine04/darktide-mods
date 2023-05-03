@@ -5,8 +5,12 @@ local loc = {
         en = "Always First Attack",
     },
     mod_description = {
-        en = "After the first attack is ended (or landed) , swap weapons as quickly as possible for breaking attack chain. ",
-        ja = "最初の攻撃終了 (もしくはヒット) 後に、可能な限り素早く武器を切り替えて攻撃チェーンを中断します。",
+        en = "Before the second attack is initiated, quickly swa pyour weapon for breaking attack chain. ",
+        ja = "2回目の攻撃直前に武器を切り替えて攻撃チェーンを中断します。",
+    },
+    enable_on_start = {
+        en = "Enable on mission start",
+        ja = "ミッション開始時点で有効にする",
     },
     key_toggle = {
         en = "Toggle ON/OFF",
@@ -37,6 +41,14 @@ local loc = {
     enable_on_missed_swing = {
         en = "Trigger on missed swings",
         ja = "空振りでも発動させる",
+    },
+    breakpoint = {
+        en = "Breakpoint",
+        ja = "ブレイクポイント",
+    },
+    breakpoint_desc = {
+        en = "Adjust how many times you're able to attack before swapping.",
+        ja = "切り替え発動までに何回攻撃できるかを設定します。",
     },
     auto_swing = {
         en = "Auto Swing",

@@ -1,8 +1,8 @@
 --[[
     title: always_first_attack
     author: Zombine
-    date: 02/05/2023
-    version: 1.3.0
+    date: 03/05/2023
+    version: 1.4.0
 ]]
 local mod = get_mod("always_first_attack")
 
@@ -57,6 +57,7 @@ local init = function()
     mod._auto_swing = mod:get("enable_auto_swing")
     mod._start_on_enabled = mod:get("enable_auto_start")
     mod._show_indicator = mod:get("enable_indicator")
+    mod._breakpoint = mod:get("breakpoint")
     mod._request = {}
     mod._allow_manual_input = true
     mod._is_heavy = false
@@ -65,16 +66,11 @@ local init = function()
         action_two_hold = true,
         combat_ability_hold = true,
         grenade_ability_hold = true,
-        quick_wield = true,
-        wield_2 = true,
-        wield_3 = true,
-        wield_4 = true,
-        wield_scroll_down = true,
-        wield_scroll_up = true,
         weapon_extra_hold = true,
         weapon_reload_hold = true,
     }
 
+    table.merge(mod._canceler, WIELD)
     mod.debug.echo("mod initialized")
 end
 
@@ -135,7 +131,11 @@ end)
 mod:hook("ActionHandler", "start_action", function(func, self, id, action_objects, action_name, ...)
     local combo_count = self._registered_components[id].component.combo_count
 
-    if mod._is_enabled and mod._is_primary and string.match(action_name, "action_melee_start") and combo_count > 0 then
+    if mod._is_enabled and
+       mod._is_primary and
+       string.match(action_name, "action_melee_start") and
+       combo_count >= mod._breakpoint
+    then
         mod.debug.attack_aborted()
         -- mod.debug.dump(action_settings, action_settings.name, 4)
         mod._request = {}
@@ -227,25 +227,30 @@ mod.on_setting_changed = function()
 end
 
 mod.on_game_state_changed = function(status, state_name)
-    if state_name == "StateLoading" and status == "enter" then
+    if state_name == "StateGameplay" and status == "enter" then
         init()
+        mod._is_enabled = mod:get("enable_on_start")
     end
 end
 
 mod.on_enabled = function()
-    mod._is_enabled = true
+    mod._is_enabled = mod:get("enable_on_start")
 end
 
 mod.on_disabled = function()
     mod._is_enabled = false
 end
 
+local _notify_current_state = function(setting, text_key)
+    local state = setting and Localize("loc_settings_menu_on") or Localize("loc_settings_menu_off")
+    mod:notify(mod:localize(text_key) .. ": " .. state)
+end
+
 mod.toggle_mod = function()
     if not mod.is_in_hub() and not Managers.ui:chat_using_input() then
         init()
         mod._is_enabled = not mod._is_enabled
-        local state = mod._is_enabled and Localize("loc_settings_menu_on") or Localize("loc_settings_menu_off")
-        mod:notify(mod:localize("mod_name") .. ": " .. state)
+        _notify_current_state(mod._is_enabled, "mod_name")
     end
 end
 
@@ -258,7 +263,6 @@ mod.toggle_auto_swing = function()
             mod._request.wield_2 = true
         end
 
-        local state = mod._auto_swing and Localize("loc_settings_menu_on") or Localize("loc_settings_menu_off")
-        mod:notify(mod:localize("auto_swing") .. ": " .. state)
+        _notify_current_state(mod._auto_swing, "auto_swing")
     end
 end
