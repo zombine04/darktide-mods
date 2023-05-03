@@ -47,7 +47,6 @@ return {
                 keybind_trigger = "pressed",
                 keybind_type = "function_call",
                 function_name = "toggle_mod",
-                tooltip = "toggle_desc",
             },
             {
                 setting_id = "enable_on_missed_swing",

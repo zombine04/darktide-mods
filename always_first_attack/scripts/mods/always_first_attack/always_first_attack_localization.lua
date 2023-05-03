@@ -16,10 +16,6 @@ local loc = {
         en = "Toggle ON/OFF",
         ja = "キーバインド：オン/オフ",
     },
-    toggle_desc = {
-        en = "Note:\nAs long as the mod isn't disabled in the toggle menu, it's always enabled at start of missions.",
-        ja = "注意：\nトグルメニューからこのModを無効化しない限り、ミッション開始時には常に有効になります。",
-    },
     enable_on_missed_swing = {
         en = "Trigger on missed swings",
         ja = "空振りでも発動させる",
