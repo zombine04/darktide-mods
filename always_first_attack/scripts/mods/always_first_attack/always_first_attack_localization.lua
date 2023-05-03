@@ -20,14 +20,6 @@ local loc = {
         en = "Trigger on missed swings",
         ja = "空振りでも発動させる",
     },
-    breakpoint = {
-        en = "Breakpoint",
-        ja = "ブレイクポイント",
-    },
-    breakpoint_desc = {
-        en = "Adjust how many times you're able to attack before swapping.",
-        ja = "切り替え発動までに何回攻撃できるかを設定します。",
-    },
     auto_swing = {
         en = "Auto Swing",
         ja = "自動攻撃",

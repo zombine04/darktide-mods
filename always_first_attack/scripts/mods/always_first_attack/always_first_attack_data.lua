@@ -53,15 +53,6 @@ return {
                 type = "checkbox",
                 default_value = true,
             },
-            --[[
-            {
-                setting_id = "breakpoint",
-                type = "numeric",
-                default_value = 1,
-                range = { 1, 6 },
-                tooltip = "breakpoint_desc",
-            },
-            ]]
             {
                 setting_id = "auto_swing",
                 type = "group",
