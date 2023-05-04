@@ -1,8 +1,8 @@
 --[[
     title: buy_until_rating
     author: Zombine
-    date: 22/04/2023
-    version: 2.0.1
+    date: 04/05/2023
+    version: 2.1.0
 ]]
 
 local mod = get_mod("buy_until_rating")
@@ -26,6 +26,9 @@ local init = function()
 end
 
 local is_enabled = function(key)
+    if key == "auto_discard" then
+        return false
+    end
     return mod:get("enable_" .. key)
 end
 

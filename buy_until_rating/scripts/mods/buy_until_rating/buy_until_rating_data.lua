@@ -39,7 +39,7 @@ return {
 						}
 					},
 				}
-			},
+			},--[[
 			{
 				setting_id      = "auto_discard",
 				type            = "group",
@@ -58,7 +58,7 @@ return {
 						}
 					},
 				}
-			},
+			},]]
 			{
 				setting_id      = "notifications",
 				type            = "group",
