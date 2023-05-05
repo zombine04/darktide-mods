@@ -1,48 +1,49 @@
 --[[
     title: buy_until_rating
     author: Zombine
-    date: 04/05/2023
-    version: 2.1.0
+    date: 05/05/2023
+    version: 2.2.0
 ]]
 
 local mod = get_mod("buy_until_rating")
 local MasterItems = require("scripts/backend/master_items")
 local ItemUtils = require("scripts/utilities/items")
 
-local _canceled = false
-local _acquired_items = {}
-local _highest = 0
-local _desired_rating = mod:get("desired_rating")
-local _num_limit = mod:get("num_limit")
-local _discard_threshold = mod:get("discard_threshold")
+mod._canceled = false
+mod._acquired_items = {}
+mod._highest = 0
+mod._desired_rating = mod:get("desired_rating")
+mod._num_limit = mod:get("num_limit")
+mod._discard_threshold = mod:get("discard_threshold")
+
+mod._ready_to_discard = false
+mod._discard_garbage = false
+mod._garbages = {}
 
 local init = function()
-    _canceled = false
-    _acquired_items = {}
-    _highest = 0
-    _desired_rating = mod:get("desired_rating")
-    _num_limit = mod:get("num_limit")
-    _discard_threshold = mod:get("discard_threshold")
+     mod._canceled = false
+     mod._acquired_items = {}
+     mod._highest = 0
+     mod._desired_rating = mod:get("desired_rating")
+     mod._num_limit = mod:get("num_limit")
+     mod._discard_threshold = mod:get("discard_threshold")
 end
 
 local is_enabled = function(key)
-    if key == "auto_discard" then
-        return false
-    end
     return mod:get("enable_" .. key)
 end
 
 local get_current_settings = function()
-    local current_settings = mod:localize("desired_rating") .. ": " .. _desired_rating
+    local current_settings = mod:localize("desired_rating") .. ": " ..  mod._desired_rating
 
     if is_enabled("num_limit") then
-        current_settings = current_settings .. "\n" .. mod:localize("num_limit") .. ": " .. _num_limit
+        current_settings = current_settings .. "\n" .. mod:localize("num_limit") .. ": " ..  mod._num_limit
     else
         current_settings = current_settings .. "\n" .. mod:localize("num_limit") .. ": " .. mod:localize("unlimited")
     end
 
     if is_enabled("auto_discard") then
-        current_settings = current_settings .. "\n" .. mod:localize("auto_discard") .. ": " .. _discard_threshold .. ' ' .. mod:localize("lower")
+        current_settings = current_settings .. "\n" .. mod:localize("auto_discard") .. ": " ..  mod._discard_threshold .. ' ' .. mod:localize("lower")
     else
         current_settings = current_settings .. "\n" .. mod:localize("auto_discard") .. ": " .. mod:localize("disabled")
     end
@@ -51,23 +52,23 @@ local get_current_settings = function()
 end
 
 local clear_notifications = function(force_clear)
-    if force_clear or #_acquired_items % 5 == 0 then
+    if force_clear or #mod._acquired_items % 5 == 0 then
         Managers.event:trigger("event_clear_notifications")
     end
 end
 
 local is_less_than_limit = function()
     if is_enabled("num_limit") then
-        return #_acquired_items < _num_limit
+        return #mod._acquired_items <  mod._num_limit
     end
 
     return true
 end
 
-local get_discarded_count = function()
+local _get_discarded_count = function()
     local discarded = 0
 
-    for _, item in pairs(_acquired_items) do
+    for _, item in pairs(mod._acquired_items) do
         if item.is_garbage then
             discarded = discarded + 1
         end
@@ -76,20 +77,21 @@ local get_discarded_count = function()
     return discarded
 end
 
-local calc_average = function()
+local _calc_average = function()
+    local items = mod._acquired_items
     local sum = 0
     local avg = 0
 
-    for _, item in ipairs(_acquired_items) do
+    for _, item in ipairs(items) do
        sum = sum + item.rating
     end
 
-    avg = math.floor(sum / #_acquired_items)
+    avg = math.floor(sum / #items)
 
     return avg
 end
 
-local get_character_save_data = function ()
+local _get_character_save_data = function ()
     local player_manager = Managers.player
     local player = player_manager and player_manager:local_player(1)
     local character_id = player and player:character_id()
@@ -99,30 +101,45 @@ local get_character_save_data = function ()
     return character_data
 end
 
-local discard_garbages = function()
-    for _, item in ipairs(_acquired_items) do
+local discard_garbage = function()
+    local gear_id = mod._garbages[1]
+
+    Managers.data_service.gear:delete_gear(gear_id):next(function(result)
+        local rewards = result and result.rewards
+
+        if rewards then
+            local credits_amount = rewards[1] and rewards[1].amount or 0
+
+            if is_enabled("discard_notif") then
+                Managers.event:trigger("event_add_notification_message", "currency", {
+                    currency = "credits",
+                    amount = credits_amount
+                })
+            end
+
+            Managers.event:trigger("event_vendor_view_purchased_item")
+            table.remove(mod._garbages, 1)
+
+            if not table.is_empty(mod._garbages) then
+                mod._ready_to_discard = true
+            end
+        end
+    end)
+end
+
+local make_garbage_list = function()
+    local items = mod._acquired_items
+    local garbages = mod._garbages
+
+    for i, item in ipairs(items) do
         if item.is_garbage then
-            Managers.data_service.gear:delete_gear(item.gear_id):next(function(result)
-                local rewards = result and result.rewards
-
-                if rewards then
-                    local credits_amount = rewards[1] and rewards[1].amount or 0
-
-                    if is_enabled("discard_notif") then
-                        Managers.event:trigger("event_add_notification_message", "currency", {
-                            currency = "credits",
-                            amount = credits_amount
-                        })
-                    end
-                    Managers.event:trigger("event_force_wallet_update")
-                end
-            end)
+            garbages[#garbages + 1] = items[i].gear_id
         end
     end
 end
 
 local mark_acquired_items_as_new = function()
-	local character_data = get_character_save_data()
+	local character_data = _get_character_save_data()
 
     if not character_data then
         return
@@ -132,7 +149,7 @@ local mark_acquired_items_as_new = function()
         character_data.new_items = {}
     end
 
-    for _, item in ipairs(_acquired_items) do
+    for _, item in ipairs(mod._acquired_items) do
         if not (is_enabled("auto_discard") and item.is_garbage) then
             local gear_id = item.gear_id
             local item_type = item.item_type
@@ -160,12 +177,12 @@ local mark_acquired_items_as_new = function()
 end
 
 local show_results = function()
-    local results = mod:localize("num") .. ": " .. #_acquired_items
-    local max = mod:localize("max") .. ": " .. _highest
-    local avg = mod:localize("avg") .. ": " .. calc_average()
+    local results = mod:localize("num") .. ": " .. #mod._acquired_items
+    local max = mod:localize("max") .. ": " ..  mod._highest
+    local avg = mod:localize("avg") .. ": " .. _calc_average()
 
     if is_enabled("auto_discard") then
-        local discarded = mod:localize("discarded") .. ": " .. get_discarded_count()
+        local discarded = mod:localize("discarded") .. ": " .. _get_discarded_count()
         results = results .. "\n" .. discarded
     end
 
@@ -179,9 +196,31 @@ local show_results = function()
     end
 end
 
+mod:hook("InputService", "get", function(func, ...)
+    local out = func(...)
+
+    if not table.is_empty(mod._garbages) and type(out) == "boolean" then
+        return false
+    end
+
+    return out
+end)
+
 mod:hook_safe("CreditsGoodsVendorView", "init", function()
     init()
     clear_notifications(true)
+end)
+
+mod:hook_safe("CreditsGoodsVendorView", "update", function(self)
+    if mod._discard_garbage then
+        mod._discard_garbage = false
+        discard_garbage()
+    end
+
+    if mod._ready_to_discard and self._wallet_promise == nil then
+        mod._ready_to_discard = false
+        mod._discard_garbage = true
+    end
 end)
 
 mod:hook_safe("CreditsGoodsVendorView", "cb_switch_tab", function()
@@ -201,7 +240,7 @@ mod:hook_safe("CreditsGoodsVendorView", "_preview_element", function(self)
 
     if price ~= 0 then
         if is_enabled("num_limit") then
-            price_total = " (" .. price * _num_limit .. ")"
+            price_total = " (" .. price *  mod._num_limit .. ")"
         else
             price_total = " (" .. mod:localize("unlimited") .. ")"
         end
@@ -229,34 +268,39 @@ mod:hook_safe("CreditsGoodsVendorView", "_on_purchase_complete", function(self, 
 
         if item then
             local rating = ItemUtils.calculate_stats_rating(item)
+            local index = #mod._acquired_items + 1
 
-            _acquired_items[#_acquired_items + 1] = {
+             mod._acquired_items[index] = {
                 gear_id = item.gear_id,
                 item_type = item.item_type,
                 rating = rating,
-                is_garbage = rating <= _discard_threshold,
+                is_garbage = rating <=  mod._discard_threshold,
             }
 
-            if rating > _highest then
-                _highest = rating
+            if rating >  mod._highest then
+                 mod._highest = rating
             end
 
-            mod:notify("#" .. #_acquired_items .. ": " .. rating)
+            mod:notify("#" .. index .. ": " .. rating)
         end
     end
 
-    if _highest < _desired_rating and is_less_than_limit() and not _canceled then
+    if  mod._highest <  mod._desired_rating and is_less_than_limit() and not  mod._canceled then
         self:_update_button_disable_state()
         self:_cb_on_purchase_pressed()
     else
         clear_notifications(true)
 
-        if _canceled then
+        if  mod._canceled then
             mod:notify(mod:localize("canceled"))
         end
 
         if is_enabled("auto_discard") then
-            discard_garbages()
+            make_garbage_list()
+
+            if not table.is_empty(mod._garbages) then
+                mod._discard_garbage = true
+            end
         end
         mark_acquired_items_as_new()
         show_results()
@@ -265,5 +309,5 @@ mod:hook_safe("CreditsGoodsVendorView", "_on_purchase_complete", function(self, 
 end)
 
 mod.cancel_auto_buy = function()
-    _canceled = true
+     mod._canceled = true
 end
