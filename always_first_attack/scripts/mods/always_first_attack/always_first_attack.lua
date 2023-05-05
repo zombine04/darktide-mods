@@ -1,8 +1,8 @@
 --[[
     title: always_first_attack
     author: Zombine
-    date: 03/05/2023
-    version: 1.4.0
+    date: 05/05/2023
+    version: 1.4.1
 ]]
 local mod = get_mod("always_first_attack")
 
@@ -86,7 +86,9 @@ local auto_input_attack = function(triggers, attaking_unit, damage_profile)
     local local_player_unit = mod.get_local_player_unit()
 
     if attaking_unit == local_player_unit then
-        mod._request.action_one_pressed = true
+        if mod._is_primary then
+            mod._request.action_one_pressed = true
+        end
     end
 end
 
