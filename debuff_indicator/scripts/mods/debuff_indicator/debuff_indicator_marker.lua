@@ -29,31 +29,19 @@ template.max_size = {
 }
 template.name = "debuff_indicator"
 template.check_line_of_sight = true
-template.screen_clamp = false
+template.screen_clamp = true
 template.max_distance = distance
-template.evolve_distance = 1
-template.position = {
-    0,
-    0,
-    20
-}
 template.position_offset = {
     0,
     0,
     offset_z
-}
-template.scale_settings = {
-    scale_to = 1,
-    scale_from = 0.5,
-    distance_max = template.max_distance,
-    distance_min = template.evolve_distance
 }
 template.fade_settings = {
     fade_to = 1,
     fade_from = 0,
     default_fade = 1,
     distance_max = template.max_distance,
-    distance_min = template.max_distance - template.evolve_distance * 2,
+    distance_min = template.max_distance * 0.5,
     easing_function = math.easeCubic
 }
 
@@ -94,18 +82,12 @@ local _update_settings = function(style, template)
         0,
         offset_z,
     }
-    template.scale_settings = {
-        scale_to = 1,
-        scale_from = 0.5,
-        distance_max = template.max_distance,
-        distance_min = template.evolve_distance
-    }
     template.fade_settings = {
         fade_to = 1,
         fade_from = 0,
         default_fade = 1,
         distance_max = template.max_distance,
-        distance_min = template.max_distance - template.evolve_distance * 2,
+        distance_min = template.max_distance * 0.5,
         easing_function = math.easeCubic
     }
 end
@@ -234,7 +216,10 @@ function template.create_widget_defintion(template, scenegraph_id)
                 default_text_color = { opacity, 255, 255, 255 },
                 drop_shadow = true,
                 size = size,
-            }
+            },
+			visibility_function = function (content, style)
+				return not content.is_clamped
+			end,
         }
     }, scenegraph_id)
 end
@@ -244,18 +229,10 @@ function template.on_enter(widget, marker, template)
 
     content.body_text = ""
     marker.draw = false
-	marker.update = true
-
-    mod._update_timer = 0
-    mod._update_delay = 0.5
+    marker.update = true
 end
 
 function template.update_function(parent, ui_renderer, widget, marker, template, dt, t)
-    if mod._update_timer < mod._update_delay then
-        mod._update_timer = mod._update_timer + dt
-        return
-    end
-
     local content = widget.content
     local style = widget.style
     local unit = marker.unit
@@ -293,7 +270,25 @@ function template.update_function(parent, ui_renderer, widget, marker, template,
         content.body_text = string.gsub(content.body_text, "\n", " ")
     end
 
-    mod._update_timer = 0
+    local line_of_sight_progress = content.line_of_sight_progress or 0
+
+    if marker.raycast_initialized then
+        local raycast_result = marker.raycast_result
+        local line_of_sight_speed = 8
+
+        if raycast_result then
+            line_of_sight_progress = math.max(line_of_sight_progress - dt * line_of_sight_speed, 0)
+        else
+            line_of_sight_progress = math.min(line_of_sight_progress + dt * line_of_sight_speed, 1)
+        end
+    end
+
+    local draw = marker.draw
+
+    if draw then
+        content.line_of_sight_progress = line_of_sight_progress
+        widget.alpha_multiplier = line_of_sight_progress
+    end
 end
 
 return template
