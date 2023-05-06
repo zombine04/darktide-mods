@@ -1,8 +1,8 @@
 --[[
     title: who_are_you
     author: Zombine
-    date: 12/04/2023
-    version: 2.2.2
+    date: 06/05/2023
+    version: 2.2.3
 ]]
 
 local mod = get_mod("who_are_you")
@@ -108,20 +108,18 @@ local modify_nameplate = function (marker, is_combat)
             marker.wru_modified = true
         end
 
+        local character_level = profile and profile.current_level or 1
+        local archetype = profile and profile.archetype
+        local string_symbol = archetype and archetype.string_symbol or ""
+
         if is_combat then
             local player_slot = data._slot
             local player_slot_color = UISettings.player_slot_colors[player_slot] or Color.ui_hud_green_light(255, true)
-            local color_string = "{#color(" .. player_slot_color[2] .. "," .. player_slot_color[3] .. "," .. player_slot_color[4] .. ")}"
-            local archetype = profile and profile.archetype
-            local string_symbol = archetype and archetype.string_symbol or ""
+            local color_string = string.format("{#color(%s,%s,%s)}", player_slot_color[2], player_slot_color[3], player_slot_color[4])
 
             content.header_text = color_string .. string_symbol .. "{#reset()} " .. character_name
             content.icon_text = color_string .. string_symbol .. "{#reset()}"
         else
-            local character_level = profile and profile.current_level or 1
-            local archetype = profile and profile.archetype
-            local string_symbol = archetype and archetype.string_symbol or ""
-
             content.header_text = string_symbol .. " " .. character_name .. " - " .. tostring(character_level) .. " "
         end
     end
@@ -187,12 +185,12 @@ end)
 -- ##############################
 
 mod:hook_safe("LobbyView", "_sync_player", function(self, unique_id, player)
-	local spawn_slots = self._spawn_slots
-	local slot_id = self:_player_slot_id(unique_id)
-	local slot = spawn_slots[slot_id]
+    local spawn_slots = self._spawn_slots
+    local slot_id = self:_player_slot_id(unique_id)
+    local slot = spawn_slots[slot_id]
     local account_id = player:account_id()
 
-    if mod:get("enable_lobby") and account_id and slot and slot.synced then
+    if mod:get("enable_lobby") and account_id and slot and slot.synced and not slot.wru_modified then
         local panel_widget = slot.panel_widget
         local panel_content = panel_widget.content
         local profile = player:profile()
@@ -200,9 +198,17 @@ mod:hook_safe("LobbyView", "_sync_player", function(self, unique_id, player)
         local character_level = tostring(profile.current_level) .. " "
         local account_name = get_account_name_from_id(account_id)
 
+        if not is_unknown(account_name) then
+            slot.wru_modified = true
+        end
+
         character_name = modify_display_name(character_name, account_name, account_id, "lobby")
         panel_content.character_name = string.format("%s %s", character_level, character_name)
     end
+end)
+
+mod:hook_safe("LobbyView", "_reset_spawn_slot", function(self, slot)
+    slot.wru_modified = false
 end)
 
 -- ##############################
