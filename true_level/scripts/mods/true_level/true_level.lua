@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 07/05/2023
-    version: 1.1.0
+    date: 08/05/2023
+    version: 1.1.1
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -81,10 +81,10 @@ mod._calculate_true_level = function(data)
 --[[
     local additional_level = 0
 
-    while progression_data.reserved_xp > progression_data.needed_xp do
+    while progression_data.reserved_xp > progression_data.total_needed_xp do
         additional_level = additional_level + 1
-        progression_data.needed_xp = progression_data.needed_xp + 200
-        progression_data.reserved_xp = progression_data.reserved_xp - progression_data.needed_xp
+        progression_data.total_needed_xp = progression_data.total_needed_xp + 200
+        progression_data.reserved_xp = progression_data.reserved_xp - progression_data.total_needed_xp
     end
 ]]
 end
@@ -194,7 +194,7 @@ end)
 -- Team Player Panel
 -- ############################################################
 
-local apply_to_element = function(self, name, current_level)
+local apply_to_element = function(self, name)
     if not mod:get("enable_player_panel") then
         return
     end
@@ -206,16 +206,21 @@ local apply_to_element = function(self, name, current_level)
     local is_myself = memory.progression[character_id] ~= nil
     local progression_data = memory.progression[character_id] or memory.temp[character_id]
 
-    if progression_data and name and current_level then
+    if progression_data and name then
+        local current_level = progression_data.level
+        local additional_level = progression_data.additional_level
+        local true_level = progression_data.true_level
         local widget = self._widgets_by_name.player_name
         local display_style = mod:get("display_style")
         local text = name .. " - "
 
-        if display_style == "separate" and progression_data.additional_level then
-            text = text .. current_level .. string.format(" (+%s)", progression_data.additional_level)
+        if not progression_data.additional_level then
+            text = text .. current_level
+        elseif display_style == "separate" and additional_level then
+            text = text .. current_level .. string.format(" (+%s)", additional_level)
             widget.style.text.font_size = is_myself and 20 or 16
-        elseif display_style == "total" and progression_data.true_level then
-            text = text .. progression_data.true_level
+        elseif display_style == "total" and true_level then
+            text = text .. true_level
         end
 
         text = text .. " "
@@ -372,12 +377,17 @@ mod:hook_safe("EndView", "_set_character_names", function(self)
             local player_info = slot.player_info
             local profile = player_info:profile()
             local account_id = slot.account_id
-            local character_id = profile.character_id
+            local character_id = profile and profile.character_id or "N/A"
             local report = self:_get_participant_progression(participant_reports, account_id)
             local memory = mod._memory
             local is_myself = memory.progression[character_id] ~= nil
             local progression_data = memory.progression[character_id] or memory.temp[character_id]
             local previous_data = nil
+
+            if character_id == "N/A" and not slot.tl_debug_notified then
+                slot.tl_debug_notified = true
+                mod.debug.no_id()
+            end
 
             if progression_data and progression_data.true_level then
                 if is_myself then
@@ -426,9 +436,13 @@ end)
 mod:hook("SocialMenuRosterView", "formatted_character_name", function(func, self, player_info)
     local character_name = func(self, player_info)
     local profile = player_info:profile()
-    local character_id = profile.character_id
+    local character_id = profile and profile.character_id or "N/A"
     local memory = mod._memory
     local progression_data = memory.progression[character_id] or memory.temp[character_id]
+
+    if character_id == "N/A" then
+        mod.debug.no_id()
+    end
 
     if progression_data then
         local display_style = mod:get("display_style")

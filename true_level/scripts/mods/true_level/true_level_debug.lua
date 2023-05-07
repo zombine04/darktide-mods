@@ -19,4 +19,9 @@ mod.debug = {
             mod:echo(str)
         end
     end,
+    no_id = function()
+        if mod._debug_mode then
+            mod:echo("Character ID Not Found")
+        end
+    end,
 }
