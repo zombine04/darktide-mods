@@ -3,8 +3,8 @@ return {
         en = "True Level",
     },
     mod_description = {
-        en = "Estimates and displays the character level after reaching the maximum level based on the reserved exp.",
-        ja = "溜まっている経験値をもとに最大レベル到達後のキャラクターレベルを推定して表示します。",
+        en = "Reads recorded exp earned after you hit the max level, and displays the actual level you can reach.",
+        ja = "最大レベル到達後に獲得し記録された経験値を読み取り、実際に到達できるであろうレベルを表示します。",
     },
 	display_style = {
 		en = "Display Style",
@@ -20,12 +20,20 @@ return {
         en = "Total",
         ja = "合算",
     },
+    enable_level_up_notif = {
+        en = "Enable Level Up Notification",
+        ja = "レベルアップ通知を有効にする",
+    },
+    level_up = {
+        en = "Level Up!",
+        ja = "レベルアップ！",
+    },
     toggles = {
         en = "Toggles",
         ja = "切り替え",
     },
     enable_end_view = {
-        en = "Result Screen",
+        en = "Results Screen",
         ja = "リザルト画面",
     },
 	enable_lobby = {
@@ -50,6 +58,10 @@ return {
 		ru = "Интерфейс команды",
 		["zh-cn"] = "团队 HUD",
     },
+    enable_social_menu = {
+		en = "Social Menu",
+		ja = "ソーシャルメニュー",
+    },
 	debug_mode = {
 		en = "Debug",
 		ja = "デバッグ",
@@ -62,8 +74,4 @@ return {
 		["zh-cn"] = "启用调试模式",
 		ru = "Включить режим отладки",
 	},
-    level_up = {
-        en = "Level Up!",
-        ja = "レベルアップ！",
-    },
 }

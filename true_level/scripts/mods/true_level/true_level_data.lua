@@ -16,6 +16,11 @@ return {
                 }
             },
             {
+                setting_id = "enable_level_up_notif",
+                type = "checkbox",
+                default_value = true,
+            },
+            {
                 setting_id = "toggles",
                 type = "group",
                 sub_widgets = {
@@ -41,6 +46,11 @@ return {
                     },
                     {
                         setting_id = "enable_player_panel",
+                        type = "checkbox",
+                        default_value = true,
+                    },
+                    {
+                        setting_id = "enable_social_menu",
                         type = "checkbox",
                         default_value = true,
                     },

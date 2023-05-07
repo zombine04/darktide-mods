@@ -2,7 +2,7 @@
     title: true_level
     author: Zombine
     date: 08/05/2023
-    version: 1.1.1
+    version: 1.1.2
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -404,8 +404,10 @@ mod:hook_safe("EndView", "_set_character_names", function(self)
                     mod.debug.echo("{#color(60,60,230)}AFTER:{#reset()}", current_data)
 
                     if previous_data and previous_data.true_level < current_data.true_level then
-                        Managers.ui:play_2d_sound("wwise/events/ui/play_ui_eor_character_lvl_up")
-                        mod:notify(mod:localize("level_up"))
+                        if mod:get("enable_level_up_notif") then
+                            Managers.ui:play_2d_sound("wwise/events/ui/play_ui_eor_character_lvl_up")
+                            mod:notify(mod:localize("level_up"))
+                        end
                         mod.debug.echo(previous_data.true_level .. " -> " .. progression_data.true_level)
                     end
                 end
@@ -435,6 +437,11 @@ end)
 
 mod:hook("SocialMenuRosterView", "formatted_character_name", function(func, self, player_info)
     local character_name = func(self, player_info)
+
+    if not mod:get("enable_social_menu") then
+        return character_name
+    end
+
     local profile = player_info:profile()
     local character_id = profile and profile.character_id or "N/A"
     local memory = mod._memory
