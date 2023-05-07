@@ -2,7 +2,7 @@
     title: true_level
     author: Zombine
     date: 07/05/2023
-    version: 1.0.1
+    version: 1.1.0
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -220,17 +220,25 @@ local apply_to_element = function(self, name, current_level)
 
         text = text .. " "
         widget.content.text = text
+    elseif table.is_empty(memory.progression) and not mod._progression_promise then
+        mod.debug.echo("Main Menu Skipped")
+
+        local local_player = Managers.player:local_player(1)
+        local local_character_id = local_player:character_id()
+
+        local backend_interface = Managers.backend.interfaces
+        local progression_promise = backend_interface.progression:get_progression("character", local_character_id)
+        mod._progression_promise = progression_promise
+
+        progression_promise:next(function(data)
+            mod.populate_data(memory.progression, character_id, data)
+            mod._progression_promise = nil
+            self._current_player_name = nil
+            self.wru_modified = false
+        end)
     else
-        if is_myself and table.is_empty(memory.progression) then
-            local backend_interface = Managers.backend.interfaces
-            local progression_promise = backend_interface.progression:get_progression("character", character_id)
-
-            progression_promise:next(function(data)
-                mod.populate_data(memory.progression, character_id, data)
-            end)
-        end
-
         self._current_player_name = nil
+        self.wru_modified = false
     end
 end
 
@@ -346,7 +354,7 @@ mod:hook_safe("LobbyView", "_reset_spawn_slot", function(self, slot)
 end)
 
 -- ############################################################
--- Result Screen
+-- Results Screen
 -- ############################################################
 
 mod:hook_safe("EndView", "_set_character_names", function(self)
@@ -409,6 +417,31 @@ mod:hook_safe("EndView", "_set_character_names", function(self)
             end
         end
     end
+end)
+
+-- ############################################################
+-- Social Panel
+-- ############################################################
+
+mod:hook("SocialMenuRosterView", "formatted_character_name", function(func, self, player_info)
+    local character_name = func(self, player_info)
+    local profile = player_info:profile()
+    local character_id = profile.character_id
+    local memory = mod._memory
+    local progression_data = memory.progression[character_id] or memory.temp[character_id]
+
+    if progression_data then
+        local display_style = mod:get("display_style")
+
+        if display_style == "separate" and progression_data.additional_level then
+            local add = string.format(" (+%s) ", progression_data.additional_level)
+            character_name = string.gsub(character_name, "(%d+) ", "%1" .. add)
+        elseif display_style == "total" and progression_data.true_level then
+            character_name = string.gsub(character_name, "%d+ ", progression_data.true_level .. " ")
+        end
+    end
+
+    return character_name
 end)
 
 -- ############################################################
