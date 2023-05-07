@@ -2,7 +2,7 @@
     title: true_level
     author: Zombine
     date: 07/05/2023
-    version: 1.0.0
+    version: 1.0.1
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -17,31 +17,46 @@ end
 if not mod._memory.temp then
     mod._memory.temp = {}
 end
-
-if not mod._memory.experience_settings then
-    local backend_interface = Managers.backend.interfaces
-    local xp_promise = backend_interface.progression:get_xp_table("character")
-
-    xp_promise:next(function(experience_per_level_array)
-        local num_defined_levels = #experience_per_level_array
-        local total_defined_experience = 0
-
-        for i = 1, num_defined_levels do
-            total_defined_experience = total_defined_experience + experience_per_level_array[i]
-        end
-
-        local experience_settings = {
-            experience_per_level_array = experience_per_level_array,
-            max_level_experience = total_defined_experience,
-            max_level = num_defined_levels
-        }
-
-        mod._memory.experience_settings = experience_settings
-        mod.debug.dump(experience_settings, "experience_settings", 1)
-    end)
+if not mod._memory.queue then
+    mod._memory.queue = {}
 end
 
-local _calculate_true_level = function(data)
+mod._get_xp_settings = function()
+    if not mod._memory.experience_settings then
+        local backend_interface = Managers.backend.interfaces
+        local xp_promise = backend_interface.progression:get_xp_table("character")
+
+        xp_promise:next(function(experience_per_level_array)
+            local num_defined_levels = #experience_per_level_array
+            local total_defined_experience = 0
+
+            for i = 1, num_defined_levels do
+                total_defined_experience = total_defined_experience + experience_per_level_array[i]
+            end
+
+            local memory = mod._memory
+            local experience_settings = {
+                experience_per_level_array = experience_per_level_array,
+                max_level_experience = total_defined_experience,
+                max_level = num_defined_levels
+            }
+
+            memory.experience_settings = experience_settings
+            mod.debug.dump(experience_settings, "experience_settings", 1)
+
+            if not table.is_empty(memory.queue) then
+                for i, arg in ipairs(memory.queue) do
+                    mod.populate_data(arg[1], arg[2], arg[3])
+                end
+                memory.queue = {}
+            end
+        end)
+    end
+end
+
+mod._get_xp_settings()
+
+mod._calculate_true_level = function(data)
     local xp_settings = mod._memory.experience_settings
     local max_level = xp_settings.max_level
     local xp_table = xp_settings.experience_per_level_array
@@ -74,14 +89,30 @@ local _calculate_true_level = function(data)
 ]]
 end
 
-local populate_data = function(progression, character_id, data)
+mod.populate_data = function(progression, character_id, data)
+    local queue = mod._memory.queue
+
+    if not mod._memory.experience_settings then
+        if table.is_empty(queue) then
+            mod._get_xp_settings()
+        end
+
+        queue[#queue + 1] = {
+            progression,
+            character_id,
+            data
+        }
+
+        return
+    end
+
     local progression_data = {
         level = data.currentLevel,
         total_xp = data.currentXp,
         reserved_xp = data.currentXpInLevel,
         needed_xp = data.neededXpForNextLevel
     }
-    _calculate_true_level(progression_data)
+    mod._calculate_true_level(progression_data)
     progression[character_id] = progression_data
 end
 
@@ -129,7 +160,7 @@ mod:hook_safe("MainMenuView", "_set_player_profile_information", function(self, 
         local progression_promise = backend_interface.progression:get_progression("character", character_id)
 
         progression_promise:next(function(data)
-            populate_data(progression, character_id, data)
+            mod.populate_data(progression, character_id, data)
             self:_set_player_profile_information(profile, widget)
         end)
     end
@@ -170,7 +201,8 @@ local apply_to_element = function(self, name, current_level)
 
     local memory = mod._memory
     local player = self._player
-    local character_id = player:character_id()
+    local profile = player and player:profile()
+    local character_id = profile and profile.character_id
     local is_myself = memory.progression[character_id] ~= nil
     local progression_data = memory.progression[character_id] or memory.temp[character_id]
 
@@ -189,6 +221,15 @@ local apply_to_element = function(self, name, current_level)
         text = text .. " "
         widget.content.text = text
     else
+        if is_myself and table.is_empty(memory.progression) then
+            local backend_interface = Managers.backend.interfaces
+            local progression_promise = backend_interface.progression:get_progression("character", character_id)
+
+            progression_promise:next(function(data)
+                mod.populate_data(memory.progression, character_id, data)
+            end)
+        end
+
         self._current_player_name = nil
     end
 end
@@ -337,7 +378,7 @@ mod:hook_safe("EndView", "_set_character_names", function(self)
 
                 if report and not slot.tl_modified then
                     slot.tl_modified = true
-                    populate_data(memory.progression, character_id, report)
+                    mod.populate_data(memory.progression, character_id, report)
 
                     local current_data = memory.progression[character_id]
                     progression_data = current_data
@@ -384,7 +425,7 @@ mod:hook_safe("PresenceEntryImmaterium", "_process_character_profile_convert", f
         local backend_profile_data = ProfileUtils.process_backend_body(cjson.decode(character_profile.value))
         local backend_progression = backend_profile_data.progression
 
-        populate_data(progression, character_id, backend_progression)
+        mod.populate_data(progression, character_id, backend_progression)
         mod.debug.echo(character_id, progression[character_id])
     end
 end)
