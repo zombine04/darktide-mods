@@ -24,6 +24,10 @@ return {
         ja = "合算",
         ["zh-cn"] = "合并",
     },
+    prestiege = {
+        en = "Prestiege",
+        ja = "プレステージ",
+    },
     enable_level_up_notif = {
         en = "Enable Level Up Notification",
         ja = "レベルアップ通知を有効にする",
