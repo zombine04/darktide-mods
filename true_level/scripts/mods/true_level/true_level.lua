@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 08/05/2023
-    version: 1.1.2
+    date: 09/05/2023
+    version: 1.2.0
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -77,6 +77,7 @@ mod._calculate_true_level = function(data)
     local additional_level = math.floor(data.reserved_xp / data.total_needed_xp)
     data.additional_level = additional_level
     data.true_level = current_level + additional_level
+    data.prestiege = math.floor(data.total_xp / xp_table[max_level])
 
 --[[
     local additional_level = 0
@@ -116,30 +117,43 @@ mod.populate_data = function(progression, character_id, data)
     progression[character_id] = progression_data
 end
 
+mod.replace_level_text = function(text, progression_data, need_to_add)
+    local display_style = mod:get("display_style")
+    local color = Color.pale_golden_rod(255, true)
+    local prestiege_color = string.format("{#color(%s,%s,%s)}", color[2], color[3], color[4])
+
+    if need_to_add then
+        text = text .. " "
+
+        if not progression_data.additional_level then
+            text = text .. progression_data.level .. " "
+        elseif display_style == "separate" and progression_data.additional_level then
+            local add = string.format(" (+%s) ", progression_data.additional_level)
+            text = text .. progression_data.level .. add
+        elseif display_style == "total" and progression_data.true_level then
+            text = text .. progression_data.true_level .. " "
+        elseif display_style == "prestiege" and progression_data.prestiege then
+            local prestiege = string.format(prestiege_color .. "%s{#reset()}", " " ..progression_data.prestiege)
+            text = text ..  progression_data.level .. prestiege
+        end
+    else
+        if display_style == "separate" and progression_data.additional_level then
+            local add = string.format(" (+%s) ", progression_data.additional_level)
+            text = string.gsub(text, "(%d+) ", "%1" .. add)
+        elseif display_style == "total" and progression_data.true_level then
+            text = string.gsub(text, "%d+ ", progression_data.true_level .. " ")
+        elseif display_style == "prestiege" and progression_data.prestiege then
+            local prestiege = string.format(prestiege_color .. "%s{#reset()}", "" .. progression_data.prestiege)
+            text = string.gsub(text, "", prestiege)
+        end
+    end
+
+    return text
+end
+
 -- ############################################################
 -- Character Select Screen
 -- ############################################################
-
-local get_specialization_text = function(progression_data, profile, style_id)
-    local display_style = mod:get("display_style")
-    local character_title = ProfileUtils.character_title(profile)
-    local character_level = ""
-
-    if display_style == "separate" and progression_data.additional_level then
-        local current_level = profile.current_level
-        character_level = current_level .. string.format(" (+%s)  ", progression_data.additional_level)
-
-        if style_id then
-            style_id.font_size = 16
-        end
-    elseif display_style == "total" and progression_data.true_level then
-        character_level = progression_data.true_level .. " "
-    end
-
-    local specialization = string.format("%s %s", character_title, character_level)
-
-    return specialization
-end
 
 mod:hook_safe("MainMenuView", "_set_player_profile_information", function(self, profile, widget)
     if not mod:get("enable_main_menu") then
@@ -151,9 +165,11 @@ mod:hook_safe("MainMenuView", "_set_player_profile_information", function(self, 
     local progression_data = progression and progression[character_id]
 
     if progression_data then
-        local specialization = get_specialization_text(progression_data, profile, widget.style.style_id_12)
+        local content = widget.content
+        local specialization = content.character_title
 
-        widget.content.character_title = specialization
+        content.character_title = mod.replace_level_text(specialization, progression_data)
+        widget.style.style_id_12.font_size = 16
         mod.debug.dump(progression[character_id], profile.name, 1)
     else
         local backend_interface = Managers.backend.interfaces
@@ -173,13 +189,15 @@ mod:hook_safe("MainMenuView", "_show_character_details", function(self, show, pr
     end
 
     local widget = self._widgets_by_name.character_info
+    local content = widget.content
     local character_id = profile.character_id
     local progression = mod._memory.progression
     local progression_data = progression and progression[character_id]
 
     if progression_data then
-       local specialization = get_specialization_text(progression_data, profile, widget.style.text_specialization)
-       widget.content.character_specialization = specialization
+        local specialization = content.character_specialization
+        content.character_specialization = mod.replace_level_text(specialization, progression_data)
+        widget.style.text_specialization.font_size = 16
     end
 end)
 
@@ -203,28 +221,17 @@ local apply_to_element = function(self, name)
     local player = self._player
     local profile = player and player:profile()
     local character_id = profile and profile.character_id
-    local is_myself = memory.progression[character_id] ~= nil
     local progression_data = memory.progression[character_id] or memory.temp[character_id]
 
     if progression_data and name then
-        local current_level = progression_data.level
-        local additional_level = progression_data.additional_level
-        local true_level = progression_data.true_level
         local widget = self._widgets_by_name.player_name
-        local display_style = mod:get("display_style")
-        local text = name .. " - "
+        local container_size = widget.style.text.size
 
-        if not progression_data.additional_level then
-            text = text .. current_level
-        elseif display_style == "separate" and additional_level then
-            text = text .. current_level .. string.format(" (+%s)", additional_level)
-            widget.style.text.font_size = is_myself and 20 or 16
-        elseif display_style == "total" and true_level then
-            text = text .. true_level
+        widget.content.text = mod.replace_level_text(widget.content.text, progression_data)
+
+        if container_size then
+            container_size[1] = 500
         end
-
-        text = text .. " "
-        widget.content.text = text
     elseif table.is_empty(memory.progression) and not mod._progression_promise then
         mod.debug.echo("Main Menu Skipped")
 
@@ -285,20 +292,9 @@ mod:hook_safe("HudElementWorldMarkers", "update", function(self, dt, t)
                     local progression_data = memory.progression[character_id] or memory.temp[character_id]
 
                     if progression_data then
-                        local display_style = mod:get("display_style")
                         local content = marker.widget.content
 
-                        if display_style == "separate" and progression_data.additional_level then
-                            local add = string.format(" (+%s) ", progression_data.additional_level)
-                            content.header_text = is_combat and
-                                                  content.header_text .. " " .. progression_data.level .. add or
-                                                  string.gsub(content.header_text, "(%d+) ", "%1" .. add)
-                        elseif display_style == "total" and progression_data.true_level then
-                            content.header_text = is_combat and
-                                                  content.header_text .. " " .. progression_data.true_level or
-                                                  string.gsub(content.header_text, "%d+ ", progression_data.true_level .. " ")
-                        end
-
+                        content.header_text = mod.replace_level_text(content.header_text, progression_data, is_combat)
                         mod.debug.echo(marker.widget.content.header_text)
                         marker.tl_modified = true
                     end
@@ -339,17 +335,10 @@ mod:hook_safe("LobbyView", "_sync_player", function(self, unique_id, player)
     end
 
     if progression_data and slot and slot.synced and can_replace then
-        local display_style = mod:get("display_style")
         local panel_widget = slot.panel_widget
         local panel_content = panel_widget.content
 
-        if display_style == "separate" and progression_data.additional_level then
-            local add = string.format(" (+%s) ", progression_data.additional_level)
-            panel_content.character_name = string.gsub(panel_content.character_name, "(%d+) ", "%1" .. add)
-        elseif display_style == "total" and progression_data.true_level then
-            panel_content.character_name = string.gsub(panel_content.character_name, "%d+ ", progression_data.true_level .. " ")
-        end
-
+        panel_content.character_name = mod.replace_level_text(panel_content.character_name, progression_data)
         slot.tl_modified = true
     end
 end)
@@ -405,8 +394,7 @@ mod:hook_safe("EndView", "_set_character_names", function(self)
 
                     if previous_data and previous_data.true_level < current_data.true_level then
                         if mod:get("enable_level_up_notif") then
-                            Managers.ui:play_2d_sound("wwise/events/ui/play_ui_eor_character_lvl_up")
-                            mod:notify(mod:localize("level_up"))
+                            mod._play_level_up_sound = true
                         end
                         mod.debug.echo(previous_data.true_level .. " -> " .. progression_data.true_level)
                     end
@@ -415,19 +403,19 @@ mod:hook_safe("EndView", "_set_character_names", function(self)
                 local widget = slot.widget
 
                 if widget then
-                    local display_style = mod:get("display_style")
                     local content = widget.content
-                    local text = content.character_name
-
-                    if display_style == "separate" and progression_data.additional_level then
-                        local add = string.format(" (+%s) ", progression_data.additional_level)
-                        content.character_name = string.gsub(text, "(%d+) ", "%1" .. add)
-                    elseif display_style == "total" and progression_data.true_level then
-                        content.character_name = string.gsub(text, "%d+ ", progression_data.true_level .. " ")
-                    end
+                    content.character_name = mod.replace_level_text(content.character_name, progression_data)
                 end
             end
         end
+    end
+end)
+
+mod:hook_safe("EndPlayerView", "_finish_current_animation_state", function()
+    if mod._play_level_up_sound then
+        mod._play_level_up_sound = false
+        Managers.ui:play_2d_sound("wwise/events/ui/play_ui_eor_character_lvl_up")
+        mod:notify(mod:localize("level_up"))
     end
 end)
 
@@ -452,14 +440,7 @@ mod:hook("SocialMenuRosterView", "formatted_character_name", function(func, self
     end
 
     if progression_data then
-        local display_style = mod:get("display_style")
-
-        if display_style == "separate" and progression_data.additional_level then
-            local add = string.format(" (+%s) ", progression_data.additional_level)
-            character_name = string.gsub(character_name, "(%d+) ", "%1" .. add)
-        elseif display_style == "total" and progression_data.true_level then
-            character_name = string.gsub(character_name, "%d+ ", progression_data.true_level .. " ")
-        end
+        character_name = mod.replace_level_text(character_name, progression_data)
     end
 
     return character_name

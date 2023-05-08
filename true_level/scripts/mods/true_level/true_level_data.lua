@@ -11,8 +11,9 @@ return {
                 type = "dropdown",
                 default_value = "separate",
                 options = {
-                    { text = "separate", value = "separate"},
+                    { text = "separate", value = "separate" },
                     { text = "total", value = "total" },
+                    { text = "prestiege", value = "prestiege" },
                 }
             },
             {
