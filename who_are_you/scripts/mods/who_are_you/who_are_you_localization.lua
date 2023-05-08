@@ -117,7 +117,7 @@ local locres = {
         en = "Lobby",
         ja = "ロビー",
         ru = "Лобби",
-        ["zh-cn"] = "小队",
+        ["zh-cn"] = "小队大厅",
     },
     enable_nameplate = {
         en = "Nameplate",
