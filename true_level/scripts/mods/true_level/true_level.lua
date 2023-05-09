@@ -119,8 +119,6 @@ end
 
 mod.replace_level_text = function(text, progression_data, need_to_add)
     local display_style = mod:get("display_style")
-    local color = Color.pale_golden_rod(255, true)
-    local prestiege_color = string.format("{#color(%s,%s,%s)}", color[2], color[3], color[4])
 
     if need_to_add then
         text = text .. " "
@@ -132,9 +130,6 @@ mod.replace_level_text = function(text, progression_data, need_to_add)
             text = text .. progression_data.level .. add
         elseif display_style == "total" and progression_data.true_level then
             text = text .. progression_data.true_level .. " "
-        elseif display_style == "prestiege" and progression_data.prestiege then
-            local prestiege = string.format(prestiege_color .. "%s{#reset()}", " " ..progression_data.prestiege)
-            text = text ..  progression_data.level .. prestiege
         end
     else
         if display_style == "separate" and progression_data.additional_level then
@@ -142,10 +137,15 @@ mod.replace_level_text = function(text, progression_data, need_to_add)
             text = string.gsub(text, "(%d+) ", "%1" .. add)
         elseif display_style == "total" and progression_data.true_level then
             text = string.gsub(text, "%d+ ", progression_data.true_level .. " ")
-        elseif display_style == "prestiege" and progression_data.prestiege then
-            local prestiege = string.format(prestiege_color .. "%s{#reset()}", "" .. progression_data.prestiege)
-            text = string.gsub(text, "", prestiege)
         end
+    end
+
+    if mod:get("enable_prestiege_level") and progression_data.prestiege then
+        local color = Color.pale_golden_rod(255, true)
+        local prestiege_color = string.format("{#color(%s,%s,%s)}", color[2], color[3], color[4])
+        local prestiege = string.format(prestiege_color .. "%s{#reset()}", "" .. progression_data.prestiege)
+
+        text = string.gsub(text, "", prestiege)
     end
 
     return text

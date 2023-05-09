@@ -10,11 +10,17 @@ return {
                 setting_id = "display_style",
                 type = "dropdown",
                 default_value = "separate",
+                tooltip = "display_style_desc",
                 options = {
                     { text = "separate", value = "separate" },
                     { text = "total", value = "total" },
-                    { text = "prestiege", value = "prestiege" },
-                }
+                },
+            },
+            {
+                setting_id = "enable_prestiege_level",
+                type = "checkbox",
+                default_value = false,
+                tooltip = "prestiege_level_desc",
             },
             {
                 setting_id = "enable_level_up_notif",

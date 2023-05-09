@@ -16,6 +16,16 @@ return {
         ru = "Стиль отображения",
         ["zh-cn"] = "显示样式",
     },
+    display_style_desc = {
+        en = "Separate: 30 (+100) \n" ..
+             "Total: 130 ",
+        ja = "別々: 30 (+100) \n" ..
+             "合算: 130 ",
+        ["zh-cn"] = "分开: 30 (+100) \n" ..
+             "合并: 130 ",
+        ru = "Раздельно: 30 (+100) \n" ..
+             "Вместе: 130 ",
+    },
     separate = {
         en = "Separate",
         ja = "別々",
@@ -32,6 +42,14 @@ return {
         en = "Prestiege",
         ja = "プレステージ",
         ru = "Престиж",
+    },
+    enable_prestiege_level = {
+        en = "Show Prestiege Level",
+        ja = "プレステージレベルを表示する",
+    },
+    prestiege_level_desc = {
+        en = "Show how many times the character passed from level 1 to 30",
+        ja = "そのキャラクターが何回レベル1から30までを繰り返したか表示します。"
     },
     enable_level_up_notif = {
         en = "Enable Level Up Notification",
