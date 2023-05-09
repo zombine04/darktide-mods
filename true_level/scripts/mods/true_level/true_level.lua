@@ -77,7 +77,7 @@ mod._calculate_true_level = function(data)
     local additional_level = math.floor(data.reserved_xp / data.total_needed_xp)
     data.additional_level = additional_level
     data.true_level = current_level + additional_level
-    data.prestiege = math.floor(data.total_xp / xp_table[max_level])
+    data.prestige = math.floor(data.total_xp / xp_table[max_level])
 
 --[[
     local additional_level = 0
@@ -140,12 +140,12 @@ mod.replace_level_text = function(text, progression_data, need_to_add)
         end
     end
 
-    if mod:get("enable_prestiege_level") and progression_data.prestiege then
+    if mod:get("enable_prestige_level") and progression_data.prestige then
         local color = Color.pale_golden_rod(255, true)
-        local prestiege_color = string.format("{#color(%s,%s,%s)}", color[2], color[3], color[4])
-        local prestiege = string.format(prestiege_color .. "%s{#reset()}", "" .. progression_data.prestiege)
+        local prestige_color = string.format("{#color(%s,%s,%s)}", color[2], color[3], color[4])
+        local prestige = string.format(prestige_color .. "%s{#reset()}", "" .. progression_data.prestige)
 
-        text = string.gsub(text, "", prestiege)
+        text = string.gsub(text, "", prestige)
     end
 
     return text

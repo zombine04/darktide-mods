@@ -38,16 +38,16 @@ return {
         ["zh-cn"] = "合并",
         ru = "Вместе",
     },
-    prestiege = {
-        en = "Prestiege",
+    prestige = {
+        en = "Prestige",
         ja = "プレステージ",
         ru = "Престиж",
     },
-    enable_prestiege_level = {
-        en = "Show Prestiege Level",
+    enable_prestige_level = {
+        en = "Show Prestige Level",
         ja = "プレステージレベルを表示する",
     },
-    prestiege_level_desc = {
+    prestige_level_desc = {
         en = "Show how many times the character passed from level 1 to 30",
         ja = "そのキャラクターが何回レベル1から30までを繰り返したか表示します。"
     },

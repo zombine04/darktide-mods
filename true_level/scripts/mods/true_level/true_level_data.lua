@@ -17,10 +17,10 @@ return {
                 },
             },
             {
-                setting_id = "enable_prestiege_level",
+                setting_id = "enable_prestige_level",
                 type = "checkbox",
                 default_value = false,
-                tooltip = "prestiege_level_desc",
+                tooltip = "prestige_level_desc",
             },
             {
                 setting_id = "enable_level_up_notif",
