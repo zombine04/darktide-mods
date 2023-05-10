@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 10/05/2023
-    version: 1.2.1
+    date: 11/05/2023
+    version: 1.3.0
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -62,6 +62,8 @@ mod._calculate_true_level = function(data)
     local xp_table = xp_settings.experience_per_level_array
     local current_level = data.level
 
+    data.prestige = math.floor(data.total_xp / xp_table[max_level])
+
     if current_level < max_level then
         data.total_needed_xp = xp_table[current_level + 1] - xp_table[current_level]
         return
@@ -77,7 +79,6 @@ mod._calculate_true_level = function(data)
     local additional_level = math.floor(data.reserved_xp / data.total_needed_xp)
     data.additional_level = additional_level
     data.true_level = current_level + additional_level
-    data.prestige = math.floor(data.total_xp / xp_table[max_level])
 
 --[[
     local additional_level = 0
@@ -117,8 +118,22 @@ mod.populate_data = function(progression, character_id, data)
     progression[character_id] = progression_data
 end
 
-mod.replace_level_text = function(text, progression_data, need_to_add)
-    local display_style = mod:get("display_style")
+local _get_best_setting = function(base, element)
+    local setting = mod:get(base .. "_" .. element)
+
+    if setting == "use_global" then
+        setting = mod:get(base)
+    elseif string.match(base, "prestige") then
+        setting = setting == "on" and true or false
+    end
+
+    return setting
+end
+
+mod.replace_level_text = function(text, progression_data, key, need_to_add)
+    local display_style = _get_best_setting("display_style", key)
+    local show_prestige = _get_best_setting("enable_prestige_level", key)
+    local show_prestige_only = _get_best_setting("enable_prestige_only", key)
 
     if need_to_add then
         text = text .. " "
@@ -140,12 +155,17 @@ mod.replace_level_text = function(text, progression_data, need_to_add)
         end
     end
 
-    if mod:get("enable_prestige_level") and progression_data.prestige then
+    if show_prestige and progression_data.prestige then
         local color = Color.pale_golden_rod(255, true)
         local prestige_color = string.format("{#color(%s,%s,%s)}", color[2], color[3], color[4])
         local prestige = string.format(prestige_color .. "%s{#reset()}", "" .. progression_data.prestige)
 
-        text = string.gsub(text, "", prestige)
+        if show_prestige_only then
+            text = string.gsub(text, "%d+ [+%d()]+ ", prestige)
+            text = string.gsub(text, "%d+ ", prestige)
+        elseif progression_data.additional_level then
+            text = string.gsub(text, "", prestige)
+        end
     end
 
     return text
@@ -168,7 +188,7 @@ mod:hook_safe("MainMenuView", "_set_player_profile_information", function(self, 
         local content = widget.content
         local specialization = content.character_title
 
-        content.character_title = mod.replace_level_text(specialization, progression_data)
+        content.character_title = mod.replace_level_text(specialization, progression_data, "main_menu")
         widget.style.style_id_12.font_size = 15
         mod.debug.dump(progression[character_id], profile.name, 1)
     else
@@ -196,7 +216,7 @@ mod:hook_safe("MainMenuView", "_show_character_details", function(self, show, pr
 
     if progression_data then
         local specialization = content.character_specialization
-        content.character_specialization = mod.replace_level_text(specialization, progression_data)
+        content.character_specialization = mod.replace_level_text(specialization, progression_data, "main_menu")
         widget.style.text_specialization.font_size = 16
     end
 end)
@@ -228,7 +248,7 @@ local apply_to_element = function(self, name)
         local container_size = widget.style.text.size
         local player_name = name .. " -"
 
-        widget.content.text = mod.replace_level_text(player_name, progression_data, true)
+        widget.content.text = mod.replace_level_text(player_name, progression_data, "player_panel",true)
 
         if container_size then
             container_size[1] = 500
@@ -295,7 +315,7 @@ mod:hook_safe("HudElementWorldMarkers", "update", function(self, dt, t)
                     if progression_data then
                         local content = marker.widget.content
 
-                        content.header_text = mod.replace_level_text(content.header_text, progression_data, is_combat)
+                        content.header_text = mod.replace_level_text(content.header_text, progression_data, "nameplate", is_combat)
                         mod.debug.echo(marker.widget.content.header_text)
                         marker.tl_modified = true
                     end
@@ -339,7 +359,7 @@ mod:hook_safe("LobbyView", "_sync_player", function(self, unique_id, player)
         local panel_widget = slot.panel_widget
         local panel_content = panel_widget.content
 
-        panel_content.character_name = mod.replace_level_text(panel_content.character_name, progression_data)
+        panel_content.character_name = mod.replace_level_text(panel_content.character_name, progression_data, "lobby")
         slot.tl_modified = true
     end
 end)
@@ -405,14 +425,14 @@ mod:hook_safe("EndView", "_set_character_names", function(self)
 
                 if widget then
                     local content = widget.content
-                    content.character_name = mod.replace_level_text(content.character_name, progression_data)
+                    content.character_name = mod.replace_level_text(content.character_name, progression_data, "end_view")
                 end
             end
         end
     end
 end)
 
-mod:hook_safe("EndPlayerView", "_finish_current_animation_state", function()
+mod:hook_safe("EndPlayerView", "_set_carousel_state", function()
     if mod._play_level_up_sound then
         mod._play_level_up_sound = false
         Managers.ui:play_2d_sound("wwise/events/ui/play_ui_eor_character_lvl_up")
@@ -441,7 +461,7 @@ mod:hook("SocialMenuRosterView", "formatted_character_name", function(func, self
     end
 
     if progression_data then
-        character_name = mod.replace_level_text(character_name, progression_data)
+        character_name = mod.replace_level_text(character_name, progression_data, "social_menu")
     end
 
     return character_name
