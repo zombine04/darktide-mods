@@ -120,8 +120,8 @@ local loc = {
     lobby = {
         en = "Lobby",
         ja = "ロビー",
-        ru = "Лобби",
         ["zh-cn"] = "小队大厅",
+        ru = "Лобби",
     },
     main_menu = {
         en = "Character Select Screen",
@@ -132,14 +132,14 @@ local loc = {
     nameplate = {
         en = "Nameplate",
         ja = "ネームプレート",
-        ru = "Табличка с именем",
         ["zh-cn"] = "名称标签",
+        ru = "Табличка с именем",
     },
     player_panel = {
         en = "Team HUD",
         ja = "チームHUD",
-        ru = "Интерфейс команды",
         ["zh-cn"] = "团队 HUD",
+        ru = "Интерфейс команды",
     },
     social_menu = {
         en = "Social Menu",
