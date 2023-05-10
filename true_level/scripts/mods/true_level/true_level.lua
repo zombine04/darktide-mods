@@ -118,7 +118,7 @@ mod.populate_data = function(progression, character_id, data)
     progression[character_id] = progression_data
 end
 
-local _get_best_setting = function(base, element)
+mod.get_best_setting = function(base, element)
     local setting = mod:get(base .. "_" .. element)
 
     if setting == "use_global" then
@@ -131,9 +131,9 @@ local _get_best_setting = function(base, element)
 end
 
 mod.replace_level_text = function(text, progression_data, key, need_to_add)
-    local display_style = _get_best_setting("display_style", key)
-    local show_prestige = _get_best_setting("enable_prestige_level", key)
-    local show_prestige_only = _get_best_setting("enable_prestige_only", key)
+    local display_style = mod.get_best_setting("display_style", key)
+    local show_prestige = mod.get_best_setting("enable_prestige_level", key)
+    local show_prestige_only = mod.get_best_setting("enable_prestige_only", key)
 
     if need_to_add then
         text = text .. " "
