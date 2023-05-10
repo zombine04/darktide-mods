@@ -1,8 +1,8 @@
 --[[
     title: contracts_overlay
     author: Zombine
-    date: 03/05/2023
-    version: 1.1.6
+    date: 10/05/2023
+    version: 1.1.7
 ]]
 local mod = get_mod("contracts_overlay")
 
@@ -492,6 +492,20 @@ mod:hook_safe("AttackReportManager", "add_attack_result", function(self, _, unit
                     end
                 end
             end
+        end
+    end
+end)
+
+-- DarkCache Compatibility
+
+mod:hook_safe("EndView", "init", function()
+    local cache = DarkCache and DarkCache.get_current_char_cache()
+    local item = cache and cache:get("contracts_list")
+
+    if item then
+        item:expire()
+        if debug_mode then
+            mod:echo("Cleaned up contract cache (DarkCache Compatibility)")
         end
     end
 end)
