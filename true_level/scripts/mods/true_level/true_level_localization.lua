@@ -42,6 +42,11 @@ return {
         ["zh-cn"] = "合并",
         ru = "Вместе",
     },
+    prestiege = {
+        en = "Prestiege",
+        ja = "プレステージ",
+        ru = "Престиж",
+    },
     default = {
         en = "Default",
         ja = "デフォルト",
