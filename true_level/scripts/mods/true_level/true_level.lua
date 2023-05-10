@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 09/05/2023
-    version: 1.2.0
+    date: 10/05/2023
+    version: 1.2.1
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -123,7 +123,7 @@ mod.replace_level_text = function(text, progression_data, need_to_add)
     if need_to_add then
         text = text .. " "
 
-        if not progression_data.additional_level then
+        if not progression_data.additional_level or display_style == "default" then
             text = text .. progression_data.level .. " "
         elseif display_style == "separate" and progression_data.additional_level then
             local add = string.format(" (+%s) ", progression_data.additional_level)
@@ -169,7 +169,7 @@ mod:hook_safe("MainMenuView", "_set_player_profile_information", function(self, 
         local specialization = content.character_title
 
         content.character_title = mod.replace_level_text(specialization, progression_data)
-        widget.style.style_id_12.font_size = 16
+        widget.style.style_id_12.font_size = 15
         mod.debug.dump(progression[character_id], profile.name, 1)
     else
         local backend_interface = Managers.backend.interfaces
@@ -226,8 +226,9 @@ local apply_to_element = function(self, name)
     if progression_data and name then
         local widget = self._widgets_by_name.player_name
         local container_size = widget.style.text.size
+        local player_name = name .. " -"
 
-        widget.content.text = mod.replace_level_text(widget.content.text, progression_data)
+        widget.content.text = mod.replace_level_text(player_name, progression_data, true)
 
         if container_size then
             container_size[1] = 500

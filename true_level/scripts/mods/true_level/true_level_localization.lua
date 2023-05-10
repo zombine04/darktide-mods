@@ -18,13 +18,17 @@ return {
     },
     display_style_desc = {
         en = "Separate: 30 (+100) \n" ..
-             "Total: 130 ",
+             "Total: 130 \n" ..
+             "Default: 30 ",
         ja = "別々: 30 (+100) \n" ..
-             "合算: 130 ",
+             "合算: 130 \n" ..
+             "デフォルト: 30 ",
         ["zh-cn"] = "分开: 30 (+100) \n" ..
-             "合并: 130 ",
+             "合并: 130 \n" ..
+             "默认: 30 ",
         ru = "Раздельно: 30 (+100) \n" ..
-             "Вместе: 130 ",
+             "Вместе: 130 \n" ..
+             "По умолчанию: 30 ",
     },
     separate = {
         en = "Separate",
@@ -38,10 +42,11 @@ return {
         ["zh-cn"] = "合并",
         ru = "Вместе",
     },
-    prestige = {
-        en = "Prestige",
-        ja = "プレステージ",
-        ru = "Престиж",
+    default = {
+        en = "Default",
+        ja = "デフォルト",
+        ["zh-cn"] = "默认",
+        ru = "По умолчанию",
     },
     enable_prestige_level = {
         en = "Show Prestige Level",

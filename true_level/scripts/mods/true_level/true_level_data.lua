@@ -14,6 +14,7 @@ return {
                 options = {
                     { text = "separate", value = "separate" },
                     { text = "total", value = "total" },
+                    { text = "default", value = "default" },
                 },
             },
             {
