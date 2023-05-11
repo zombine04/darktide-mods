@@ -27,6 +27,12 @@ local loc = {
         ["zh-cn"] = "读取玩家达到最高等级后获取的经验值，显示玩家的真实等级。",
         ru = "True Level - Считывает опыт, полученный после достижения максимального уровня, и отображает ваш фактический уровень, которого вы достигли.",
     },
+    enable_level_up_notif = {
+        en = "Enable Level Up Notification",
+        ja = "レベルアップ通知を有効にする",
+        ["zh-cn"] = "启用升级通知",
+        ru = "Включить уведомление о повышении уровня",
+    },
     global = {
         en = "Global",
         ja = "グローバル",
@@ -93,11 +99,9 @@ local loc = {
         en = "Show Prestige Level Only",
         ja = "プレステージレベルのみを表示する",
     },
-    enable_level_up_notif = {
-        en = "Enable Level Up Notification",
-        ja = "レベルアップ通知を有効にする",
-        ["zh-cn"] = "启用升级通知",
-        ru = "Включить уведомление о повышении уровня",
+    prestige_level_color = {
+        en = "Prestige Level Color",
+        ja = "プレステージレベルの色",
     },
     level_up = {
         en = "Level Up!",
@@ -167,6 +171,14 @@ local loc = {
     },
 }
 
+local add_child_loc = function(parent, ele)
+    local child = parent .. "_" .. ele
+    loc[child] = {}
+    for lang, text in pairs(loc[parent]) do
+        loc[child][lang] = text
+    end
+end
+
 for i, ele in pairs(mod._elements) do
     local toggle = "enable_" .. ele
     loc[toggle] = {}
@@ -174,23 +186,18 @@ for i, ele in pairs(mod._elements) do
         loc[toggle][lang] = loc.toggle[lang]
     end
 
-    local style = "display_style_" .. ele
-    loc[style] = {}
-    for lang, text in pairs(loc.display_style) do
-        loc[style][lang] = text
-    end
+    add_child_loc("display_style", ele)
+    add_child_loc("enable_prestige_level", ele)
+    add_child_loc("enable_prestige_only", ele)
+    add_child_loc("prestige_level_color", ele)
+end
 
-    local prestige = "enable_prestige_level_" .. ele
-    loc[prestige] = {}
-    for lang, text in pairs(loc.enable_prestige_level) do
-        loc[prestige][lang] = text
-    end
+for i, name in ipairs(Color.list) do
+    local c = Color[name](255, true)
+    local text = string.format("{#color(%s,%s,%s)}%s{#reset()}", c[2], c[3], c[4], string.gsub(name, "_", " "))
 
-    local prestige_only = "enable_prestige_only_" .. ele
-    loc[prestige_only] = {}
-    for lang, text in pairs(loc.enable_prestige_only) do
-        loc[prestige_only][lang] = text
-    end
+    loc[name] = {}
+    loc[name].en = text
 end
 
 return loc

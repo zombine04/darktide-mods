@@ -134,6 +134,7 @@ mod.replace_level_text = function(text, progression_data, key, need_to_add)
     local display_style = mod.get_best_setting("display_style", key)
     local show_prestige = mod.get_best_setting("enable_prestige_level", key)
     local show_prestige_only = mod.get_best_setting("enable_prestige_only", key)
+    local prestige_color = mod.get_best_setting("prestige_level_color", key)
 
     if need_to_add then
         text = text .. " "
@@ -156,9 +157,13 @@ mod.replace_level_text = function(text, progression_data, key, need_to_add)
     end
 
     if show_prestige and progression_data.prestige then
-        local color = Color.pale_golden_rod(255, true)
-        local prestige_color = string.format("{#color(%s,%s,%s)}", color[2], color[3], color[4])
-        local prestige = string.format(prestige_color .. "%s{#reset()}", "" .. progression_data.prestige)
+        local prestige = "" .. progression_data.prestige
+
+        if prestige_color ~= "default" then
+            local c = Color[prestige_color](255, true)
+            local color = string.format("{#color(%s,%s,%s)}", c[2], c[3], c[4])
+            prestige = string.format(color .. "%s{#reset()}", prestige)
+        end
 
         if show_prestige_only then
             text = string.gsub(text, "%d+ [+%d()]+ ", prestige)
