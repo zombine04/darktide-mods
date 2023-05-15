@@ -63,6 +63,7 @@ local loc = {
         en = "Use Global Setting",
         ja = "グローバル設定を使用する",
         ru = "Использовать глобальную настройку",
+        ["zh-cn"] = "使用全局设置",
     },
     separate = {
         en = "Separate",
@@ -92,21 +93,25 @@ local loc = {
         en = "Show Prestige Level",
         ja = "プレステージレベルを表示する",
         ru = "Показывать уровень престижа",
+        ["zh-cn"] = "显示声望等级",
     },
     prestige_level_desc = {
         en = "Show how many times the character passed from level 1 to 30",
         ja = "そのキャラクターが何回レベル1から30までを繰り返したか表示します。",
         ru = "Показывать, сколько раз персонаж прошел с 1 по 30 уровень",
+        ["zh-cn"] = "显示等同于玩家从 1 级升到 30 级的总次数",
     },
     enable_prestige_only = {
         en = "Show Prestige Level Only",
         ja = "プレステージレベルのみを表示する",
         ru = "Показывать только уровень престижа",
+        ["zh-cn"] = "仅显示声望等级",
     },
     prestige_level_color = {
         en = "Prestige Level Color",
         ja = "プレステージレベルの色",
         ru = "Цвет уровня престижа",
+        ["zh-cn"] = "声望等级颜色",
     },
     level_up = {
         en = "Level Up!",
