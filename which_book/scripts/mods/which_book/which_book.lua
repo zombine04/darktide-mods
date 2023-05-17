@@ -1,8 +1,8 @@
 --[[
     title: Which Book
     aouthor: Zombine
-    date: 28/04/2023
-    version: 1.2.6
+    date: 17/05/2023
+    version: 1.2.7
 ]]
 
 local mod = get_mod("which_book")
@@ -12,10 +12,20 @@ local is_scripture = function(icon)
     return icon == MissionObjectiveTemplates.side_mission.objectives.side_mission_tome.icon
 end
 
+mod:hook_safe("UIManager", "load_view", function(self, view_name, reference_name)
+    local package = "packages/ui/hud/player_weapon/player_weapon"
+    local package_manager = Managers.package
+
+    if view_name == "mission_board_view" and
+       not package_manager:has_loaded(package) and
+       not package_manager:is_loading(package) then
+        package_manager:load(package, reference_name, nil)
+    end
+end)
+
 mod:hook("MissionBoardView", "init", function(func, self, settings)
     local side_mission_objectives = MissionObjectiveTemplates.side_mission.objectives
 
-    Managers.package:load("packages/ui/hud/player_weapon/player_weapon", "MissionBoardView", nil)
     side_mission_objectives.side_mission_grimoire.icon = mod:get("wb_grimoire")
     side_mission_objectives.side_mission_tome.icon = mod:get("wb_scripture")
 
