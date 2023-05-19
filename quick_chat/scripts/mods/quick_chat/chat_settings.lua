@@ -59,4 +59,14 @@ return {
         title = "Sorry",
         message = "Sorry"
     },
+    {
+        id = "deploy_med",
+        title = "Deploy Med",
+        message = "Medi-pack downed"
+    },
+    {
+        id = "deploy_ammo",
+        title = "Deploy Ammo",
+        message = "Ammo crate downed"
+    },
 }

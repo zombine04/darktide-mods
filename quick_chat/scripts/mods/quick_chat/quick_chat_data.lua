@@ -74,6 +74,17 @@ return {
                 type = "group",
                 sub_widgets = _get_message_widgets()
             },
+            {
+                setting_id = "debug_mode",
+                type = "group",
+                sub_widgets = {
+                    {
+                        setting_id = "enable_debug_mode",
+                        type = "checkbox",
+                        default_value = false,
+                    },
+                },
+            },
         }
     }
 }
