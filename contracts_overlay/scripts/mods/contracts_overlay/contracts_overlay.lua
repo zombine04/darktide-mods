@@ -1,8 +1,8 @@
 --[[
     title: contracts_overlay
     author: Zombine
-    date: 10/05/2023
-    version: 1.1.7
+    date: 21/05/2023
+    version: 1.2.0
 ]]
 local mod = get_mod("contracts_overlay")
 
@@ -494,6 +494,22 @@ mod:hook_safe("AttackReportManager", "add_attack_result", function(self, _, unit
             end
         end
     end
+end)
+
+-- Overlay in Hub
+
+mod:hook_require("scripts/ui/hud/hud_elements_player_hub", function(elements)
+    elements[#elements + 1] = {
+        package = "packages/ui/hud/tactical_overlay/tactical_overlay",
+        use_hud_scale = false,
+        class_name = "HudElementTacticalOverlay",
+        filename = "scripts/ui/hud/elements/tactical_overlay/hud_element_tactical_overlay",
+        visibility_groups = {
+            "tactical_overlay",
+            "alive",
+            "communication_wheel",
+        }
+    }
 end)
 
 -- DarkCache Compatibility
