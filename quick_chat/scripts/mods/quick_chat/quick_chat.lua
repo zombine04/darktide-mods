@@ -34,7 +34,7 @@ mod._get_message_by_id = function(id)
             if type(setting.message) == "table" then
                 message = setting.message[math.random(#setting.message)]
             else
-                message = setting.messagee
+                message = setting.message
             end
 
             return message
