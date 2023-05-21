@@ -1,8 +1,8 @@
 --[[
     title: quick_chat
     author: Zombine
-    date: 19/05/2023
-    version: 1.1.0
+    date: 21/05/2023
+    version: 1.2.0
 ]]
 local mod = get_mod("quick_chat")
 local ChatManagerConstants = require("scripts/foundation/managers/chat/chat_manager_constants")
@@ -29,7 +29,15 @@ end
 mod._get_message_by_id = function(id)
     for _, setting in ipairs(mod._messages) do
         if setting.id == id then
-            return setting.message
+            local message = ""
+
+            if type(setting.message) == "table" then
+                message = setting.message[math.random(#setting.message)]
+            else
+                message = setting.messagee
+            end
+
+            return message
         end
     end
 end

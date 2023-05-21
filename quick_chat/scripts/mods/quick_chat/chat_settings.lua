@@ -10,7 +10,7 @@
 
     id      -- Unique string that does not duplicate others. Use "_" (underscore) instead of " " (space) .
     title   -- Text that appears on the option menu.
-    message -- Text that you want to send.
+    message -- Text that you want to send. If you use a table (array), a message is randomly selected from it.
 
     You can use "[name]" as a place holder.
     It will be replaced by the character name of the player who triggered the event.
@@ -22,7 +22,14 @@ return {
     {
         id = "alert_daemonhost",
         title = "Daemonhost",
-        message = "Stay alert! A Daemonhost"
+        message = {
+            "Daemonhost!",
+            "I sense a Daemonhost!",
+            "I think I hear a Daemonhost?",
+            "Oh hel… It's a Daemonhost!",
+            "Stay alert! A Daemonhost!",
+            "Throne… It's a fragging Daemonhost!",
+        }
     },
     {
         id = "alert_need_help",

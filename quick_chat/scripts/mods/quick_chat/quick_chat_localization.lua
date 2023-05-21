@@ -235,11 +235,21 @@ local loc = {
 for _, setting in pairs(mod._messages) do
     local id = setting.id
     local tooltip = "tooltip_" .. id
+    local message = ""
+
+    if type(setting.message) == "table" then
+        for i, v in ipairs(setting.message) do
+            local prefix = i == 1 and "- " or "\n- "
+            message = message .. prefix .. v
+        end
+    else
+        message = "- " .. setting.message
+    end
 
     loc[id] = {}
     loc[tooltip] = {}
     loc[id].en = setting.title
-    loc[tooltip].en = setting.message
+    loc[tooltip].en = message
 end
 
 return loc
