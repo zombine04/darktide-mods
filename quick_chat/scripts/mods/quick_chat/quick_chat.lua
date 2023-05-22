@@ -1,8 +1,8 @@
 --[[
     title: quick_chat
     author: Zombine
-    date: 21/05/2023
-    version: 1.2.0
+    date: 22/05/2023
+    version: 1.2.1
 ]]
 local mod = get_mod("quick_chat")
 local ChatManagerConstants = require("scripts/foundation/managers/chat/chat_manager_constants")
@@ -24,6 +24,16 @@ for _, setting in ipairs(mod._messages) do
             mod.send_preset_message(id, "hotkey")
         end
     end
+end
+
+mod._is_in_hub = function()
+    local game_mode_manager = Managers.state.game_mode
+
+    if not game_mode_manager then
+        return false
+    end
+
+    return game_mode_manager:game_mode_name() == "hub"
 end
 
 mod._get_message_by_id = function(id)
@@ -67,11 +77,13 @@ mod.send_preset_message = function(id, message_type, character_name, color)
     local message = mod._get_message_by_id(id)
     local channel_handle = mod._memory.channel_handle
     local check_mode = mod:get("enable_check_mode")
+    local is_enable_in_hub = mod:get("enable_in_hub")
 
     if not t or
        not message or
        #message == 0 or
        not check_mode and not channel_handle or
+       not is_enable_in_hub and mod._is_in_hub() or
        cooldown and latest_t and t - latest_t < cooldown then
         return
     end

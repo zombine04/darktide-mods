@@ -42,6 +42,10 @@ local loc = {
         en = "Enable Check Mode",
         ja = "確認モードを有効にする",
     },
+    enable_in_hub = {
+        en = "Enable in the Mourningstar",
+        ja = "モーニングスター内でも有効にする",
+    },
     check_mode_desc = {
         en = "If enabled, the messages you send will be visible only to yourself.",
         ja = "有効にした場合、メッセージは自分にのみ見えるようになります。",

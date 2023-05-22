@@ -65,6 +65,11 @@ return {
                 tooltip = "check_mode_desc"
             },
             {
+                setting_id = "enable_in_hub",
+                type = "checkbox",
+                default_value = true,
+            },
+            {
                 setting_id = "events",
                 type = "group",
                 sub_widgets = _get_event_widgets()
