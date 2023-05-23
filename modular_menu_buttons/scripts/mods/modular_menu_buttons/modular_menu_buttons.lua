@@ -169,7 +169,7 @@ mod:hook_safe("SystemView", "on_enter", function(self)
         end
     end
 
-    scenegraph.position[2] = 240 - (num_btn * 12)
+    scenegraph.position[2] = 540 - num_btn * 65 / 2
 end)
 
 -- For Psykanium in Lobby and Main Menu
