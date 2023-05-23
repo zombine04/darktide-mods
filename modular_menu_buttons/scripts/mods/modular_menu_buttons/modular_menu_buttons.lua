@@ -1,7 +1,7 @@
 --[[
     title: modular_menu_buttons
     author: Zombine
-    date: 28/04/2023
+    date: 23/05/2023
     version: 1.0.0
 ]]
 local mod = get_mod("modular_menu_buttons")
