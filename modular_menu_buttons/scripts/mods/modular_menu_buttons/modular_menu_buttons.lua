@@ -175,7 +175,9 @@ end)
 -- For Psykanium in Lobby and Main Menu
 
 mod:hook_safe("TrainingGroundsOptionsView", "_start_training_grounds", function()
-    if mod._current_state == "main_menu" or mod._current_state == "lobby" then
+    if mod._current_state == "coop_complete_objective" then
+        Managers.party_immaterium:leave_party()
+    elseif mod._current_state == "main_menu" or mod._current_state == "lobby" then
         mod._start_training_grounds = true
     end
 end)
