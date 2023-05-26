@@ -1,8 +1,8 @@
 --[[
     title: who_are_you
     author: Zombine
-    date: 09/05/2023
-    version: 2.2.5
+    date: 26/05/2023
+    version: 2.2.6
 ]]
 
 local mod = get_mod("who_are_you")
@@ -125,9 +125,15 @@ local modify_nameplate = function (marker, is_combat)
     end
 end
 
-local modify_player_panel_name = function(self, player)
+local modify_player_panel_name = function(self, dt, t, player)
     local character_name = player:name()
     local modified = self.wru_modified
+    local name_widget = self._widgets_by_name.player_name
+    local container_size = name_widget.style.text.size
+
+    if container_size then
+        container_size[1] = 500
+    end
 
     if cycled_team_hud and modified then
         self.wru_modified = false
@@ -236,21 +242,14 @@ end)
 -- Team Player Panel
 -- ##############################
 
-mod:hook_safe("HudElementPersonalPlayerPanel", "_update_player_features", function(self, dt, t, player)
-    modify_player_panel_name(self, player)
-end)
+mod:hook_safe("HudElementPersonalPlayerPanel", "_update_player_features", modify_player_panel_name)
+mod:hook_safe("HudElementPersonalPlayerPanelHub", "_update_player_features", modify_player_panel_name)
+mod:hook_safe("HudElementTeamPlayerPanel", "_update_player_features", modify_player_panel_name)
+mod:hook_safe("HudElementTeamPlayerPanelHub", "_update_player_features", modify_player_panel_name)
 
-mod:hook_safe("HudElementPersonalPlayerPanelHub", "_update_player_features", function(self, dt, t, player)
-    modify_player_panel_name(self, player)
-end)
-
-mod:hook_safe("HudElementTeamPlayerPanel", "_update_player_features", function(self, dt, t, player)
-    modify_player_panel_name(self, player)
-end)
-
-mod:hook_safe("HudElementTeamPlayerPanelHub", "_update_player_features", function(self, dt, t, player)
-    modify_player_panel_name(self, player)
-end)
+-- ##############################
+-- Cycle Style
+-- ##############################
 
 mod.cycle_style = function()
     local ui_manager = Managers.ui
