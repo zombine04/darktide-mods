@@ -98,7 +98,7 @@ local loc = {
     prestige_level_desc = {
         en = "Show how many times the character passed from level 1 to 30.",
         ja = "そのキャラクターが何回レベル1から30までを繰り返したか表示します。",
-        ["zh-cn"] = "显示等同于玩家从 1 级升到 30 级的总次数",
+        ["zh-cn"] = "显示等同于玩家从 1 级升到 30 级的总次数。",
         ru = "Показывать, сколько раз персонаж прошел с 1 по 30 уровень",
     },
     enable_prestige_only = {
