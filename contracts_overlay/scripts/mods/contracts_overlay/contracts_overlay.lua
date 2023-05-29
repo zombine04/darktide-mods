@@ -1,8 +1,8 @@
 --[[
     title: contracts_overlay
     author: Zombine
-    date: 21/05/2023
-    version: 1.2.0
+    date: 29/05/2023
+    version: 1.2.1
 ]]
 local mod = get_mod("contracts_overlay")
 
@@ -202,27 +202,30 @@ local fetch_task_list = function()
         return
     end
 
-    local promise = Managers.backend.interfaces.contracts:get_current_contract(character_id)
+    if not mod._contract_promise then
+        mod._contract_promise = Managers.backend.interfaces.contracts:get_current_contract(character_id)
 
-    if not promise then
-        return
+        if not mod._contract_promise then
+            return
+        end
+
+        mod._contract_promise:next(function(data)
+            mod._contract_promise = nil
+            mod._contract_data = data
+            mod._update_tasks_list = true
+
+            if live_update and not mod._live_counter then
+                _init_counter(data.tasks)
+            end
+
+            if debug_mode then
+                mod:echo("contract fetched")
+                mod:dump(mod._contract_data, "contract", 4)
+            end
+        end):catch(function(e)
+            mod:dump(e, "error_fetch_task_list", 3)
+        end)
     end
-
-    promise:next(function(data)
-        mod._contract_data = data
-        mod._update_tasks_list = true
-
-        if live_update and not mod._live_counter then
-            _init_counter(data.tasks)
-        end
-
-        if debug_mode then
-            mod:echo("contract fetched")
-            mod:dump(mod._contract_data, "contract", 4)
-        end
-    end):catch(function(e)
-        mod:dump(e, "error_fetch_task_list", 3)
-    end)
 end
 
 local _get_task_description_and_target = function(task_criteria)
