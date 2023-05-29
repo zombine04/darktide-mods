@@ -23,6 +23,19 @@ mod._content_list = {
         }
     },
     {
+        name = "cosmetics_vendor_background_view",
+        text = "loc_cosmetics_vendor_view_title",
+        type = "button",
+        icon = "content/ui/materials/hud/interactions/icons/cosmetics_store",
+        group = {
+            "main_menu",
+            "hub",
+            "shooting_range",
+            "lobby",
+            "coop_complete_objective",
+        }
+    },
+    {
         name = "contracts_background_view",
         text = "loc_marks_vendor_view_title",
         type = "button",
