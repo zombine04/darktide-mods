@@ -22,11 +22,12 @@ end)
 -- Load Narratives
 
 mod:hook("UIManager", "open_view", function(func, self, view_name, transition_time, close_previous, close_all, close_transition_time, context, settings_override)
-    local narrative = Managers.narrative
+    local nm = Managers.narrative
+    local pm = Managers.player
 
-    if view_name == "system_view" and not narrative:is_narrative_loaded_for_player_character() then
-        local character_id = Managers.player:local_player(1):profile().character_id
-        local promise = Managers.narrative:load_character_narrative(character_id)
+    if view_name == "system_view" and not nm:is_narrative_loaded_for_player_character() then
+        local character_id = pm:local_player_backend_profile().character_id
+        local promise = nm:load_character_narrative(character_id)
 
         promise:next(function()
             return func(self, view_name, transition_time, close_previous, close_all, close_transition_time, context, settings_override)
