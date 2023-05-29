@@ -139,8 +139,7 @@ local widgets_breed = {
 }
 
 for breed_name, breed in pairs(Breeds) do
-	if breed_name ~= "chaos_spawn" and
-	   breed_name ~= "chaos_plague_ogryn_sprayer" and
+	if breed_name ~= "chaos_plague_ogryn_sprayer" and
 	   breed.display_name ~= "loc_breed_display_name_undefined" then
 		local default_value = false
 		local type = "minion"
