@@ -5,10 +5,12 @@ mod:io_dofile("modular_menu_buttons/scripts/mods/modular_menu_buttons/modular_me
 local loc = {
     mod_name = {
         en = "Modular Menu Buttons",
+        ["zh-cn"] = "模块化菜单按钮",
     },
     mod_description = {
         en = "Allows to customize the buttons displayed in the esc menu.",
-        ja = "エスケープメニューに表示されるボタンをカスタマイズできるようにします。"
+        ja = "エスケープメニューに表示されるボタンをカスタマイズできるようにします。",
+        ["zh-cn"] = "允许自定义在 Esc 菜单中显示的按钮。",
     },
     main_menu = {
         en = Localize("loc_hud_presence_main_menu")
