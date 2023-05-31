@@ -2,7 +2,7 @@ local mod = get_mod("barter_at_once")
 
 mod._loc = {
     mod_name = {
-        en = "Barter at Once",
+        en = "Barter At Once",
     },
     mod_description = {
         en = "Barter all items marked as trash at once.",
