@@ -139,7 +139,7 @@ local make_garbage_list = function()
 end
 
 local mark_acquired_items_as_new = function()
-	local character_data = _get_character_save_data()
+    local character_data = _get_character_save_data()
 
     if not character_data then
         return
@@ -254,10 +254,10 @@ end)
 
 mod:hook_safe("CreditsGoodsVendorView", "_on_purchase_complete", function(self, items)
     if self._result_overlay then
-		self._result_overlay = nil
+        self._result_overlay = nil
 
-		self:_remove_element("result_overlay")
-	end
+        self:_remove_element("result_overlay")
+    end
 
     Managers.event:trigger("event_vendor_view_purchased_item")
     clear_notifications()

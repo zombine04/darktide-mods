@@ -217,9 +217,9 @@ function template.create_widget_defintion(template, scenegraph_id)
                 drop_shadow = true,
                 size = size,
             },
-			visibility_function = function (content, style)
-				return not content.is_clamped
-			end,
+            visibility_function = function (content, style)
+                return not content.is_clamped
+            end,
         }
     }, scenegraph_id)
 end

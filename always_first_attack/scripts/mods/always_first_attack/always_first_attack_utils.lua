@@ -3,7 +3,7 @@ local mod = get_mod("always_first_attack")
 mod.is_in_hub = function()
     local game_mode = Managers.state.game_mode and Managers.state.game_mode:game_mode_name()
 
-	return game_mode and game_mode == "hub"
+    return game_mode and game_mode == "hub"
 end
 
 mod.get_local_player_unit = function()

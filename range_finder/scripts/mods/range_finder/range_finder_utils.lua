@@ -2,9 +2,9 @@ local mod = get_mod("range_finder")
 
 mod.is_in_hub = function()
     local game_mode_name = Managers.state.game_mode:game_mode_name()
-	local is_in_hub = game_mode_name == "hub"
+    local is_in_hub = game_mode_name == "hub"
 
-	return is_in_hub
+    return is_in_hub
 end
 
 mod.get_local_player_unit = function()

@@ -74,11 +74,11 @@ local loc = {
         ja = "Modや自動攻撃が現在有効かを示す小さなアイコンを表示します。",
         ["zh-cn"] = "显示一个小图标表示此模组或自动挥舞已激活。",
     },
-	icon_size = {
-		en = "Size",
-		ja = "大きさ",
-		["zh-cn"] = "大小",
-	},
+    icon_size = {
+        en = "Size",
+        ja = "大きさ",
+        ["zh-cn"] = "大小",
+    },
     color_auto_swing_enabled = {
         en = "Color (Auto Swing Enabled)",
         ja = "カラー (自動攻撃有効時)",
@@ -109,18 +109,18 @@ local loc = {
         ja = "位置：Y",
         ["zh-cn"] = "位置：Y",
     },
-	debug_mode = {
-		en = "Debug",
-		ja = "デバッグ",
-		["zh-cn"] = "调试",
-		ru = "Отладка",
-	},
-	enable_debug_mode = {
-		en = "Enable Debug Mode",
-		ja = "デバッグモードを有効にする",
-		["zh-cn"] = "启用调试模式",
-		ru = "Включить режим отладки",
-	},
+    debug_mode = {
+        en = "Debug",
+        ja = "デバッグ",
+        ["zh-cn"] = "调试",
+        ru = "Отладка",
+    },
+    enable_debug_mode = {
+        en = "Enable Debug Mode",
+        ja = "デバッグモードを有効にする",
+        ["zh-cn"] = "启用调试模式",
+        ru = "Включить режим отладки",
+    },
 }
 
 local list = Color.list

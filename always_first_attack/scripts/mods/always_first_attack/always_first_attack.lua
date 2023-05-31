@@ -212,8 +212,8 @@ mod:hook_safe("PlayerUnitWeaponExtension", "on_slot_wielded", function(self, slo
 end)
 
 mod:hook_safe("PlayerUnitWeaponExtension", "update", function(self)
-	local inventory_component = self._inventory_component
-	local wielded_slot = inventory_component and inventory_component.wielded_slot
+    local inventory_component = self._inventory_component
+    local wielded_slot = inventory_component and inventory_component.wielded_slot
 
     mod._is_primary = wielded_slot == "slot_primary"
 end)
