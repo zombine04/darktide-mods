@@ -62,12 +62,18 @@ return {
                 setting_id = "enable_check_mode",
                 type = "checkbox",
                 default_value = false,
-                tooltip = "check_mode_desc"
+                tooltip = "check_mode_desc",
             },
             {
                 setting_id = "enable_in_hub",
                 type = "checkbox",
                 default_value = true,
+            },
+            {
+                setting_id = "enable_slot_color",
+                type = "checkbox",
+                default_value = false,
+                tooltip = "enable_slot_color_desc",
             },
             {
                 setting_id = "events",

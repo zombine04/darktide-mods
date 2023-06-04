@@ -1,8 +1,8 @@
 --[[
     title: quick_chat
     author: Zombine
-    date: 29/05/2023
-    version: 1.2.2
+    date: 04/06/2023
+    version: 1.2.3
 ]]
 local mod = get_mod("quick_chat")
 local ChatManagerConstants = require("scripts/foundation/managers/chat/chat_manager_constants")
@@ -214,52 +214,28 @@ local is_local_player = function(player)
     return player == Managers.player:local_player(1)
 end
 
-local get_place_event = function(self, callback)
-    local player = self._player
-    local is_myself = is_local_player(player)
-    local action_settings = self._action_settings
-    local unit_template, message_type = callback(action_settings)
+mod:hook_safe("Unit", "animation_event", function(unit, event)
+    if event == "drop" and not mod._owner then
+        local player = Managers.player:player_by_unit(unit)
 
-    if unit_template and message_type then
-        local suffix = is_myself and "_self" or "_others"
-        local event_id = "auto_deployed_" .. unit_template .. suffix
+        if not player or not player._profile then
+            return
+        end
+
+        mod._owner = player
+    elseif event == "action_finished" and mod._owner then
+        mod._owner = nil
+    end
+end)
+
+mod:hook_safe("Unit", "flow_event", function(unit, event)
+    if event == "lua_deploy" and mod._owner then
+        local player = mod._owner
         local player_slot = player and player._slot and player:slot()
-        local player_name = player:name()
-        local slot_color = player_slot and UISettings.player_slot_colors[player_slot]
-
-        mod.debug.echo_kv("message_type", message_type)
-        mod.debug.echo_kv("event_id", event_id)
-
-        send_message_on_event(event_id, message_type, player_name, slot_color)
-    end
-end
-
-mod:hook_safe("ActionPlaceDeployable", "start", function(self) -- Medical Crates
-    local function callback(action_settings)
-        local deployable_settings = action_settings.deployable_settings
-        local unit_template = deployable_settings and deployable_settings.unit_template
-        local message_type = unit_template == "medical_crate_deployable" and "deploy_med"
-
-        return unit_template, message_type
-    end
-
-    get_place_event(self, callback)
-end)
-
-mod:hook_safe("ActionPlacePickup", "start", function(self) -- Ammo Crates
-    local function callback(action_settings)
-        local unit_template = action_settings.kind == "place_pickup" and "ammo_cache_deployable"
-        local message_type = unit_template and "deploy_ammo"
-
-        return unit_template, message_type
-    end
-
-    get_place_event(self, callback)
-end)
-
-mod:hook_safe("Unit", "flow_event", function(unit, name) -- both (anyone)
-    if name == "lua_deploy" then
-        local event_id = "auto_deployed_:s:_others"
+        local player_name = player and player._profile and player:name()
+        local slot_color = mod:get("enable_slot_color") and player_slot and UISettings.player_slot_colors[player_slot]
+        local suffix = is_local_player(player) and "self" or "others"
+        local event_id = "auto_deployed_:s:_" .. suffix
         local message_type = "deploy_"
 
         if Unit.has_data(unit, "pickup_type") then
@@ -270,10 +246,13 @@ mod:hook_safe("Unit", "flow_event", function(unit, name) -- both (anyone)
             message_type = message_type .. "med"
         end
 
+        mod._owner = nil
         mod.debug.echo_kv("message_type", message_type)
         mod.debug.echo_kv("event_id", event_id)
 
-        send_message_on_event(event_id, message_type)
+        if player_name then
+            send_message_on_event(event_id, message_type, player_name, slot_color)
+        end
     end
 end)
 
@@ -284,6 +263,7 @@ end)
 local _init = function()
     mod._cutscene_loaded = {}
     mod._latest_t = {}
+    mod._owner = nil
 end
 
 mod.on_all_mods_loaded = function()

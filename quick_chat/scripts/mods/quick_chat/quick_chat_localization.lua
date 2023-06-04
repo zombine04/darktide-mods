@@ -46,15 +46,23 @@ local loc = {
         ja = "確認モードを有効にする",
         ["zh-cn"] = "启用检查模式",
     },
+    check_mode_desc = {
+        en = "If enabled, the messages you send will be visible only to yourself.",
+        ja = "有効にした場合、メッセージは自分にのみ見えるようになります。",
+        ["zh-cn"] = "如果启用，则你发送的消息仅对自己可见。",
+    },
     enable_in_hub = {
         en = "Enable in the Mourningstar",
         ja = "モーニングスター内でも有効にする",
         ["zh-cn"] = "在哀星号上启用",
     },
-    check_mode_desc = {
-        en = "If enabled, the messages you send will be visible only to yourself.",
-        ja = "有効にした場合、メッセージは自分にのみ見えるようになります。",
-        ["zh-cn"] = "如果启用，则你发送的消息仅对自己可见。",
+    enable_slot_color = {
+        en = "Enable Colored Player Name",
+        ja = "色付きのプレイヤー名を有効にする",
+    },
+    enable_slot_color_desc = {
+        en = "Apply player slot color to the player name which was replaced from a placeholder.",
+        ja = "プレースホルダーから置き換えられたプレイヤー名にスロットの色を適用します。",
     },
     none = {
         en = "None",
@@ -208,20 +216,17 @@ local loc = {
              "冷却：" .. mod._cooldown.deploy_med .. " 秒",
     },
     auto_deployed_medical_crate_deployable_others = {
-        en = "Deployed Medical Crates (Anyone)",
-        ja = "メディカルクレート設置時 (誰でも)",
-        ["zh-cn"] = "部署医疗箱（所有人）",
+        en = "Deployed Medical Crates (Others)",
+        ja = "メディカルクレート設置時 (他人)",
+        ["zh-cn"] = "部署医疗箱（其他人）",
     },
     auto_deployed_medical_crate_deployable_others_desc = {
-        en = "Triggered when someone (includes yourself) deployed medical crates.\n" ..
-             "Cooldown: " .. mod._cooldown.deploy_med .. "s\n" ..
-             "Note: Currently not compatible with any placeholders.",
-        ja = "誰か (自分を含む) がメディカルクレートを設置した際に発動します。\n" ..
-             "クールダウン：" .. mod._cooldown.deploy_med .. "秒\n" ..
-             "注意：現時点ではプレースホルダーに対応していません。",
-        ["zh-cn"] = "在有人（包括你自己）部署医疗箱时触发。\n" ..
-             "冷却：" .. mod._cooldown.deploy_med .. " 秒\n" ..
-             "注意：当前不兼容任何占位符。",
+        en = "Triggered when your teammates deployed medical crates.\n" ..
+             "Cooldown: " .. mod._cooldown.deploy_med .. "s\n",
+        ja = "他のプレイヤーがメディカルクレートを設置した際に発動します。\n" ..
+             "クールダウン：" .. mod._cooldown.deploy_med .. "秒\n",
+        ["zh-cn"] = "其他人部署医疗箱时触发。\n" ..
+             "冷却：" .. mod._cooldown.deploy_med .. " 秒\n",
     },
     auto_deployed_ammo_cache_deployable_self = {
         en = "Deployed Ammo Crates (You)",
@@ -237,20 +242,18 @@ local loc = {
              "冷却：" .. mod._cooldown.deploy_ammo .. " 秒",
     },
     auto_deployed_ammo_cache_deployable_others = {
-        en = "Deployed Ammo Crates (Anyone)",
-        ja = "弾薬クレート設置時 (誰でも)",
-        ["zh-cn"] = "部署弹药箱（所有人）",
+        en = "Deployed Ammo Crates (Others)",
+        ja = "弾薬クレート設置時 (他人)",
+        ["zh-cn"] = "部署弹药箱（其他人）",
     },
     auto_deployed_ammo_cache_deployable_others_desc = {
-        en = "Triggered when someone (includes yourself) deployed ammo crates.\n" ..
+        en = "Triggered when your teammates deployed ammo crates.\n" ..
              "Cooldown: " .. mod._cooldown.deploy_ammo .. "s\n" ..
              "Note: Currently not compatible with any placeholders.",
-        ja = "誰か (自分を含む) が弾薬クレートを設置した際に発動します。\n" ..
-             "クールダウン：" .. mod._cooldown.deploy_ammo .. "秒\n" ..
-             "注意：現時点ではプレースホルダーに対応していません。",
-        ["zh-cn"] = "在有人（包括你自己）部署弹药箱时触发。\n" ..
-             "冷却：" .. mod._cooldown.deploy_ammo .. " 秒\n" ..
-             "注意：当前不兼容任何占位符。",
+        ja = "他のプレイヤーが弾薬クレートを設置した際に発動します。\n" ..
+             "クールダウン：" .. mod._cooldown.deploy_ammo .. "秒\n",
+        ["zh-cn"] = "其他人部署弹药箱时触发。\n" ..
+             "冷却：" .. mod._cooldown.deploy_ammo .. " 秒\n",
     },
     auto_player_downed = {
         en = "Player Downed",

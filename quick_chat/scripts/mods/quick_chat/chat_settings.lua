@@ -67,13 +67,23 @@ return {
         message = "Sorry"
     },
     {
-        id = "deploy_med",
-        title = "Deploy Med",
+        id = "deploy_med_self",
+        title = "Deploy Med (self)",
         message = "Medi-pack downed"
     },
     {
-        id = "deploy_ammo",
-        title = "Deploy Ammo",
+        id = "deploy_med_others",
+        title = "Deploy Med (others)",
+        message = "[name] deployed a medi-pack"
+    },
+    {
+        id = "deploy_ammo_self",
+        title = "Deploy Ammo (self)",
         message = "Ammo crate downed"
+    },
+    {
+        id = "deploy_ammo_others",
+        title = "Deploy Ammo (others)",
+        message = "[name] deployed an ammo crate"
     },
 }
