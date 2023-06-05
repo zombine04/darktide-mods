@@ -1,8 +1,8 @@
 --[[
     title: quick_chat
     author: Zombine
-    date: 04/06/2023
-    version: 1.2.3
+    date: 05/06/2023
+    version: 1.2.4
 ]]
 local mod = get_mod("quick_chat")
 local ChatManagerConstants = require("scripts/foundation/managers/chat/chat_manager_constants")
@@ -215,15 +215,15 @@ local is_local_player = function(player)
 end
 
 mod:hook_safe("Unit", "animation_event", function(unit, event)
-    if event == "drop" and not mod._owner then
-        local player = Managers.player:player_by_unit(unit)
+    local player = Managers.player:player_by_unit(unit)
 
+    if event == "drop" and not mod._owner then
         if not player or not player._profile then
             return
         end
 
         mod._owner = player
-    elseif event == "action_finished" and mod._owner then
+    elseif event == "action_finished" and mod._owner == player then
         mod._owner = nil
     end
 end)
