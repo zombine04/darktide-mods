@@ -59,10 +59,12 @@ local loc = {
     enable_slot_color = {
         en = "Enable Colored Player Name",
         ja = "色付きのプレイヤー名を有効にする",
+        ["zh-cn"] = "启用彩色玩家名称",
     },
     enable_slot_color_desc = {
         en = "Apply player slot color to the player name which was replaced from a placeholder.",
         ja = "プレースホルダーから置き換えられたプレイヤー名にスロットの色を適用します。",
+        ["zh-cn"] = "在将占位符替换为玩家名称时，应用玩家栏位颜色。",
     },
     none = {
         en = "None",
@@ -225,7 +227,7 @@ local loc = {
              "Cooldown: " .. mod._cooldown.deploy_med .. "s\n",
         ja = "他のプレイヤーがメディカルクレートを設置した際に発動します。\n" ..
              "クールダウン：" .. mod._cooldown.deploy_med .. "秒\n",
-        ["zh-cn"] = "其他人部署医疗箱时触发。\n" ..
+        ["zh-cn"] = "在其他人部署医疗箱时触发。\n" ..
              "冷却：" .. mod._cooldown.deploy_med .. " 秒\n",
     },
     auto_deployed_ammo_cache_deployable_self = {
@@ -252,7 +254,7 @@ local loc = {
              "Note: Currently not compatible with any placeholders.",
         ja = "他のプレイヤーが弾薬クレートを設置した際に発動します。\n" ..
              "クールダウン：" .. mod._cooldown.deploy_ammo .. "秒\n",
-        ["zh-cn"] = "其他人部署弹药箱时触发。\n" ..
+        ["zh-cn"] = "在其他人部署弹药箱时触发。\n" ..
              "冷却：" .. mod._cooldown.deploy_ammo .. " 秒\n",
     },
     auto_player_downed = {
