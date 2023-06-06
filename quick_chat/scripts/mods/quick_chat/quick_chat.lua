@@ -1,8 +1,8 @@
 --[[
     title: quick_chat
     author: Zombine
-    date: 05/06/2023
-    version: 1.2.4
+    date: 07/06/2023
+    version: 1.2.5
 ]]
 local mod = get_mod("quick_chat")
 local ChatManagerConstants = require("scripts/foundation/managers/chat/chat_manager_constants")
