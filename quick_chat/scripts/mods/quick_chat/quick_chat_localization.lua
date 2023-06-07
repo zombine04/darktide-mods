@@ -250,8 +250,7 @@ local loc = {
     },
     auto_deployed_ammo_cache_deployable_others_desc = {
         en = "Triggered when your teammates deployed ammo crates.\n" ..
-             "Cooldown: " .. mod._cooldown.deploy_ammo .. "s\n" ..
-             "Note: Currently not compatible with any placeholders.",
+             "Cooldown: " .. mod._cooldown.deploy_ammo .. "s\n",
         ja = "他のプレイヤーが弾薬クレートを設置した際に発動します。\n" ..
              "クールダウン：" .. mod._cooldown.deploy_ammo .. "秒\n",
         ["zh-cn"] = "在其他人部署弹药箱时触发。\n" ..
