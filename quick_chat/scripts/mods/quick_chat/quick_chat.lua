@@ -2,7 +2,7 @@
     title: quick_chat
     author: Zombine
     date: 07/06/2023
-    version: 1.2.5
+    version: 1.2.6
 ]]
 local mod = get_mod("quick_chat")
 local ChatManagerConstants = require("scripts/foundation/managers/chat/chat_manager_constants")
@@ -231,7 +231,7 @@ end)
 mod:hook_safe("Unit", "flow_event", function(unit, event)
     if event == "lua_deploy" and mod._owner then
         local player = mod._owner
-        local player_slot = player and player._slot and player:slot()
+        local player_slot = player and player.slot and player:slot()
         local player_name = player and player._profile and player:name()
         local slot_color = mod:get("enable_slot_color") and player_slot and UISettings.player_slot_colors[player_slot]
         local suffix = is_local_player(player) and "self" or "others"
