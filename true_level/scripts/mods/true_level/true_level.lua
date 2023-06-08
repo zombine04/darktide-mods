@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 15/05/2023
-    version: 1.3.1
+    date: 08/06/2023
+    version: 1.3.2
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -244,8 +244,7 @@ local apply_to_element = function(self, name)
 
     local memory = mod._memory
     local player = self._player
-    local profile = player and player:profile()
-    local character_id = profile and profile.character_id
+    local character_id = player and player:character_id()
     local progression_data = memory.progression[character_id] or memory.temp[character_id]
 
     if progression_data and name then
@@ -344,6 +343,11 @@ mod:hook_safe("LobbyView", "_sync_player", function(self, unique_id, player)
     local spawn_slots = self._spawn_slots
     local slot_id = self:_player_slot_id(unique_id)
     local slot = spawn_slots[slot_id]
+
+    if not slot then
+        return
+    end
+
     local character_id = player:character_id()
     local memory = mod._memory
     local progression_data = memory.progression[character_id] or memory.temp[character_id]
@@ -383,6 +387,7 @@ mod:hook_safe("EndView", "_set_character_names", function(self)
     end
 
     local session_report = self._session_report
+    local is_dummy = session_report.dummy
     local session_report_raw = session_report and session_report.eor
     local participant_reports = session_report_raw and session_report_raw.team.participants
     local spawn_slots = self._spawn_slots
@@ -404,7 +409,7 @@ mod:hook_safe("EndView", "_set_character_names", function(self)
                 mod.debug.no_id()
             end
 
-            if progression_data and progression_data.true_level then
+            if not is_dummy and progression_data and progression_data.true_level then
                 if is_myself then
                     previous_data = table.clone(progression_data)
                 end
