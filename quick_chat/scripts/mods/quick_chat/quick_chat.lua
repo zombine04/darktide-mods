@@ -1,8 +1,8 @@
 --[[
     title: quick_chat
     author: Zombine
-    date: 07/06/2023
-    version: 1.2.6
+    date: 08/06/2023
+    version: 1.2.7
 ]]
 local mod = get_mod("quick_chat")
 local ChatManagerConstants = require("scripts/foundation/managers/chat/chat_manager_constants")
@@ -77,13 +77,13 @@ mod.send_preset_message = function(id, message_type, character_name, color)
     local message = mod._get_message_by_id(id)
     local channel_handle = mod._memory.channel_handle
     local check_mode = mod:get("enable_check_mode")
-    local is_enable_in_hub = mod:get("enable_in_hub")
+    local enable_in_hub = mod:get("enable_in_hub")
 
     if not t or
        not message or
        #message == 0 or
        not check_mode and not channel_handle or
-       not is_enable_in_hub and mod._is_in_hub() or
+       not enable_in_hub and mod._is_in_hub() or
        cooldown and latest_t and t - latest_t < cooldown then
         return
     end
@@ -215,24 +215,25 @@ local is_local_player = function(player)
 end
 
 mod:hook_safe("Unit", "animation_event", function(unit, event)
-    local player = Managers.player:player_by_unit(unit)
+    if event == "drop" then
+        local player = Managers.player:player_by_unit(unit)
 
-    if event == "drop" and not mod._owner then
-        if not player or not player._profile then
-            return
+        if player and player:is_human_controlled() then
+            mod._owner_session_id = player:session_id()
         end
-
-        mod._owner = player
-    elseif event == "action_finished" and mod._owner == player then
-        mod._owner = nil
     end
 end)
 
 mod:hook_safe("Unit", "flow_event", function(unit, event)
-    if event == "lua_deploy" and mod._owner then
-        local player = mod._owner
-        local player_slot = player and player.slot and player:slot()
-        local player_name = player and player._profile and player:name()
+    if event == "lua_deploy" and mod._owner_session_id then
+        local player = Managers.player:player_from_session_id(mod._owner_session_id)
+
+        if not player then
+            return
+        end
+
+        local player_slot = player.slot and player:slot()
+        local player_name = player._profile and player:name()
         local slot_color = mod:get("enable_slot_color") and player_slot and UISettings.player_slot_colors[player_slot]
         local suffix = is_local_player(player) and "self" or "others"
         local event_id = "auto_deployed_:s:_" .. suffix
@@ -246,7 +247,7 @@ mod:hook_safe("Unit", "flow_event", function(unit, event)
             message_type = message_type .. "med"
         end
 
-        mod._owner = nil
+        mod._owner_session_id = nil
         mod.debug.echo_kv("message_type", message_type)
         mod.debug.echo_kv("event_id", event_id)
 
@@ -263,7 +264,7 @@ end)
 local _init = function()
     mod._cutscene_loaded = {}
     mod._latest_t = {}
-    mod._owner = nil
+    mod._owner_session_id = nil
 end
 
 mod.on_all_mods_loaded = function()
