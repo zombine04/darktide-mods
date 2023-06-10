@@ -4,6 +4,7 @@ local loc = {
     },
     mod_description = {
         en = "While the mod is active, moving left, right, or backward trigger dodging.",
+        ja = "有効状態の間、左右や後ろに移動するとドッジが発動します。",
     },
     key_hold = {
         en = "Hold Key",
