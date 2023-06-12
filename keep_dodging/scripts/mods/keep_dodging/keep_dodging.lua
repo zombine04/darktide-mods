@@ -1,8 +1,8 @@
 --[[
     title: keep_dodging
     author: Zombine
-    date: 10/06/2023
-    version: 1.0.0
+    date: 13/06/2023
+    version: 1.0.2
 ]]
 local mod = get_mod("keep_dodging")
 
@@ -39,6 +39,13 @@ local add_element = function(elements)
     end
 end
 
+local _set_was_active = function(delay)
+    mod._was_active = true
+    Promise.delay(delay):next(function()
+        mod._was_active = false
+    end)
+end
+
 mod:io_dofile(path)
 mod:add_require_path(path)
 
@@ -55,12 +62,28 @@ mod:hook("InputService", "get", function(func, self, action_name)
     return out
 end)
 
+mod:hook("PlayerUnitInputExtension", "get", function(func, self, action)
+    if action == "stationary_dodge" and (mod._is_active or mod._was_active) then
+        return false
+    end
+
+    return func(self, action)
+end)
+
 mod.hold_keep_dodging = function(is_pressed)
     mod._is_active = is_pressed
+
+    if not mod._is_active then
+        _set_was_active(0.5)
+    end
 end
 
 mod.toggle_keep_dodging = function()
     mod._is_active = not mod._is_active
+
+    if not mod._is_active then
+        _set_was_active(0.5)
+    end
 end
 
 mod.on_game_state_changed = function(status, state_name)
