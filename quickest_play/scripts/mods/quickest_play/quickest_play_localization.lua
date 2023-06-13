@@ -16,14 +16,6 @@ return {
         ["zh-cn"] = "快捷键",
         ru = "Клавиша",
     },
-    enable_auto_restart = {
-        en = "Enable Auto Restart",
-        ja = "自動リスタートを有効にする",
-    },
-    auto_restart_desc = {
-        en = "If enabled, automatically restart queuing when you can't find any matches.",
-        ja = "有効にすると、マッチが見つからなかった際に自動的にキューをリスタートします。",
-    },
     difficulty_settings = {
         en = "Difficulty Settings",
         ja = "難易度設定",
@@ -75,6 +67,22 @@ return {
         ja = "自動キューがキャンセルされました。",
         ["zh-cn"] = "自动匹配已取消。",
         ru = "Автоподбор отменен.",
+    },
+    auto_restart = {
+        en = "Auto Restart",
+        ja = "自動リスタート",
+    },
+    enable_auto_restart = {
+        en = "Enable Auto Restart",
+        ja = "自動リスタートを有効にする",
+    },
+    auto_restart_desc = {
+        en = "If enabled, automatically restart queuing when you can't find any matches.",
+        ja = "有効にすると、マッチが見つからなかった際に自動的にキューをリスタートします。",
+    },
+    enable_for_quickplay_only = {
+        en = "Enable for Quickplay Only",
+        ja = "クイックプレイのみで有効にする",
     },
 }
 

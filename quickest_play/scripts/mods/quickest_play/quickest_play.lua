@@ -62,7 +62,15 @@ mod:hook_safe("PartyImmateriumManager", "wanted_mission_selected", function(self
 end)
 
 mod:hook_safe("PartyImmateriumManager", "_game_session_promise", function()
-    mod._start_t = Managers.time:time("main")
+    local data = mod._matchmaking_details
+
+    if data and data.id then
+        if mod:get("enable_for_quickplay_only") and not string.match(data.id, "qp:") then
+            return
+        end
+
+        mod._start_t = Managers.time:time("main")
+    end
 end)
 
 mod:hook_safe("PartyImmateriumManager", "cancel_matchmaking", function()
@@ -77,7 +85,9 @@ mod:hook_safe("PartyImmateriumManager", "update", function()
             Managers.party_immaterium:cancel_matchmaking():next(function()
                 local data = mod._matchmaking_details
 
-                Managers.party_immaterium:wanted_mission_selected(data.id, data.is_prvate)
+                if data and data.id then
+                    Managers.party_immaterium:wanted_mission_selected(data.id, data.is_prvate)
+                end
             end)
         end
     end

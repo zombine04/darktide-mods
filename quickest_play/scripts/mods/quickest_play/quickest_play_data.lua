@@ -15,12 +15,6 @@ return {
                 function_name = "start_quickplay",
             },
             {
-                setting_id = "enable_auto_restart",
-                type = "checkbox",
-                default_value = false,
-                tooltip = "auto_restart_desc",
-            },
-            {
                 setting_id = "difficulty_settings",
                 type = "group",
                 sub_widgets = {
@@ -28,12 +22,14 @@ return {
                         setting_id = "enable_override",
                         type = "checkbox",
                         default_value = false,
-                    },
-                    {
-                        setting_id = "diff_level",
-                        type = "numeric",
-                        default_value = 5,
-                        range = {1, 5},
+                        sub_widgets = {
+                            {
+                                setting_id = "diff_level",
+                                type = "numeric",
+                                default_value = 5,
+                                range = {1, 5},
+                            },
+                        }
                     },
                 }
             },
@@ -45,15 +41,36 @@ return {
                         setting_id = "enable_auto_queue",
                         type = "checkbox",
                         default_value = false,
-                        tooltip = "auto_queue_desc"
+                        tooltip = "auto_queue_desc",
+                        sub_widgets = {
+                            {
+                                setting_id = "key_cancel_auto_queue",
+                                type = "keybind",
+                                default_value = {},
+                                keybind_trigger = "pressed",
+                                keybind_type = "function_call",
+                                function_name = "cancel_auto_queue",
+                            },
+                        }
                     },
+                }
+            },
+            {
+                setting_id = "auto_restart",
+                type = "group",
+                sub_widgets = {
                     {
-                        setting_id = "key_cancel_auto_queue",
-                        type = "keybind",
-                        default_value = {},
-                        keybind_trigger = "pressed",
-                        keybind_type = "function_call",
-                        function_name = "cancel_auto_queue",
+                        setting_id = "enable_auto_restart",
+                        type = "checkbox",
+                        default_value = true,
+                        tooltip = "auto_restart_desc",
+                        sub_widgets = {
+                            {
+                                setting_id = "enable_for_quickplay_only",
+                                type = "checkbox",
+                                default_value = true,
+                            },
+                        }
                     },
                 }
             },
