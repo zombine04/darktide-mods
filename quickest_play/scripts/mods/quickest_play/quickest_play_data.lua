@@ -7,7 +7,7 @@ return {
     options = {
         widgets = {
             {
-                setting_id = "qp_keybind",
+                setting_id = "key_start",
                 type = "keybind",
                 default_value = {},
                 keybind_trigger = "pressed",
@@ -15,16 +15,22 @@ return {
                 function_name = "start_quickplay",
             },
             {
-                setting_id = "qp_difficulty",
+                setting_id = "enable_auto_restart",
+                type = "checkbox",
+                default_value = false,
+                tooltip = "auto_restart_desc",
+            },
+            {
+                setting_id = "difficulty_settings",
                 type = "group",
                 sub_widgets = {
                     {
-                        setting_id = "qp_enable_override",
+                        setting_id = "enable_override",
                         type = "checkbox",
                         default_value = false,
                     },
                     {
-                        setting_id = "qp_danger",
+                        setting_id = "diff_level",
                         type = "numeric",
                         default_value = 5,
                         range = {1, 5},
@@ -32,16 +38,17 @@ return {
                 }
             },
             {
-                setting_id = "qp_auto",
+                setting_id = "auto_queue",
                 type = "group",
                 sub_widgets = {
                     {
-                        setting_id = "qp_enable_auto",
+                        setting_id = "enable_auto_queue",
                         type = "checkbox",
                         default_value = false,
+                        tooltip = "auto_queue_desc"
                     },
                     {
-                        setting_id = "qp_cancel_auto",
+                        setting_id = "key_cancel_auto_queue",
                         type = "keybind",
                         default_value = {},
                         keybind_trigger = "pressed",
