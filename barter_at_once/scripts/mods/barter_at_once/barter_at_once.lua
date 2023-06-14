@@ -1,8 +1,8 @@
 --[[
     title: barter_at_once
     author: Zombine
-    date: 07/06/2023
-    version: 1.0.1
+    date: 14/06/2023
+    version: 1.1.0
 ]]
 local mod = get_mod("barter_at_once")
 local NotifSettings = require("scripts/ui/constant_elements/elements/notification_feed/constant_element_notification_feed_settings")
@@ -102,13 +102,31 @@ mod:hook("InventoryWeaponsView", "_setup_input_legend", function(func, self)
         alignment = "right_alignment",
         on_pressed_callback = "cb_on_discard_pressed",
         visibility_function = function (parent)
-            if not parent:selected_grid_widget() then
+            local widget = parent:selected_grid_widget()
+
+            if not widget then
                 return false
+            end
+
+            local myfav = get_mod("MyFavorites")
+
+            if myfav and myfav:is_enabled() then
+                local fav_list = myfav:get("favorite_item_list") or {}
+                local gear_id = widget.content.element.item.gear_id or "n/a"
+                local is_locked = fav_list[gear_id] and true or false
+
+                if is_locked then
+                    return false
+                end
             end
 
             local is_item_equipped = parent:is_selected_item_equipped()
 
-            return not is_item_equipped
+            if is_item_equipped then
+                return false
+            end
+
+            return true
         end
     }
     func(self)
