@@ -1,8 +1,8 @@
 --[[
     title: quickest_play
     author: Zombine
-    date: 13/06/2023
-    version: 1.2.0
+    date: 15/06/2023
+    version: 1.2.1
 ]]
 
 local mod = get_mod("quickest_play")
@@ -16,7 +16,7 @@ local is_in_hub = function()
         return true
     end
 
-    return false
+    return true
 end
 
 local _get_difficulty = function(save_data)
@@ -54,17 +54,17 @@ local start_quickplay = function()
     end
 end
 
-mod:hook_safe("PartyImmateriumManager", "wanted_mission_selected", function(self, id, is_prvate)
+mod:hook_safe("PartyImmateriumManager", "wanted_mission_selected", function(self, id, is_private)
     mod._matchmaking_details = {
         id = id,
-        is_prvate = is_prvate
+        is_private = is_private
     }
 end)
 
 mod:hook_safe("PartyImmateriumManager", "_game_session_promise", function()
     local data = mod._matchmaking_details
 
-    if data and data.id then
+    if is_in_hub() and data and data.id then
         if mod:get("enable_for_quickplay_only") and not string.match(data.id, "qp:") then
             return
         end
@@ -86,7 +86,7 @@ mod:hook_safe("PartyImmateriumManager", "update", function()
                 local data = mod._matchmaking_details
 
                 if data and data.id then
-                    Managers.party_immaterium:wanted_mission_selected(data.id, data.is_prvate)
+                    Managers.party_immaterium:wanted_mission_selected(data.id, data.is_private)
                 end
             end)
         end
@@ -103,11 +103,13 @@ mod:hook_safe("GameModeManager", "game_mode_ready", function()
     end
 end)
 
-mod:hook_safe("LoadingView", "on_enter", function()
-    mod._cancel_auto_queue = false
-    mod._start_t = nil
-    mod._matchmaking_details = {}
-end)
+mod.on_game_state_changed = function(status, state_name)
+    if state_name == "StateLoading" and status == "enter" then
+        mod._cancel_auto_queue = false
+        mod._start_t = nil
+        mod._matchmaking_details = {}
+    end
+end
 
 mod.cancel_auto_queue = function()
     mod._cancel_auto_queue = true
