@@ -56,6 +56,7 @@ return {
         en = "If enabled, automatically start queuing as soon as you entered the hub.",
         ja = "有効にすると、ハブに接続後自動的にキューを開始します。",
         ru = "Если включено, при входе в Хаб, автоматически подключается в очередь подбора миссии.",
+        ["zh-cn"] = "启用时，进入大厅时自动开始匹配。",
     },
     key_cancel_auto_queue = {
         en = "Keybind for Canceling",
@@ -73,21 +74,25 @@ return {
         en = "Auto Restart",
         ja = "自動リスタート",
         ru = "Автоматический перезапуск",
+        ["zh-cn"] = "自动重试",
     },
     enable_auto_restart = {
         en = "Enable Auto Restart",
         ja = "自動リスタートを有効にする",
         ru = "Включить автоперезапуск",
+        ["zh-cn"] = "启用自动重试",
     },
     auto_restart_desc = {
         en = "If enabled, automatically restart queuing when you can't find any matches.",
         ja = "有効にすると、マッチが見つからなかった際に自動的にキューをリスタートします。",
         ru = "Если включено, автоматически переподключается в очередь подбора миссии, когда игра не смогла найти совпадений.",
+        ["zh-cn"] = "启用时，在无法找到合适的小队时自动重新匹配。",
     },
     enable_for_quickplay_only = {
         en = "Enable for Quickplay Only",
         ja = "クイックプレイのみで有効にする",
         ru = "Только для быстрой игры",
+        ["zh-cn"] = "仅为快速游戏启用",
     },
 }
 
