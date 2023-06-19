@@ -1,7 +1,7 @@
 --[[
     title: barter_at_once
     author: Zombine
-    date: 14/06/2023
+    date: 19/06/2023
     version: 1.1.1
 ]]
 local mod = get_mod("barter_at_once")

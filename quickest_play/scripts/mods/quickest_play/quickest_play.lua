@@ -1,8 +1,8 @@
 --[[
     title: quickest_play
     author: Zombine
-    date: 15/06/2023
-    version: 1.2.1
+    date: 19/06/2023
+    version: 1.2.2
 ]]
 
 local mod = get_mod("quickest_play")
