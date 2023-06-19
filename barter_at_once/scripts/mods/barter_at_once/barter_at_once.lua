@@ -2,7 +2,7 @@
     title: barter_at_once
     author: Zombine
     date: 14/06/2023
-    version: 1.1.0
+    version: 1.1.1
 ]]
 local mod = get_mod("barter_at_once")
 local NotifSettings = require("scripts/ui/constant_elements/elements/notification_feed/constant_element_notification_feed_settings")
@@ -192,6 +192,7 @@ local show_confirmation_popup = function()
             {
                 text = "popup_button_discard_confirm",
                 close_on_pressed = true,
+                hotkey = "next",
                 callback = on_discard_confirmed
             },
             {
