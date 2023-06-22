@@ -4,6 +4,7 @@ local mod = get_mod("kill_sound")
 mod._sound_events = mod:io_dofile("kill_sound/scripts/mods/kill_sound/sound_events")
 mod._events = {
     "kill",
+    "teammate_kill",
     "weakspot_kill",
     "instant_kill",
     "bleeding_kill",
@@ -56,6 +57,10 @@ local loc = {
     event_kill = {
         en = "Kill",
         ja = "キル",
+    },
+    event_teammate_kill = {
+        en = "Kill (Teammates)",
+        ja = "キル (チームメイト)",
     },
     event_weakspot_kill = {
         en = "Weakspot Kill",

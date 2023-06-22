@@ -2,10 +2,14 @@
     title: kill_sound
     author: Zombine
     date: 22/06/2023
-    version: 1.0.0
+    version: 1.1.0
 ]]
 local mod = get_mod("kill_sound")
 local EVENT_NAME = "elite_special_killed_stinger"
+
+local is_player = function(unit)
+    return Managers.player:player_by_unit(unit) ~= nil
+end
 
 local is_myself = function(unit)
     return unit == Managers.player:local_player(1).player_unit
@@ -42,7 +46,7 @@ local is_warp_attack = function(name)
 end
 
 mod:hook_safe("AttackReportManager", "add_attack_result", function(self ,damage_profile, attacked_unit, attacking_unit, attack_direction, hit_world_position, hit_weakspot, damage, attack_result, attack_type, damage_efficiency)
-    if not is_myself(attacking_unit) or attack_result ~= "died" then
+    if not is_player(attacking_unit) or attack_result ~= "died" then
         return
     end
 
@@ -54,7 +58,9 @@ mod:hook_safe("AttackReportManager", "add_attack_result", function(self ,damage_
         local event = "kill"
         local damage_profile_name = damage_profile and damage_profile.name
 
-        if damage_profile_name == "killing_blow" then
+        if not is_myself(attacking_unit) then
+            event = "teammate_kill"
+        elseif damage_profile_name == "killing_blow" then
             event = "instant_kill"
         elseif damage_profile_name == "bleeding" then
             event = "bleeding_kill"
