@@ -2,7 +2,7 @@
     title: ForTheBloodGod
     author: Zombine
     date: 27/06/2023
-    version: 1.0.1
+    version: 1.0.2
 ]]
 local mod = get_mod("ForTheBloodGod")
 
@@ -85,10 +85,11 @@ mod:hook("MinionVisualLoadoutExtension", "gib", function(func, self, hit_zone_na
 
             hit_zone_name_or_nil, damage_profile = modify_profile(hit_zone_name_or_nil, damage_profile)
             func(self, hit_zone_name_or_nil, attack_direction, damage_profile)
-            Unit.set_data(self._unit, "ftbg_gibbed", true)
         else
             func(self, hit_zone_name_or_nil, attack_direction, damage_profile_origin, ...)
         end
+
+        Unit.set_data(self._unit, "ftbg_gibbed", true)
     elseif hit_zone_name_or_nil then
         Unit.set_data(self._unit, "ftbg_hit_zone", hit_zone_name_or_nil)
     end
@@ -179,17 +180,22 @@ local get_hit_zone_name = function(unit)
 end
 
 mod:hook_safe("AttackReportManager", "add_attack_result", function(self, damage_profile, attacked_unit, attacking_unit, attack_direction, _, _, _, attack_result)
-    if attack_result == "died" and attacked_unit and attacking_unit and is_myself_or_player(attacking_unit) then
+    if attack_result == "died" and attacked_unit then
         local visual_loadout_extension = ScriptUnit.extension(attacked_unit, "visual_loadout_system")
         local hit_zone_name_or_nil = get_hit_zone_name(attacked_unit)
 
         if visual_loadout_extension and visual_loadout_extension:can_gib(hit_zone_name_or_nil) then
-            set_id_suffix(attacking_unit)
+            if attacking_unit and is_myself_or_player(attacking_unit) then
+                set_id_suffix(attacking_unit)
 
-            if mod._id_suffix then
+                if mod._id_suffix then
+                    visual_loadout_extension:gib(hit_zone_name_or_nil, attack_direction, damage_profile)
+                    play_extra_vfx_and_sfx(attacked_unit, damage_profile.weapon_special)
+                    mod._id_suffix = nil
+                end
+            else
+                Unit.set_data(attacked_unit, "ftbg_gibbed", true)
                 visual_loadout_extension:gib(hit_zone_name_or_nil, attack_direction, damage_profile)
-                play_extra_vfx_and_sfx(attacked_unit, damage_profile.weapon_special)
-                mod._id_suffix = nil
             end
         end
     end
