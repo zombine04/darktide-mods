@@ -2,7 +2,7 @@
     title: ForTheBloodGod
     author: Zombine
     date: 27/06/2023
-    version: 1.0.0
+    version: 1.0.1
 ]]
 local mod = get_mod("ForTheBloodGod")
 
@@ -70,7 +70,10 @@ local modify_profile = function(hit_zone_name_or_nil, damage_profile)
 end
 
 mod:hook("MinionVisualLoadoutExtension", "gib", function(func, self, hit_zone_name_or_nil, attack_direction, damage_profile_origin, ...)
-    if damage_profile_origin.name and damage_profile_origin.name == "beast_of_nurgle_self_gib" then
+    local is_bon_death = damage_profile_origin.name and damage_profile_origin.name == "beast_of_nurgle_self_gib"
+    local is_gibbed = Unit.has_data(self._unit, "ftbg_gibbed")
+
+    if is_bon_death or is_gibbed then
         func(self, hit_zone_name_or_nil, attack_direction, damage_profile_origin, ...)
     end
 
@@ -82,6 +85,7 @@ mod:hook("MinionVisualLoadoutExtension", "gib", function(func, self, hit_zone_na
 
             hit_zone_name_or_nil, damage_profile = modify_profile(hit_zone_name_or_nil, damage_profile)
             func(self, hit_zone_name_or_nil, attack_direction, damage_profile)
+            Unit.set_data(self._unit, "ftbg_gibbed", true)
         else
             func(self, hit_zone_name_or_nil, attack_direction, damage_profile_origin, ...)
         end
