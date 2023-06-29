@@ -1,12 +1,16 @@
 --[[
     title: who_are_you
     author: Zombine
-    date: 26/05/2023
+    date: 29/06/2023
     version: 2.2.6
 ]]
-
 local mod = get_mod("who_are_you")
 local UISettings = require("scripts/settings/ui/ui_settings")
+local ICONS = {
+    steam = "",
+    xbox = "",
+    unknown = ""
+}
 
 local cycled_nameplate = false
 local cycled_team_hud = false
@@ -24,6 +28,10 @@ local is_my_self = function(account_id)
 end
 
 local is_unknown = function(account_name)
+    for _, icon in pairs(ICONS) do
+        account_name = string.gsub(account_name, icon .. " ", "")
+    end
+
     return account_name == "N/A" or account_name == "[unknown]"
 end
 
