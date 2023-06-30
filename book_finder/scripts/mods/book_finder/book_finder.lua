@@ -1,170 +1,229 @@
 --[[
     title: book_finder
     author: Zombine
-    date: 23/04/2023
-    version: 1.3.2
+    date: 01/07/2023
+    version: 2.0.0
 ]]
 local mod = get_mod("book_finder")
+local MarkerTemplateInteraction = require("scripts/ui/hud/elements/world_markers/templates/world_marker_template_interaction")
+local TextUtils = require("scripts/utilities/ui/text")
+local UISettings = require("scripts/settings/ui/ui_settings")
+local DELAY = 1
 
 mod._current_sound_cue = mod:get("sound_cue")
+mod._owners = {}
 
-local player_unit = nil
-local book_units = {}
-local book_picked = {}
-local search_timer = 0
-local search_delay = 0.5
---local repeat_timer = 0
---local repeat_delay = mod:get("notif_delay") / 1000
-local debug_mode = mod:get("enable_debug_mode")
+local get_slot_item_name = function(player_unit)
+    if not player_unit or not ALIVE[player_unit] then
+        mod.debug.echo("the unit doesn't exist or dead")
+        return nil
+    end
 
-local init = function()
-    player_unit = nil
-    book_units = {}
-    book_picked = {}
---    repeat_timer = 0
---    repeat_delay = mod:get("notif_delay") / 1000
-    debug_mode = mod:get("enable_debug_mode")
+    local inv_comp = ScriptUnit.extension(player_unit, "unit_data_system"):read_component("inventory")
+
+    return inv_comp and inv_comp["slot_pocketable"]
 end
 
-local _show_notification = function(key, is_in_range)
-    local ui_manager = Managers.ui
+local get_pickup_name = function(unit)
+    return unit and Unit.get_data(unit, "pickup_type")
+end
 
-    if mod:get("enable_sound_cue") and is_in_range and ui_manager then
-        ui_manager:play_2d_sound(mod._current_sound_cue)
+local is_book = function(name)
+    if not name then
+        return false
+    end
+
+    return string.match(name, "tome") or string.match(name, "grimoire")
+end
+
+local is_active = function(name)
+    return mod:get("enable_" .. name)
+end
+
+local is_notified = function(unit)
+    return Unit.get_data(unit, "bf_notified")
+end
+
+local set_notified = function(unit, val)
+    Unit.set_data(unit, "bf_notified", val)
+end
+
+local set_last_t = function(unit, t)
+    Unit.set_data(unit, "bf_last_t", t)
+end
+
+local can_repeat = function(unit, t)
+    local last_t = Unit.get_data(unit, "bf_last_t")
+
+    if last_t then
+        return last_t + DELAY < t
+    end
+
+    return false
+end
+
+local is_tracking = function(unit)
+    return Unit.get_data(unit, "bf_tracking")
+end
+
+local set_tracking = function(unit, val)
+    Unit.set_data(unit, "bf_tracking", val)
+end
+
+local show_notification = function(key, play_sound, player_unit, pickup_name)
+    local player_name = ""
+    local book_name = ""
+
+    if player_unit then
+        local player = Managers.player:player_by_unit(player_unit)
+
+        if player then
+            local slot = player:slot()
+            local slot_color = slot and UISettings.player_slot_colors[slot]
+
+            player_name = player:name()
+            player_name = slot_color and TextUtils.apply_color_to_text(player_name, slot_color) or player_name
+        end
+    end
+
+    if pickup_name then
+        book_name = Localize("loc_contract_task_pickup_type_" .. pickup_name)
+        book_name = TextUtils.apply_color_to_text(book_name, Color.ui_terminal_highlight(255, true))
+    end
+
+    if mod:get("enable_sound_cue") and play_sound then
+        Managers.ui:play_2d_sound(mod._current_sound_cue)
     end
     if mod:get("enable_chat_notif") then
-        mod:echo(mod:localize(key))
+        mod:echo(mod:localize(key, player_name, book_name))
     end
     if mod:get("enable_popup_notif") then
-        mod:notify(mod:localize(key))
+        mod:notify(mod:localize(key, player_name, book_name))
     end
 end
 
-local is_in_range = function(distance_sq)
-    local max_range = mod:get("search_distance")
+-- ##############################
+-- Register Books
+-- ##############################
 
-    return distance_sq < max_range * max_range
-end
+mod:hook_safe("SideMissionPickupExtension", "_register_to_mission_objective", function(self, unit)
+    local pickup_name = get_pickup_name(unit)
 
-local get_local_player_unit = function()
-    local local_player = Managers.player:local_player(1)
-    local local_player_unit = local_player and local_player.player_unit
-
-    return local_player_unit
-end
-
-mod:hook_safe("BroadphaseExtension", "_add_to_broadphase", function(self)
-    local unit = self._unit
-    local pickup_name = Unit.get_data(unit, "pickup_type")
-    local id_string = tostring(unit)
-
-    if not player_unit then
-        player_unit = get_local_player_unit()
-    end
-
-    if book_picked and book_picked[id_string] then
-        if debug_mode then
-            mod:echo("duplicated: "  .. id_string)
-        end
-        return
-    end
-
-    if pickup_name == "tome" or pickup_name == "grimoire" then
-        local target_pos = Vector3Box(POSITION_LOOKUP[unit])
-        book_units[unit] = {
-            name = pickup_name,
-            position = target_pos,
-            notified = false,
-        }
-        if debug_mode then
-            mod:echo(id_string .. ": " .. tostring(target_pos))
-        end
+    if is_book(pickup_name) and is_active(pickup_name) then
+        set_tracking(unit, true)
+        mod.debug.echo("tracking: " .. pickup_name)
     end
 end)
 
-mod:hook_safe("PickupSystem", "update", function(self, system_context, dt, t)
-    if search_timer < search_delay then
-        search_timer = search_timer + dt
-        return
+-- ##############################
+-- Proximity Notification
+-- ##############################
+
+local check_owners_pocketable = function()
+    local is_dropped = false
+    local dropped_player = nil
+
+    for player_unit, _ in pairs(mod._owners) do
+        local player = Managers.player:player_by_unit(player_unit)
+        local item_name = get_slot_item_name(player_unit)
+
+        if not is_book(item_name) then
+            is_dropped = true
+            dropped_player = player
+            mod._owners[player_unit] = nil
+            mod.debug.char_name(player)
+        end
     end
 
+    return is_dropped, dropped_player
+end
+
+mod:hook_safe(MarkerTemplateInteraction, "update_function", function(_, _, widget, marker, _, _, t)
+    local search_distance = mod:get("search_distance")
     local is_repeatable = mod:get("enable_repeat_notif")
+    local unit = marker.unit
+    local content = widget.content
+    local distance = content and content.distance
+    local pickup_name = get_pickup_name(unit)
 
-    if not player_unit or not book_units then
-        return
-    end
+    if unit and is_tracking(unit) and distance then
+        local is_dropped, player = check_owners_pocketable()
 
-    search_timer = 0
-
-    for unit, unit_data in pairs(book_units) do
-        if mod:get("enable_" .. unit_data.name) then
-            if unit_data.notified and not is_repeatable then
-                return
+        if is_dropped then
+            if mod:get("enable_drop_notif") then
+                show_notification("book_dropped", false, player.player_unit, pickup_name)
             end
+            set_tracking(unit, nil)
+            mod.debug.echo("tracking stopped")
+            return
+        end
 
-            local player_pos = player_unit and POSITION_LOOKUP[player_unit]
-            local target_pos = unit_data.position and Vector3Box.unbox(unit_data.position)
+        mod.debug.start_tracking(unit, distance)
 
-            if not player_pos or not target_pos then
-                return
+        if distance < search_distance then
+            if not is_notified(unit) then
+                set_notified(unit, true)
+                set_last_t(unit, t)
+                show_notification("book_sensed", true, nil, pickup_name)
+
+                mod.debug.notify_sensed(unit, distance)
             end
-
-            local distance_sq = Vector3.distance_squared(target_pos, player_pos)
-
-            if is_in_range(distance_sq) then
-                if not unit_data.notified then
-                    book_units[unit].notified = true
-                    _show_notification("book_sensed_" .. unit_data.name, true)
-
-                    if debug_mode then
-                        mod:echo(tostring(target_pos) .. ": " .. math.sqrt(distance_sq))
-                    end
-                end
-            elseif is_repeatable then
- --               if repeat_timer < repeat_delay then
- --                   repeat_timer = repeat_timer + dt
- --               else
- --                   repeat_timer = 0
-                    book_units[unit].notified = false
- --               end
-            end
-        else
-            book_units[unit] = nil
-            if debug_mode then
-                mod:echo(unit_data.name .. " disabled")
-            end
+        elseif is_repeatable and is_notified(unit) and can_repeat(unit, t) then
+            set_notified(unit, false)
         end
     end
 end)
 
-mod:hook_safe("InteracteeExtension", "stopped", function(self)
-    local pickup_unit = self._unit
+-- ##############################
+-- Scan Pocketable Slot
+-- ##############################
 
-    if book_units[pickup_unit] then
-        local name = book_units[pickup_unit].name
+local scan_pocketable_slot = function(self, player_unit)
+    if player_unit then
+        local player = Managers.player:player_by_unit(player_unit)
 
-        book_units[pickup_unit] = nil
-        book_picked[tostring(pickup_unit)] = true
+        if player:is_human_controlled() then
+            local item_name = get_slot_item_name(player_unit)
 
-        if mod:get("enable_pickup_notif") then
-            _show_notification("book_picked_up_" .. name)
-        end
-
-        if debug_mode then
-            for id_string, _ in pairs(book_picked) do
-                mod:echo("picked: " .. id_string)
+            if is_book(item_name) and not mod._owners[player_unit] then
+                mod._owners[player_unit] = true
+                mod.debug.char_name(player, true)
             end
         end
     end
-end)
-
-mod.on_all_mods_loaded = function()
-    init()
 end
+
+mod:hook_safe("PlayerUnitVisualLoadoutExtension", "update", scan_pocketable_slot)
+mod:hook_safe("PlayerHuskVisualLoadoutExtension", "update", scan_pocketable_slot)
+
+-- ##############################
+-- Pickup Notification
+-- ##############################
+
+mod:hook("InteracteeExtension", "stopped", function(func, self, result)
+    if result == "success" then
+        local player_unit = self._interactor_unit
+        local unit = self._unit
+        local pickup_name = unit and get_pickup_name(unit)
+
+        if is_book(pickup_name) then
+            if mod:get("enable_pickup_notif") and is_tracking(unit) or mod:get("enable_drop_notif") then
+                show_notification("book_picked_up", false, player_unit, pickup_name)
+            end
+        end
+    end
+
+    func(self, result)
+end)
+
+-- ##############################
+-- Events
+-- ##############################
 
 mod.on_game_state_changed = function(status, state_name)
     if state_name == "StateLoading" and status == "enter" then
-        init()
+        mod.debug.reset_count()
+        mod._owners = {}
     end
 end
 
@@ -178,3 +237,71 @@ mod.on_setting_changed = function()
         ui_manager:play_2d_sound(sound_cue)
     end
 end
+
+-- ##############################
+-- Debug
+-- ##############################
+
+mod.debug = {
+    _count = 0,
+    _name = function(unit)
+        return Unit.get_data(unit, "pickup_type") .. " #" .. Unit.get_data(unit, "bf_debug_number")
+    end,
+    _position = function(unit)
+        return "Position: " .. tostring(Unit.world_position(unit, 1))
+    end,
+    _distance = function(distance)
+        return "Distance: " .. tostring(distance)
+    end,
+    is_enabled = function()
+        return mod:get("enable_debug_mode")
+    end,
+    echo = function(text)
+        if mod.debug.is_enabled() then
+            mod:echo(text)
+        end
+    end,
+    start_tracking = function(unit, distance)
+        if mod.debug.is_enabled() then
+            if Unit.has_data(unit, "bf_debug_start_tracking") then
+                return
+            end
+
+            mod.debug._count = mod.debug._count + 1
+            Unit.set_data(unit, "bf_debug_start_tracking", true)
+            Unit.set_data(unit, "bf_debug_number", mod.debug._count)
+            mod:echo("Start Tracking: " .. mod.debug._name(unit) .. ":\n" ..
+                mod.debug._position(unit) .. "\n" .. mod.debug._distance(distance))
+        end
+    end,
+    notify_sensed = function(unit, distance)
+        if mod.debug.is_enabled() then
+            mod:echo("Detected: " .. mod.debug._name(unit) .. ":\n" ..
+                mod.debug._position(unit) .. "\n" .. mod.debug._distance(distance))
+        end
+    end,
+    char_name = function(player, is_picked)
+        if mod.debug.is_enabled() and player then
+            local name = player:name()
+            local slot = player:slot()
+
+            if name then
+                local color = is_picked and Color.ui_green_light(255, true) or Color.ui_red_light(255, true)
+                local action = is_picked and "picked" or "dropped"
+                local label = TextUtils.apply_color_to_text(action, color)
+                local slot_color = slot and UISettings.player_slot_colors[slot]
+
+                name = slot_color and TextUtils.apply_color_to_text(name, slot_color) or name
+                mod:echo(name .. ": " .. label)
+            end
+        end
+    end,
+    scanning = function(ref)
+        if mod.debug.is_enabled() then
+            mod:echo("scanning (" .. ref .. ")")
+        end
+    end,
+    reset_count = function()
+        mod.debug._count = 0
+    end
+}

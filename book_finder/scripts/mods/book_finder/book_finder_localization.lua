@@ -52,6 +52,10 @@ return {
         ["zh-cn"] = "有人拾取时通知",
         ru = "Показывать уведомление, когда кто-то поднимает гримуар/писание.",
     },
+    enable_drop_notif = {
+        en = "Notify when someone drop a scripture",
+        ja = "誰かが聖書を落とした際に通知する",
+    },
     enable_repeat_notif = {
         en = "Notify when you're in the certain range again",
         ja = "再び一定距離に入った際に通知する",
@@ -64,6 +68,7 @@ return {
         ru = "Задержка перед повторным уведомлением (мс)",
         ["zh-cn"] = "再次通知的延迟（毫秒）",
     },
+    --[[
     book_sensed_grimoire = {
         en = "Feel the presence of a grimoire nearby...",
         ja = "魔術書の気配を近くに感じる...",
@@ -87,6 +92,25 @@ return {
         ja = "聖書を拾った",
         ["zh-cn"] = "已拾取圣经。",
         ru = "Писание подобрано.",
+    },
+    ]]
+    book_sensed = {
+        en = "Feel the presence of a %s%s nearby...",
+        ja = "%s%sの気配を近くに感じる...",
+        ["zh-cn"] = "感应到附近有%s%s的存在...",
+        ru = "Чувствую присутствие %s%s поблизости...",
+    },
+    book_picked_up = {
+        en = "%s picked up a %s.",
+        ja = "%sが%sを拾った。",
+        ["zh-cn"] = "%s拾取%s。",
+        ru = "%s подобрано %s.",
+    },
+    book_dropped = {
+        en = "%s dropped a %s.",
+        ja = "%sが%sを落とした。",
+        ["zh-cn"] = "%s丢掉%s。",
+        ru = "%s сбросил %s.",
     },
     debug = {
         en = "Debug",
