@@ -30,50 +30,62 @@ mod._extra_fx = {}
 local loc = {
     mod_name = {
         en = "For the Blood God",
+        ["zh-cn"] = "血祭神皇",
     },
     mod_description = {
         en = "Gives you extraordinary strength and supernatural power to sucrifice the traitors.",
-        ja = "異端者を血祭りにあげる類まれなるりょ力と超自然的な力をもたらします。"
+        ja = "異端者を血祭りにあげる類まれなるりょ力と超自然的な力をもたらします。",
+        ["zh-cn"] = "赐予你超绝力量和神秘之力来献祭异端。",
     },
     enable_for_teammates = {
         en = "Trigger on Teammate Attacks",
         ja = "味方の攻撃でも発動させる",
+        ["zh-cn"] = "队友攻击时触发",
     },
     global_settings = {
         en = "Global Settings",
         ja = "グローバル設定",
+        ["zh-cn"] = "全局设置",
     },
     enable_force_gibbing = {
         en = "Force Gibbing",
         ja = "常に部位破壊を起こす",
+        ["zh-cn"] = "强制碎块",
     },
     override_gibbing_type = {
         en = "Override Gibbing Type",
         ja = "部位破壊タイプの上書き",
+        ["zh-cn"] = "替换碎块类型",
     },
     override_hit_zone = {
         en = "Override Hit Zone",
         ja = "ヒット部位の上書き",
+        ["zh-cn"] = "替换命中区域",
     },
     add_extra_vfx = {
         en = "Add VFX on Death",
         ja = "死亡時のVFXを追加する",
+        ["zh-cn"] = "添加死亡视觉特效",
     },
     enable_for_special_attack = {
         en = "Only for Special Attacks",
         ja = "特殊攻撃時のみ",
+        ["zh-cn"] = "仅特殊攻击时有效",
     },
     enable_sfx = {
         en = "Enable SFX",
         ja = "SFXを有効にする",
+        ["zh-cn"] = "启用音效",
     },
     multiplier_gib_push_force = {
         en = "Gib Push Force Multiplier",
         ja = "部位を飛ばす力の倍率",
+        ["zh-cn"] = "碎块推动力倍数",
     },
     multiplier_ragdoll_push_force = {
         en = "Ragdoll Push Force Multiplier",
         ja = "ラグドールを飛ばす力の倍率",
+        ["zh-cn"] = "布娃娃推动力倍数",
     },
     use_global = {
         en = "Use Global Setting",
@@ -84,6 +96,7 @@ local loc = {
     use_local = {
         en = "Use Individual Setting",
         ja = "個別設定を使用する",
+        ["zh-cn"] = "使用单独设置",
     },
     toggle = {
         en = "Toggle",
@@ -101,16 +114,28 @@ local loc = {
     loc_weapon_pattern_name_combataxe_p3 = {
         ja = "工作員のシャベル",
     },
+    loc_weapon_pattern_name_combatknife_p1 = {
+        ["zh-cn"] = "战斗利刃",
+    },
     loc_weapon_pattern_name_combatsword_p1 = {
         en = "\"Devil's Claw\" Sword",
         ja = "「悪魔の爪」の剣",
+        ["zh-cn"] = "“恶魔之爪”剑",
+    },
+    loc_weapon_pattern_name_combatsword_p2 = {
+        ["zh-cn"] = "重剑",
+    },
+    loc_weapon_pattern_name_ogryn_powermaul_p1 = {
+        ["zh-cn"] = "动力锤",
     },
     loc_weapon_pattern_name_powermaul_2h_p1 = {
         en = "Crusher",
         ja = "クラッシャー",
+        ["zh-cn"] = "粉碎者锤",
     },
     loc_weapon_pattern_name_autogun_p2 = {
         ja = "ブレースドオートガン",
+        ["zh-cn"] = "稳固自动枪",
     },
     loc_weapon_pattern_name_flamer_p1 = {
         ja = "浄化のフレイマー",

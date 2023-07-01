@@ -22,13 +22,16 @@ mod._enemy_types = {
 local loc = {
     mod_name = {
         en = "Kill Sound",
+        ["zh-cn"] = "击杀音效",
     },
     mod_description = {
-        en = "Change or add sound effecs when enemies died.",
+        en = "Change or add sound effects when enemies died.",
+        ["zh-cn"] = "更改或添加敌人死亡时的音效。",
     },
     enable_default_sound = {
         en = "Play default sounds too",
         ja = "デフォルトのサウンドも再生する",
+        ["zh-cn"] = "同时播放默认音效",
     },
     roamer = {
         en = "Roamers",
@@ -57,38 +60,47 @@ local loc = {
     event_kill = {
         en = "Kill",
         ja = "キル",
+        ["zh-cn"] = "击杀",
     },
     event_teammate_kill = {
         en = "Kill (Teammates)",
         ja = "キル (チームメイト)",
+        ["zh-cn"] = "击杀（队友）",
     },
     event_weakspot_kill = {
         en = "Weakspot Kill",
         ja = "弱点キル",
+        ["zh-cn"] = "弱点击杀",
     },
     event_instant_kill = {
         en = "Instant Kill",
         ja = "即死キル",
+        ["zh-cn"] = "秒杀",
     },
     event_bleeding_kill = {
         en = "Bleeding Kill",
         ja = "出血キル",
+        ["zh-cn"] = "流血击杀",
     },
     event_burning_kill = {
         en = "Burning Kill",
         ja = "炎上キル",
+        ["zh-cn"] = "燃烧击杀",
     },
     event_warpfire_kill = {
         en = "Soulblaze Kill",
         ja = "ソウルファイアキル",
+        ["zh-cn"] = "灵魂之火击杀",
     },
     event_warp_kill = {
         en = "Warp Attack Kill",
         ja = "ワープ攻撃キル",
+        ["zh-cn"] = "亚空间攻击击杀",
     },
     none = {
         en = "None",
         ja = "なし",
+        ["zh-cn"] = "无",
     }
 }
 
