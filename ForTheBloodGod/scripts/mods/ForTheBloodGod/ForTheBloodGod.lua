@@ -1,8 +1,8 @@
 --[[
     title: ForTheBloodGod
     author: Zombine
-    date: 02/07/2023
-    version: 1.1.0
+    date: 04/07/2023
+    version: 1.1.1
 ]]
 local mod = get_mod("ForTheBloodGod")
 local MinionDeath = require("scripts/utilities/minion_death")

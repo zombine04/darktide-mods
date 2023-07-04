@@ -1,8 +1,8 @@
 --[[
     title: kill_sound
     author: Zombine
-    date: 22/06/2023
-    version: 1.1.0
+    date: 04/07/2023
+    version: 1.1.1
 ]]
 local mod = get_mod("kill_sound")
 local EVENT_NAME = "elite_special_killed_stinger"
