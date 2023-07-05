@@ -15,7 +15,7 @@ mod._owners = {}
 
 local get_slot_item_name = function(player_unit)
     if not player_unit or not ALIVE[player_unit] then
-        mod.debug.echo("the unit doesn't exist or dead")
+        mod.debug.echo("the unit doesn't exist or is dead")
         return nil
     end
 
@@ -70,19 +70,17 @@ local set_tracking = function(unit, val)
     Unit.set_data(unit, "bf_tracking", val)
 end
 
-local show_notification = function(key, play_sound, player_unit, pickup_name)
-    local player_name = ""
+local show_notification = function(key, play_sound, player, player_name, pickup_name)
     local book_name = ""
 
-    if player_unit then
-        local player = Managers.player:player_by_unit(player_unit)
+    player_name = player_name or ""
 
-        if player then
-            local slot = player:slot()
-            local slot_color = slot and UISettings.player_slot_colors[slot]
+    if player then
+        local slot = player:slot()
+        local slot_color = slot and UISettings.player_slot_colors[slot]
 
-            player_name = player:name()
-            player_name = slot_color and TextUtils.apply_color_to_text(player_name, slot_color) or player_name
+        if player_name and #player_name > 0 and slot_color then
+            player_name = TextUtils.apply_color_to_text(player_name, slot_color)
         end
     end
 
@@ -122,20 +120,22 @@ end)
 local check_owners_pocketable = function()
     local is_dropped = false
     local dropped_player = nil
+    local dropped_player_name = nil
 
-    for player_unit, _ in pairs(mod._owners) do
+    for player_unit, player_name in pairs(mod._owners) do
         local player = Managers.player:player_by_unit(player_unit)
         local item_name = get_slot_item_name(player_unit)
 
         if not is_book(item_name) then
             is_dropped = true
             dropped_player = player
+            dropped_player_name = player_name
             mod._owners[player_unit] = nil
             mod.debug.char_name(player)
         end
     end
 
-    return is_dropped, dropped_player
+    return is_dropped, dropped_player, dropped_player_name
 end
 
 mod:hook_safe(MarkerTemplateInteraction, "update_function", function(_, _, widget, marker, _, _, t)
@@ -147,11 +147,11 @@ mod:hook_safe(MarkerTemplateInteraction, "update_function", function(_, _, widge
     local pickup_name = get_pickup_name(unit)
 
     if unit and is_tracking(unit) and distance then
-        local is_dropped, player = check_owners_pocketable()
+        local is_dropped, player, player_name = check_owners_pocketable()
 
         if is_dropped then
             if mod:get("enable_drop_notif") then
-                show_notification("book_dropped", false, player.player_unit, pickup_name)
+                show_notification("book_dropped", false, player, player_name, pickup_name)
             end
             set_tracking(unit, nil)
             mod.debug.echo("tracking stopped")
@@ -164,7 +164,7 @@ mod:hook_safe(MarkerTemplateInteraction, "update_function", function(_, _, widge
             if not is_notified(unit) then
                 set_notified(unit, true)
                 set_last_t(unit, t)
-                show_notification("book_sensed", true, nil, pickup_name)
+                show_notification("book_sensed", true, nil, nil, pickup_name)
 
                 mod.debug.notify_sensed(unit, distance)
             end
@@ -182,11 +182,11 @@ local scan_pocketable_slot = function(self, player_unit)
     if player_unit then
         local player = Managers.player:player_by_unit(player_unit)
 
-        if player:is_human_controlled() then
+        if player and player:is_human_controlled() then
             local item_name = get_slot_item_name(player_unit)
 
             if is_book(item_name) and not mod._owners[player_unit] then
-                mod._owners[player_unit] = true
+                mod._owners[player_unit] = player:name()
                 mod.debug.char_name(player, true)
             end
         end
@@ -203,12 +203,14 @@ mod:hook_safe("PlayerHuskVisualLoadoutExtension", "update", scan_pocketable_slot
 mod:hook("InteracteeExtension", "stopped", function(func, self, result)
     if result == "success" then
         local player_unit = self._interactor_unit
+        local player = Managers.player:player_by_unit(player_unit)
+        local player_name = player and player:name()
         local unit = self._unit
         local pickup_name = unit and get_pickup_name(unit)
 
         if is_book(pickup_name) then
             if mod:get("enable_pickup_notif") and is_tracking(unit) or mod:get("enable_drop_notif") then
-                show_notification("book_picked_up", false, player_unit, pickup_name)
+                show_notification("book_picked_up", false, player, player_name, pickup_name)
             end
         end
     end
