@@ -56,6 +56,7 @@ return {
         en = "Notify when someone drop a scripture",
         ja = "誰かが聖書を落とした際に通知する",
         ["zh-cn"] = "有人丢弃圣经时通知",
+        ru = "Уведомлять, когда кто-то выбрасывает писание",
     },
     enable_repeat_notif = {
         en = "Notify when you're in the certain range again",
@@ -99,19 +100,19 @@ return {
         en = "Feel the presence of a %s%s nearby...",
         ja = "%s%sの気配を近くに感じる...",
         ["zh-cn"] = "感应到附近有%s%s的存在...",
-        ru = "Чувствую присутствие %s%s поблизости...",
+        ru = "Чувствую, что где-то рядом %s%s...",
     },
     book_picked_up = {
         en = "%s picked up a %s.",
         ja = "%sが%sを拾った。",
         ["zh-cn"] = "%s拾取了%s。",
-        ru = "%s подобрано %s.",
+        ru = "%s подбирает %s.",
     },
     book_dropped = {
         en = "%s dropped a %s.",
         ja = "%sが%sを落とした。",
         ["zh-cn"] = "%s丢弃了%s。",
-        ru = "%s сбросил %s.",
+        ru = "%s выбрасывает %s.",
     },
     debug = {
         en = "Debug",
