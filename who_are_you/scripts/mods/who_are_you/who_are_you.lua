@@ -1,8 +1,8 @@
 --[[
     title: who_are_you
     author: Zombine
-    date: 29/06/2023
-    version: 2.2.6
+    date: 09/07/2023
+    version: 3.0.0
 ]]
 local mod = get_mod("who_are_you")
 local UISettings = require("scripts/settings/ui/ui_settings")
@@ -12,22 +12,15 @@ local ICONS = {
     unknown = ""
 }
 
-local cycled_nameplate = false
-local cycled_team_hud = false
+mod._account_names = mod:persistent_table("account_names")
+mod._queue = mod:persistent_table("queue")
+mod.current_style = mod:get("display_style")
 
-local init = function()
-    cycled_nameplate = false
-    cycled_team_hud = false
-end
+-- ##############################
+-- Manage Account Names
+-- ##############################
 
-local is_my_self = function(account_id)
-    local local_player = Managers.player:local_player(1)
-    local local_player_account_id = local_player:account_id()
-
-    return account_id == local_player_account_id
-end
-
-local is_unknown = function(account_name)
+mod.is_unknown = function(account_name)
     for _, icon in pairs(ICONS) do
         account_name = string.gsub(account_name, icon .. " ", "")
     end
@@ -35,189 +28,161 @@ local is_unknown = function(account_name)
     return account_name == "N/A" or account_name == "[unknown]"
 end
 
-local get_account_name_from_id = function(account_id)
-    local player_info = Managers.data_service.social:get_player_info_by_account_id(account_id)
-    local account_name = player_info and player_info:user_display_name()
+mod.account_name = function(id)
+    local account_name = mod._account_names[id]
+
+    if not account_name then
+        mod._queue[id] = id
+    end
 
     return account_name
 end
 
-local style_sub_name = function(name, element)
+mod.set_account_name = function(id, name)
+    mod._account_names[id] = name
+    mod._queue[id] = nil
+end
+
+mod.clear_account_names = function()
+    for id, _ in pairs(mod._account_names) do
+        mod._account_names[id] = nil
+    end
+end
+
+mod.update = function(dt, t)
+    if not table.is_empty(mod._queue) then
+        for account_id, _ in pairs(mod._queue) do
+            local player_info = Managers.data_service.social:get_player_info_by_account_id(account_id)
+
+            if player_info then
+                local account_name = player_info:user_display_name()
+                local character_name = player_info:character_name()
+
+                if not mod.is_unknown(account_name) then
+                    mod.set_account_name(account_id, account_name)
+                    --mod:echo(character_name .. ": " .. account_name)
+                end
+            end
+        end
+    end
+end
+
+mod:hook_safe("PresenceManager", "get_presence", function(self, account_id)
+    mod.account_name(account_id)
+end)
+
+-- ##############################
+-- Modify Display Names
+-- ##############################
+
+local _is_myself = function(account_id)
+    local player = Managers.player:local_player(1)
+    local player_account_id = player and player:account_id()
+
+    return account_id == player_account_id
+end
+
+local _format_inline_code = function(property, value)
+    return string.format("{#%s(%s)}", property, value)
+end
+
+local _apply_style = function(name, ref)
     local suffix = ""
 
-    if element and mod:get("enable_override_" .. element) then
-        suffix = "_" .. element
+    if ref and mod:get("enable_override_" .. ref) then
+        suffix = "_" .. ref
     end
 
-    name = " (" .. name .. "){#reset()}"
+    name = string.format(" (%s){#reset()}", name)
 
     if mod:get("enable_custom_size" .. suffix) then
-        name = "{#size(" .. mod:get("sub_name_size" .. suffix) .. ")}" .. name
+        local size = mod:get("sub_name_size" .. suffix)
+
+        name = _format_inline_code("size", size) .. name
     end
 
     if mod:get("enable_custom_color" .. suffix) then
-        name = "{#color(" .. mod:get("color_r" .. suffix) .. "," .. mod:get("color_g" .. suffix) .. "," .. mod:get("color_b" .. suffix) .. ")}" .. name
+        local r = mod:get("color_r" .. suffix)
+        local g = mod:get("color_g" .. suffix)
+        local b = mod:get("color_b" .. suffix)
+        local rgb = r .. "," .. g .. "," .. b
+
+        name = _format_inline_code("color", rgb) .. name
     end
 
     return name
 end
 
-local modify_display_name = function(name, account_name, account_id, element)
-    local display_style = mod:get("display_style")
+local modify_character_name = function(name, account_name, account_id, ref)
+    local display_style = mod.current_style
 
-    if display_style == "character_only" or (not mod:get("enable_display_self") and is_my_self(account_id)) then
+    if display_style == "character_only" or (not mod:get("enable_display_self") and _is_myself(account_id)) then
         name = name
     elseif display_style == "account_only" then
         name = account_name
     elseif display_style == "character_first" then
-        name =  name .. style_sub_name(account_name, element)
+        name =  name .. _apply_style(account_name, ref)
     elseif display_style == "account_first" then
-        name =  account_name .. style_sub_name(name, element)
+        name =  account_name .. _apply_style(name, ref)
     end
 
     return name
 end
 
-local modify_participant_name = function(participant)
-    if mod:get("enable_chat") and participant.displayname and not participant.wru_modified then
-        local account_id = participant.account_id
-
-        if account_id then
-            local account_name = get_account_name_from_id(account_id)
-
-            if is_unknown(account_name) then
-                return participant
-            end
-
-            participant.displayname = modify_display_name(participant.displayname, account_name, account_id, "chat")
-            table.insert(participant, "wru_modified")
-            participant.wru_modified = true
-        end
-    end
-
-    return participant
+local is_current_style = function(style)
+    return style == mod.current_style
 end
 
-local modify_nameplate = function (marker, is_combat)
-    local data = marker.data
-    local account_id = data._account_id
-    local profile = data._profile
-    local content = marker.widget.content
-
-    if mod:get("enable_nameplate") and account_id and profile and content.header_text then
-        local character_name = profile and profile.name or ""
-        local account_name = get_account_name_from_id(account_id)
-
-        character_name = modify_display_name(character_name, account_name, account_id, "nameplate")
-
-        if is_unknown(account_name) then
-            marker.wru_modified = false
-        else
-            marker.wru_modified = true
-        end
-
-        local character_level = profile and profile.current_level or 1
-        local archetype = profile and profile.archetype
-        local string_symbol = archetype and archetype.string_symbol or ""
-
-        if is_combat then
-            local player_slot = data._slot
-            local player_slot_color = UISettings.player_slot_colors[player_slot] or Color.ui_hud_green_light(255, true)
-            local color_string = string.format("{#color(%s,%s,%s)}", player_slot_color[2], player_slot_color[3], player_slot_color[4])
-
-            content.header_text = color_string .. string_symbol .. "{#reset()} " .. character_name
-            content.icon_text = color_string .. string_symbol .. "{#reset()}"
-        else
-            content.header_text = string_symbol .. " " .. character_name .. " - " .. tostring(character_level) .. " "
-        end
-    end
-end
-
-local modify_player_panel_name = function(self, dt, t, player)
-    local character_name = player:name()
-    local modified = self.wru_modified
-    local name_widget = self._widgets_by_name.player_name
-    local container_size = name_widget.style.text.size
-
-    if container_size then
-        container_size[1] = 500
-    end
-
-    if cycled_team_hud and modified then
-        self.wru_modified = false
-    elseif cycled_team_hud and not modified then
-        cycled_team_hud = false
-    end
-
-    if cycled_team_hud or not self.wru_modified then
-        local account_id = player:account_id()
-        local profile = player and player:profile()
-        local current_level = self._current_level or profile and profile.current_level
-
-        if mod:get("enable_team_hud") and account_id then
-            local account_name = get_account_name_from_id(account_id)
-            local name_prefix = self._player_name_prefix or ""
-
-            if is_unknown(account_name) then
-                self.wru_modified = false
-            else
-                self.wru_modified = true
-            end
-
-            character_name = modify_display_name(character_name, account_name, account_id, "team_hud")
-            character_name = name_prefix .. character_name
-        end
-
-        self:_set_player_name(character_name, current_level)
-    end
-end
-
--- ##############################
 -- Chat
--- ##############################
 
-mod:hook("ConstantElementChat", "cb_chat_manager_message_recieved", function(func, self, channel_handle, participant, message)
-    participant = modify_participant_name(participant)
+mod:hook("ConstantElementChat", "_participant_displayname", function(func, self, participant)
+    local character_name = func(self, participant)
 
-    func(self, channel_handle, participant, message)
+    if mod:get("enable_chat") and character_name and character_name ~= "" then
+        local account_id = participant.account_id
+        local account_name = mod.account_name(account_id)
+
+        if account_name then
+            return modify_character_name(character_name, account_name, account_id, "chat")
+        end
+    end
+
+    return character_name
 end)
 
-mod:hook("ConstantElementChat", "cb_chat_manager_participant_added", function(func, self, channel_handle, participant)
-    participant = modify_participant_name(participant)
-
-    func(self, channel_handle, participant)
-end)
-
-mod:hook("ConstantElementChat", "cb_chat_manager_participant_removed", function(func, self, channel_handle, participant_uri, participant)
-    participant = modify_participant_name(participant)
-
-    func(self, channel_handle, participant_uri, participant)
-end)
-
--- ##############################
 -- Lobby
--- ##############################
 
 mod:hook_safe("LobbyView", "_sync_player", function(self, unique_id, player)
+    if not mod:get("enable_lobby") then
+        return
+    end
+
     local spawn_slots = self._spawn_slots
     local slot_id = self:_player_slot_id(unique_id)
-    local slot = spawn_slots[slot_id]
-    local account_id = player:account_id()
+    local slot = slot_id and spawn_slots[slot_id]
+    local ref = "lobby"
 
-    if mod:get("enable_lobby") and account_id and slot and slot.synced and not slot.wru_modified then
-        local panel_widget = slot.panel_widget
-        local panel_content = panel_widget.content
-        local profile = player:profile()
-        local character_name = player:name()
-        local character_level = tostring(profile.current_level) .. " "
-        local account_name = get_account_name_from_id(account_id)
+    if slot then
+        local is_synced = slot.synced
 
-        if not is_unknown(account_name) then
-            slot.wru_modified = true
+        if is_synced and not is_current_style(slot.wru_style) or not slot.wru_modified then
+            local profile = player:profile()
+            local panel_widget = slot.panel_widget
+            local panel_content = panel_widget.content
+            local account_id = player:account_id()
+            local account_name = account_id and mod.account_name(account_id)
+
+            if account_name and profile and panel_content.character_name then
+                local character_name = player:name()
+                local character_level = profile.current_level .. " "
+                local modified_name = modify_character_name(character_name, account_name, account_id, ref)
+
+                panel_content.character_name = string.format("%s %s", character_level, modified_name)
+                slot.wru_modified = true
+                slot.wru_style = mod.current_style
+                slot.tl_modified = false
+            end
         end
-
-        character_name = modify_display_name(character_name, account_name, account_id, "lobby")
-        panel_content.character_name = string.format("%s %s", character_level, character_name)
     end
 end)
 
@@ -225,30 +190,92 @@ mod:hook_safe("LobbyView", "_reset_spawn_slot", function(self, slot)
     slot.wru_modified = false
 end)
 
--- ##############################
 -- Nameplate
--- ##############################
 
 mod:hook_safe("HudElementWorldMarkers", "_calculate_markers", function(self, dt, t)
+    if not mod:get("enable_nameplate") then
+        return
+    end
+
     local markers_by_type = self._markers_by_type
+    local ref = "nameplate"
 
     for marker_type, markers in pairs(markers_by_type) do
-        if marker_type == "nameplate" or marker_type == "nameplate_party_hud" or marker_type == "nameplate_party"then
+        if string.match(marker_type, ref) then
             for i = 1, #markers do
                 local marker = markers[i]
                 local is_combat = marker_type == "nameplate_party"
-                if cycled_nameplate or not marker.wru_modified then
-                    modify_nameplate(marker, is_combat)
+
+                if not is_current_style(marker.wru_style) or not marker.wru_modified then
+                    local player = marker.data
+                    local profile = player:profile()
+                    local content = marker.widget.content
+                    local account_id = player:account_id()
+                    local account_name = account_id and mod.account_name(account_id)
+
+                    if account_name and profile and content.header_text then
+                        local character_name = player:name()
+                        local modified_name = modify_character_name(character_name, account_name, account_id, "nameplate")
+                        local character_level = profile.current_level or 1
+                        local archetype = profile.archetype
+                        local string_symbol = archetype and archetype.string_symbol or ""
+
+                        if is_combat then
+                            local slot = player.slot and player:slot()
+                            local slot_color = UISettings.player_slot_colors[slot] or Color.ui_hud_green_light(255, true)
+                            local color = slot_color[2] .. "," .. slot_color[3] .. "," .. slot_color[4]
+                            local color_code = _format_inline_code("color", color)
+
+                            content.header_text = color_code .. string_symbol .. "{#reset()} " .. modified_name
+                            content.icon_text = color_code .. string_symbol .. "{#reset()}"
+                        else
+                            content.header_text = string_symbol .. " " .. modified_name .. " - " .. character_level .. " "
+                        end
+
+                        marker.wru_modified = true
+                        marker.wru_style = mod.current_style
+                        marker.tl_modified = false
+                    end
                 end
             end
         end
     end
-    cycled_nameplate = false
 end)
 
--- ##############################
--- Team Player Panel
--- ##############################
+-- Team Hud
+
+local modify_player_panel_name = function(self, dt, t, player)
+    if not mod:get("enable_team_hud") then
+        return
+    end
+
+    local player_name = self._widgets_by_name.player_name
+    local content = player_name.content
+    local container_size = player_name.style.text.size
+    local ref = "team_hud"
+
+    if container_size then
+        container_size[1] = 500
+    end
+
+    if not is_current_style(self.wru_style) or not self.wru_modified then
+        local profile = player:profile()
+        local account_id = player:account_id()
+        local account_name = account_id and mod.account_name(account_id)
+
+        if account_name and profile and content.text then
+            local string_symbol = self._player_name_prefix or ""
+            local character_level = self._current_level or profile.current_level
+            local character_name = player:name()
+            local modified_name = modify_character_name(character_name, account_name, account_id, ref)
+
+            self:_set_player_name(string_symbol .. modified_name, character_level)
+            self.wru_modified = true
+            self.wru_style = mod.current_style
+            self.tl_modified = false
+        end
+    end
+end
 
 mod:hook_safe("HudElementPersonalPlayerPanel", "_update_player_features", modify_player_panel_name)
 mod:hook_safe("HudElementPersonalPlayerPanelHub", "_update_player_features", modify_player_panel_name)
@@ -262,9 +289,8 @@ mod:hook_safe("HudElementTeamPlayerPanelHub", "_update_player_features", modify_
 mod.cycle_style = function()
     local ui_manager = Managers.ui
 
-    if not ui_manager:chat_using_input() then
+    if ui_manager and not ui_manager:chat_using_input() then
         local index = 1
-        local current_style = mod:get("display_style")
         local display_styles = {
             "character_first",
             "account_first",
@@ -273,32 +299,50 @@ mod.cycle_style = function()
         }
 
         for i, style in ipairs(display_styles) do
-            if current_style == style then
+            if mod.current_style == style then
                 index = i + 1
+
+                if index > #display_styles then
+                    index = 1
+                end
+
                 break
             end
         end
 
-        if index > #display_styles then
-            index = 1
-        end
+        mod:set("display_style", display_styles[index], true)
 
-        cycled_nameplate = true
-        cycled_team_hud = true
-
-        mod:set("display_style", display_styles[index])
         if mod:get("enable_cycle_notif") then
-            mod:echo(mod:localize("current_style") .. mod:localize(display_styles[index]))
+            mod:echo(mod:localize("current_style") .. mod:localize(mod.current_style))
         end
     end
 end
 
-mod.on_all_mods_loaded = function()
-    init()
+-- ##############################
+-- Utilities
+-- ##############################
+
+mod:hook_safe("UIHud", "init", function()
+    local game_mode_name = Managers.state.game_mode:game_mode_name()
+
+    mod.is_in_hub = game_mode_name == "hub"
+end)
+
+mod.on_setting_changed = function()
+    mod.current_style = mod:get("display_style")
 end
 
 mod.on_game_state_changed = function(status, state_name)
-    if state_name == "StateLoading" and status == "enter" then
-        init()
+    if status == "enter" and state_name == "StateLoading" then
+        local player = Managers.player:local_player(1)
+        local account_id = player and player:account_id()
+
+        if account_id then
+            Managers.presence:get_presence(account_id)
+        end
+
+        if mod.is_in_hub then
+            mod.clear_account_names()
+        end
     end
 end
