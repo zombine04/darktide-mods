@@ -1,8 +1,8 @@
 --[[
     title: contracts_overlay
     author: Zombine
-    date: 29/05/2023
-    version: 1.2.1
+    date: 13/08/2023
+    version: 1.2.2
 ]]
 local mod = get_mod("contracts_overlay")
 
@@ -309,12 +309,12 @@ local _update_count = function(criteria)
     local value = criteria.value
     local live_counter = nil
 
-    if task_type == "CollectResource" then
+    if task_type == "CollectResource" and mod._live_counter.resource then
         local resource_type = criteria.resourceType or criteria.resourceTypes[1]
         live_counter = mod._live_counter.resource[resource_type]
-    elseif task_type == "KillBosses" then
+    elseif task_type == "KillBosses" and mod._live_counter.kill then
         live_counter = mod._live_counter.kill.boss
-    elseif task_type == "KillMinions" then
+    elseif task_type == "KillMinions" and mod._live_counter.kill then
         local enemy_type = criteria.enemyType
         local weapon_type = criteria.weaponType
         live_counter = mod._live_counter.kill[enemy_type .. "_" .. weapon_type]
