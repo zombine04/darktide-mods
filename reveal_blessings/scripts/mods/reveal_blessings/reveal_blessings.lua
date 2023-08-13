@@ -1,8 +1,8 @@
 --[[
     title: reveal_blessings
     author: Zombine
-    date: 22/04/2023
-    version: 1.0.1
+    date: 13/08/2023
+    version: 1.0.2
 ]]
 local mod = get_mod("reveal_blessings")
 
@@ -40,7 +40,8 @@ local get_new_blueprints = function(blueprints)
         elseif style_id == "background_gradient" then
             pass_template[i].style.default_color = Color.terminal_grid_background_gradient(nil, true)
         elseif style_id == "icon" then
-            pass_template[i].style.color = Color.terminal_icon(100, true)
+            pass_template[i].style.color = Color.terminal_icon(60, true)
+            pass_template[i].change_function = nil
         end
     end
 
