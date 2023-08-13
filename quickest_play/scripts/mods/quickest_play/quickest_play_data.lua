@@ -19,6 +19,15 @@ return {
                 type = "group",
                 sub_widgets = {
                     {
+                        setting_id = "mission_type",
+                        type = "dropdown",
+                        default_value = "normal",
+                        options = {
+                            { text = "normal", value = "normal" },
+                            { text = "auric", value = "auric" },
+                        }
+                    },
+                    {
                         setting_id = "enable_override",
                         type = "checkbox",
                         default_value = false,

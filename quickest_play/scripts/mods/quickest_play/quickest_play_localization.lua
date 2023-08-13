@@ -94,5 +94,14 @@ return {
         ["zh-cn"] = "仅为快速游戏启用",
         ru = "Только для быстрой игры",
     },
+    mission_type = {
+        en = Localize("loc_hud_presence_mission"),
+    },
+    normal = {
+        en = Localize("loc_mission_board_type_normal"),
+    },
+    auric = {
+        en = Localize("loc_mission_board_type_auric"),
+    }
 }
 

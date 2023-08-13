@@ -1,11 +1,12 @@
 --[[
     title: quickest_play
     author: Zombine
-    date: 19/06/2023
-    version: 1.2.2
+    date: 13/08/2023
+    version: 1.3.0
 ]]
 
 local mod = get_mod("quickest_play")
+local BackendUtilities = require("scripts/foundation/managers/backend/utilities/backend_utilities")
 local DangerSettings = require("scripts/settings/difficulty/danger_settings")
 local RESTART_DELAY = 15
 
@@ -43,21 +44,34 @@ local start_quickplay = function()
     if not Managers.ui:chat_using_input() then
         local save_data = Managers.save:account_data()
         local danger = _get_difficulty(save_data)
-        local required_level = DangerSettings.by_index[danger].required_level
+        local type = mod:get("mission_type")
+
+        if type == "auric" and danger < 4 then
+            danger = 4
+        end
+
+        local required_level = DangerSettings.required_level_by_mission_type(danger, type)
         local is_private = save_data.mission_board.private_matchmaking or false
 
         if _is_unlocked(required_level) then
-            Managers.party_immaterium:wanted_mission_selected("qp:challenge=" .. danger, is_private)
+            local quickplay_data = "qp:challenge=" .. danger
+
+            if type ~= "normal" then
+                quickplay_data = quickplay_data .. "|" .. type
+            end
+
+            Managers.party_immaterium:wanted_mission_selected(quickplay_data, is_private, BackendUtilities.prefered_mission_region)
         else
             mod:notify(mod:localize("err_locked") .. required_level)
         end
     end
 end
 
-mod:hook_safe("PartyImmateriumManager", "wanted_mission_selected", function(self, id, is_private)
+mod:hook_safe("PartyImmateriumManager", "wanted_mission_selected", function(self, id, is_private, reef)
     mod._matchmaking_details = {
         id = id,
-        is_private = is_private
+        is_private = is_private,
+        reef = reef
     }
 end)
 
@@ -86,7 +100,7 @@ mod:hook_safe("PartyImmateriumManager", "update", function()
                 local data = mod._matchmaking_details
 
                 if data and data.id then
-                    Managers.party_immaterium:wanted_mission_selected(data.id, data.is_private)
+                    Managers.party_immaterium:wanted_mission_selected(data.id, data.is_private, data.reef)
                 end
             end)
         end
