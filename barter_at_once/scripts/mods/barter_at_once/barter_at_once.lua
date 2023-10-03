@@ -1,8 +1,8 @@
 --[[
     title: barter_at_once
     author: Zombine
-    date: 19/06/2023
-    version: 1.1.1
+    date: 04/10/2023
+    version: 1.1.2
 ]]
 local mod = get_mod("barter_at_once")
 local NotifSettings = require("scripts/ui/constant_elements/elements/notification_feed/constant_element_notification_feed_settings")
@@ -261,16 +261,6 @@ end
 
 mod:hook("UIManager", "close_view", prevent_close_view)
 mod:hook("UIManager", "close_all_views", prevent_close_view)
-mod:hook("InputService", "get", function(func, ...)
-    local out = func(...)
-
-    if mod._now_discarding and type(out) == "boolean" then
-        return false
-    end
-
-    return out
-end)
-
 
 -- ##############################
 -- Popup

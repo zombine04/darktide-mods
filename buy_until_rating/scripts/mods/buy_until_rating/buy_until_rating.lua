@@ -1,8 +1,8 @@
 --[[
     title: buy_until_rating
     author: Zombine
-    date: 05/05/2023
-    version: 2.2.0
+    date: 04/10/2023
+    version: 2.2.1
 ]]
 
 local mod = get_mod("buy_until_rating")
@@ -196,15 +196,16 @@ local show_results = function()
     end
 end
 
-mod:hook("InputService", "get", function(func, ...)
-    local out = func(...)
-
-    if not table.is_empty(mod._garbages) and type(out) == "boolean" then
-        return false
+local prevent_close_view = function(func, ...)
+    if not table.is_empty(mod._garbages) then
+        return
     end
 
-    return out
-end)
+    func(...)
+end
+
+mod:hook("UIManager", "close_view", prevent_close_view)
+mod:hook("UIManager", "close_all_views", prevent_close_view)
 
 mod:hook_safe("CreditsGoodsVendorView", "init", function()
     init()
