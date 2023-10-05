@@ -1,8 +1,8 @@
 --[[
     title: keep_dodging
     author: Zombine
-    date: 04/10/2023
-    version: 1.0.3
+    date: 05/10/2023
+    version: 1.0.4
 ]]
 local mod = get_mod("keep_dodging")
 
@@ -52,11 +52,21 @@ mod:add_require_path(path)
 mod:hook_require("scripts/ui/hud/hud_elements_player_onboarding", add_element)
 mod:hook_require("scripts/ui/hud/hud_elements_player", add_element)
 
+local input_hook = function(func, self, action_name, ...)
+    local out = func(self, action_name, ...)
+
+    if action_name == "dodge" and mod._is_active then
+        return true
+    end
+
+    return out
+end
+
+mod:hook("InputService", "_get", input_hook)
+mod:hook("InputService", "_get_simulate", input_hook)
 mod:hook("PlayerUnitInputExtension", "get", function(func, self, action)
     if action == "stationary_dodge" and (mod._is_active or mod._was_active) then
         return false
-    elseif action == "dodge" and mod._is_active then
-        return true
     end
 
     return func(self, action)
