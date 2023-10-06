@@ -1,8 +1,8 @@
 --[[
     title: buy_until_rating
     author: Zombine
-    date: 04/10/2023
-    version: 2.2.1
+    date: 07/10/2023
+    version: 2.2.3
 ]]
 
 local mod = get_mod("buy_until_rating")
@@ -103,6 +103,14 @@ end
 
 local discard_garbage = function()
     local gear_id = mod._garbages[1]
+    local next_gear = function()
+        Managers.event:trigger("event_vendor_view_purchased_item")
+        table.remove(mod._garbages, 1)
+
+        if not table.is_empty(mod._garbages) then
+            mod._ready_to_discard = true
+        end
+    end
 
     Managers.data_service.gear:delete_gear(gear_id):next(function(result)
         local rewards = result and result.rewards
@@ -117,13 +125,11 @@ local discard_garbage = function()
                 })
             end
 
-            Managers.event:trigger("event_vendor_view_purchased_item")
-            table.remove(mod._garbages, 1)
-
-            if not table.is_empty(mod._garbages) then
-                mod._ready_to_discard = true
-            end
+            next_gear()
         end
+    end):catch(function(e)
+        mod:dump(e, "delete_gear", 3)
+        next_gear()
     end)
 end
 
@@ -204,8 +210,20 @@ local prevent_close_view = function(func, ...)
     func(...)
 end
 
+local privent_inputs = function(func, ...)
+    local out = func(...)
+
+    if not table.is_empty(mod._garbages) and type(out) == "boolean" then
+        return false
+    end
+
+    return out
+end
+
 mod:hook("UIManager", "close_view", prevent_close_view)
 mod:hook("UIManager", "close_all_views", prevent_close_view)
+mod:hook("InputService", "_get", privent_inputs)
+mod:hook("InputService", "_get_simulate", privent_inputs)
 
 mod:hook_safe("CreditsGoodsVendorView", "init", function()
     init()
