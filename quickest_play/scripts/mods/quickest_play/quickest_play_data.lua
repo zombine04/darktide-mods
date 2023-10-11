@@ -7,26 +7,31 @@ return {
     options = {
         widgets = {
             {
-                setting_id = "key_start",
-                type = "keybind",
-                default_value = {},
-                keybind_trigger = "pressed",
-                keybind_type = "function_call",
-                function_name = "start_quickplay",
+                setting_id = "keybind",
+                type = "group",
+                sub_widgets = {
+                    {
+                        setting_id = "key_start",
+                        type = "keybind",
+                        default_value = {},
+                        keybind_trigger = "pressed",
+                        keybind_type = "function_call",
+                        function_name = "start_quickplay",
+                    },
+                    {
+                        setting_id = "key_start_auric",
+                        type = "keybind",
+                        default_value = {},
+                        keybind_trigger = "pressed",
+                        keybind_type = "function_call",
+                        function_name = "start_quickplay_auric",
+                    },
+                }
             },
             {
                 setting_id = "difficulty_settings",
                 type = "group",
                 sub_widgets = {
-                    {
-                        setting_id = "mission_type",
-                        type = "dropdown",
-                        default_value = "normal",
-                        options = {
-                            { text = "normal", value = "normal" },
-                            { text = "auric", value = "auric" },
-                        }
-                    },
                     {
                         setting_id = "enable_override",
                         type = "checkbox",

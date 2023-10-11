@@ -1,8 +1,8 @@
 --[[
     title: quickest_play
     author: Zombine
-    date: 13/08/2023
-    version: 1.3.0
+    date: 11/10/2023
+    version: 1.4.0
 ]]
 
 local mod = get_mod("quickest_play")
@@ -10,7 +10,7 @@ local BackendUtilities = require("scripts/foundation/managers/backend/utilities/
 local DangerSettings = require("scripts/settings/difficulty/danger_settings")
 local RESTART_DELAY = 15
 
-local is_in_hub = function()
+local _is_in_hub = function()
     local game_mode_manager = Managers.state.game_mode
 
     if game_mode_manager and game_mode_manager:game_mode_name() == "hub" then
@@ -40,11 +40,19 @@ local _is_unlocked = function(required_level)
     return false
 end
 
-local start_quickplay = function()
-    if not Managers.ui:chat_using_input() then
+local start_quickplay = function(is_auric)
+    if not _is_in_hub() then
+        return
+    end
+
+    local ui_manager = Managers.ui
+
+    if not ui_manager:chat_using_input() and
+       not ui_manager:view_active("dmf_options_view") and
+       not ui_manager:view_active("options_view") then
         local save_data = Managers.save:account_data()
         local danger = _get_difficulty(save_data)
-        local type = mod:get("mission_type")
+        local type = is_auric and "auric" or "normal"
 
         if type == "auric" and danger < 4 then
             danger = 4
@@ -78,7 +86,7 @@ end)
 mod:hook_safe("PartyImmateriumManager", "_game_session_promise", function()
     local data = mod._matchmaking_details
 
-    if is_in_hub() and data and data.id then
+    if _is_in_hub() and data and data.id then
         if mod:get("enable_for_quickplay_only") and not string.match(data.id, "qp:") then
             return
         end
@@ -108,7 +116,7 @@ mod:hook_safe("PartyImmateriumManager", "update", function()
 end)
 
 mod:hook_safe("GameModeManager", "game_mode_ready", function()
-    if is_in_hub() and mod:get("enable_auto_queue") then
+    if _is_in_hub() and mod:get("enable_auto_queue") then
         if mod._cancel_auto_queue then
             mod:notify(mod:localize("notif_canceled"))
         else
@@ -130,7 +138,9 @@ mod.cancel_auto_queue = function()
 end
 
 mod.start_quickplay = function()
-    if is_in_hub() then
-        start_quickplay()
-    end
+    start_quickplay()
+end
+
+mod.start_quickplay_auric = function()
+    start_quickplay(true)
 end

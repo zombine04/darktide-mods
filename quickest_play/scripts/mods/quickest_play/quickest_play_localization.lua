@@ -1,4 +1,4 @@
-return {
+local loc = {
     mod_name = {
         en = "Quickest Play",
         ["zh-cn"] = "快速游戏",
@@ -10,7 +10,7 @@ return {
         ["zh-cn"] = "添加开始快速游戏的快捷键。",
         ru = "Quickest Play - Добавьте горячую клавишу для запуска Быстрой игры из любого места.",
     },
-    key_start = {
+    keybind = {
         en = "Keybind",
         ja = "キーバインド",
         ["zh-cn"] = "快捷键",
@@ -104,4 +104,9 @@ return {
         en = Localize("loc_mission_board_type_auric"),
     }
 }
+
+loc.key_start = { en = loc.normal.en }
+loc.key_start_auric = { en = loc.auric.en }
+
+return loc
 
