@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 10/06/2023
-    version: 1.3.3
+    date: 11/10/2023
+    version: 1.3.4
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -402,7 +402,8 @@ mod:hook_safe("EndView", "_set_character_names", function(self)
             local report = self:_get_participant_progression(participant_reports, account_id)
             local memory = mod._memory
             local is_myself = memory.progression[character_id] ~= nil
-            local progression_data = memory.progression[character_id] or memory.temp[character_id]
+            local progression = is_myself and memory.progression or memory.temp
+            local progression_data = progression[character_id] or progression[character_id]
             local previous_data = nil
 
             if character_id == "N/A" and not slot.tl_debug_notified then
@@ -410,21 +411,21 @@ mod:hook_safe("EndView", "_set_character_names", function(self)
                 mod.debug.no_id()
             end
 
-            if is_valid_report and progression_data and progression_data.true_level then
+            if is_valid_report and progression_data and progression_data.level then
                 if is_myself then
                     previous_data = table.clone(progression_data)
                 end
 
                 if report and not slot.tl_modified then
                     slot.tl_modified = true
-                    mod.populate_data(memory.progression, character_id, report)
+                    mod.populate_data(progression, character_id, report)
 
-                    local current_data = memory.progression[character_id]
+                    local current_data = progression[character_id]
                     progression_data = current_data
                     mod.debug.echo("{#color(230,60,60)}BEFORE:{#reset()}", previous_data)
                     mod.debug.echo("{#color(60,60,230)}AFTER:{#reset()}", current_data)
 
-                    if previous_data and previous_data.true_level < current_data.true_level then
+                    if previous_data and previous_data.true_level and previous_data.true_level < current_data.true_level then
                         if mod:get("enable_level_up_notif") then
                             mod._play_level_up_sound = true
                         end
