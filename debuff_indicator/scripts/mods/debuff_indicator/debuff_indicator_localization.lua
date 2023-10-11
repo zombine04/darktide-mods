@@ -8,7 +8,10 @@ mod.buff_names = {
     "warp_fire",
     "increase_impact_received_while_staggered",
     "increase_damage_received_while_staggered",
-    "psyker_biomancer_smite_vulnerable_debuff",
+--  "psyker_biomancer_smite_vulnerable_debuff",
+    "psyker_protectorate_spread_chain_lightning_interval_improved",
+    "ogryn_recieve_damage_taken_increase_debuff",
+    "ogryn_taunt_increased_damage_taken_buff",
     "stagger",
     "suppression",
 }
@@ -32,7 +35,7 @@ mod.display_group_names = {
     "suppression",
 }
 
-local locres = {
+local loc = {
     mod_name = {
         en = "Debuff Indicator",
         ["zh-cn"] = "负面效果指示器",
@@ -238,6 +241,15 @@ local locres = {
     psyker_biomancer_smite_vulnerable_debuff = {
         en = Localize("loc_talent_biomancer_smite_increases_non_warp_damage")
     },
+    psyker_protectorate_spread_chain_lightning_interval_improved = {
+        en = Localize("loc_talent_psyker_chain_lightning_improved_target_buff")
+    },
+    ogryn_recieve_damage_taken_increase_debuff = {
+        en = Localize("loc_talent_ogryn_targets_recieve_damage_increase_debuff")
+    },
+    ogryn_taunt_increased_damage_taken_buff = {
+        en = Localize("loc_talent_ogryn_taunt_damage_taken_increase")
+    },
     stagger = {
         en = Localize("loc_stagger")
     },
@@ -248,17 +260,23 @@ local locres = {
 }
 
 for _, buff_name in ipairs(mod.buff_names) do
-    for _, color in ipairs({"color_r", "color_g", "color_b"}) do
-        locres[color .. "_" .. buff_name] = locres[color]
-    end
+    loc["color_" .. buff_name] = loc[buff_name]
 end
 
 for breed_name, breed in pairs(Breeds) do
     if breed_name ~= "human" and breed_name ~= "ogryn" and breed.display_name then
-        locres[breed_name] = {
+        loc[breed_name] = {
             en = Localize(breed.display_name)
         }
     end
 end
 
-return locres
+for i, name in ipairs(Color.list) do
+    local c = Color[name](255, true)
+    local text = string.format("{#color(%s,%s,%s)}%s{#reset()}", c[2], c[3], c[4], string.gsub(name, "_", " "))
+
+    loc[name] = {}
+    loc[name].en = text
+end
+
+return loc

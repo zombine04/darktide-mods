@@ -103,13 +103,11 @@ local apply_display_style_and_color = function(buff_name, label, count)
         buff_display_text = label .. ": " .. count
     end
 
-    if mod:get(buff_name) then
-        local r = mod:get("color_r_" .. buff_name)
-        local g = mod:get("color_g_" .. buff_name)
-        local b = mod:get("color_b_" .. buff_name)
+    local custom_color = mod:get("color_" .. buff_name)
+    local c = Color[custom_color](255, true)
+    local color = string.format("{#color(%s,%s,%s)}", c[2], c[3], c[4])
 
-        buff_display_text = string.format("{#color(%s,%s,%s)}%s{#reset()}", r, g, b, buff_display_text)
-    end
+    buff_display_text = string.format("%s%s{#reset()}", color, buff_display_text)
 
     return buff_display_text
 end

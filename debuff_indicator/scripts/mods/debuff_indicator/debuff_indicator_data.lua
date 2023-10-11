@@ -96,32 +96,40 @@ local widgets = {
 }
 
 local widgets_debuff = {}
+local color_option = {}
+
+local is_duplicated = function(a)
+    local join = function(t)
+        return string.format("%s,%s,%s", t[2], t[3], t[4])
+    end
+
+    for i, table in ipairs(color_option) do
+        local b = Color[table.text](255, true)
+
+        if join(a) == join(b) then
+            return true
+        end
+    end
+
+    return false
+end
+
+for i, name in ipairs(Color.list) do
+    if not is_duplicated(Color[name](255, true)) then
+        color_option[#color_option + 1] = { text = name, value = name }
+    end
+end
+
+table.sort(color_option, function(a, b)
+    return a.text < b.text
+end)
 
 for _, buff_name in ipairs(mod.buff_names) do
     widgets_debuff[#widgets_debuff + 1] = {
-        setting_id = buff_name,
-        type = "checkbox",
-        default_value = false,
-        sub_widgets = {
-            {
-                setting_id = "color_r_" .. buff_name,
-                type = "numeric",
-                default_value = 255,
-                range = { 0, 255 },
-            },
-            {
-                setting_id = "color_g_" .. buff_name,
-                type = "numeric",
-                default_value = 255,
-                range = { 0, 255 },
-            },
-            {
-                setting_id = "color_b_" .. buff_name,
-                type = "numeric",
-                default_value = 255,
-                range = { 0, 255 },
-            },
-        }
+        setting_id = "color_" .. buff_name,
+        type = "dropdown",
+        default_value = "white_smoke",
+        options = table.clone(color_option)
     }
 end
 
