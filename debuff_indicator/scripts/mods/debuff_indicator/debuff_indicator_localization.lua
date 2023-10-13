@@ -45,7 +45,7 @@ local loc = {
         en = "Display debuffs applied to each enemy and their stacks.",
         ja = "敵に付与されたデバフとそのスタック数を表示します。",
         ["zh-cn"] = "显示敌人受到的负面效果和层数",
-        ru = "Debuff Indicator - Отображает дебаффы и их стаки, примененные к каждому врагу.",
+        ru = "Debuff Indicator - Отображает дебаффы и количество их зарядов, применённых к каждому врагу.",
     },
     display_style = {
         en = "Display style",
@@ -206,7 +206,7 @@ local loc = {
         en = "Monstrosities",
         ja = "バケモノ",
         ["zh-cn"] = "怪物",
-        ru = "Чудовища",
+        ru = "Монстры",
     },
     bleed = {
         en = "Bleeding",
@@ -224,13 +224,13 @@ local loc = {
         en = "Brittleness",
         ja = "脆弱",
         ["zh-cn"] = "脆弱",
-        ru = "Терзание",
+        ru = "Хрупкость",
     },
     warp_fire = {
         en = "Soulblaze",
         ja = "ソウルファイア",
         ["zh-cn"] = "灵魂之火",
-        ru = "Духовное пламя",
+        ru = "Горение души",
     },
     increase_impact_received_while_staggered = {
         en = Localize("loc_trait_bespoke_staggered_targets_receive_increased_stagger_debuff")
