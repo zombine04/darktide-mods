@@ -104,10 +104,13 @@ local apply_display_style_and_color = function(buff_name, label, count)
     end
 
     local custom_color = mod:get("color_" .. buff_name)
-    local c = Color[custom_color](255, true)
-    local color = string.format("{#color(%s,%s,%s)}", c[2], c[3], c[4])
 
-    buff_display_text = string.format("%s%s{#reset()}", color, buff_display_text)
+    if custom_color and Color[custom_color] then
+        local c = Color[custom_color](255, true)
+        local color = string.format("{#color(%s,%s,%s)}", c[2], c[3], c[4])
+
+        buff_display_text = string.format("%s%s{#reset()}", color, buff_display_text)
+    end
 
     return buff_display_text
 end
