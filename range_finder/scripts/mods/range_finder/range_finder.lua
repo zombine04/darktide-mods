@@ -1,8 +1,8 @@
 --[[
     title: range_finder
     author: kanateko
-    date: 17/04/2023
-    version: 1.1.4
+    date: 13/10/2023
+    version: 1.1.5
 ]]
 local mod = get_mod("range_finder")
 
