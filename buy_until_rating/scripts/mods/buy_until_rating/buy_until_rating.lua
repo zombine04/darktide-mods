@@ -1,13 +1,14 @@
 --[[
     title: buy_until_rating
     author: Zombine
-    date: 07/10/2023
-    version: 2.2.3
+    date: 26/10/2023
+    version: 2.2.4
 ]]
 
 local mod = get_mod("buy_until_rating")
 local MasterItems = require("scripts/backend/master_items")
 local ItemUtils = require("scripts/utilities/items")
+local UIRenderer = require("scripts/managers/ui/ui_renderer")
 
 mod._canceled = false
 mod._acquired_items = {}
@@ -210,7 +211,7 @@ local prevent_close_view = function(func, ...)
     func(...)
 end
 
-local privent_inputs = function(func, ...)
+local prevent_inputs = function(func, ...)
     local out = func(...)
 
     if not table.is_empty(mod._garbages) and type(out) == "boolean" then
@@ -220,10 +221,19 @@ local privent_inputs = function(func, ...)
     return out
 end
 
+-- Patch#14 Quick fix
+mod:hook(UIRenderer, "destroy_material", function(func, self, ...)
+    if self == nil then
+        return
+    end
+
+    return func(self, ...)
+end)
+
 mod:hook("UIManager", "close_view", prevent_close_view)
 mod:hook("UIManager", "close_all_views", prevent_close_view)
-mod:hook("InputService", "_get", privent_inputs)
-mod:hook("InputService", "_get_simulate", privent_inputs)
+mod:hook("InputService", "_get", prevent_inputs)
+mod:hook("InputService", "_get_simulate", prevent_inputs)
 
 mod:hook_safe("CreditsGoodsVendorView", "init", function()
     init()

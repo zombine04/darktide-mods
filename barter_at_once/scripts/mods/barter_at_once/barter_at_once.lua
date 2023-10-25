@@ -1,8 +1,8 @@
 --[[
     title: barter_at_once
     author: Zombine
-    date: 04/10/2023
-    version: 1.1.2
+    date: 26/10/2023
+    version: 1.2.0
 ]]
 local mod = get_mod("barter_at_once")
 local NotifSettings = require("scripts/ui/constant_elements/elements/notification_feed/constant_element_notification_feed_settings")
@@ -13,6 +13,7 @@ local SoundEvents = {
     unmark = "wwise/events/ui/play_ui_back",
     discard = "wwise/events/ui/play_ui_character_loadout_discard_weapon_complete",
 }
+local UIRenderer = require("scripts/managers/ui/ui_renderer")
 
 -- ##############################
 -- Setup
@@ -20,6 +21,7 @@ local SoundEvents = {
 
 local init = function(func, ...)
     mod._trash_list = {}
+    mod._grid_updated = false
     mod._discard_item = false
     mod._now_discarding = false
     mod._num_discarded = 0
@@ -89,6 +91,15 @@ local add_pressed_callback = function(obj)
     end
 end
 
+-- Patch#14 Quick fix
+mod:hook(UIRenderer, "destroy_material", function(func, self, ...)
+    if self == nil then
+        return
+    end
+
+    return func(self, ...)
+end)
+
 mod:hook("InventoryBackgroundView", "init", init)
 mod:hook("InventoryView", "init", init)
 mod:hook("InventoryWeaponsView", "init", init)
@@ -139,6 +150,7 @@ end)
 
 local on_discard_confirmed = function()
     mod._discard_item = true
+    mod._grid_updated = true
     mod._now_discarding = true
 end
 
@@ -221,8 +233,9 @@ mod:hook("InventoryWeaponsView", "_mark_item_for_discard", function(func, ...)
 end)
 
 mod:hook_safe("InventoryWeaponsView", "update", function(self)
-    if mod._discard_item then
+    if mod._discard_item and mod._grid_updated then
         mod._discard_item = false
+        mod._grid_updated = false
 
         if table.is_empty(mod._trash_list) then
             mod._now_discarding = false
@@ -230,6 +243,12 @@ mod:hook_safe("InventoryWeaponsView", "update", function(self)
         else
             discard_item(self)
         end
+    end
+end)
+
+mod:hook_safe("InventoryWeaponsView", "update_grid_widgets_visibility", function()
+    if mod._now_discarding then
+        mod._grid_updated = true
     end
 end)
 
