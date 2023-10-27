@@ -1,10 +1,11 @@
 --[[
     title: who_are_you
     author: Zombine
-    date: 09/07/2023
-    version: 3.0.0
+    date: 27/10/2023
+    version: 3.1.0
 ]]
 local mod = get_mod("who_are_you")
+local TextUtilities = require("scripts/utilities/ui/text")
 local UISettings = require("scripts/settings/ui/ui_settings")
 local ICONS = {
     steam = "",
@@ -102,12 +103,14 @@ local _apply_style = function(name, ref)
     end
 
     if mod:get("enable_custom_color" .. suffix) then
-        local r = mod:get("color_r" .. suffix)
-        local g = mod:get("color_g" .. suffix)
-        local b = mod:get("color_b" .. suffix)
-        local rgb = r .. "," .. g .. "," .. b
+        local custom_color = mod:get("custom_color" .. suffix)
 
-        name = _format_inline_code("color", rgb) .. name
+        if custom_color and Color[custom_color] then
+            local c = Color[custom_color](255, true)
+            local rgb = string.format("%s,%s,%s", c[2], c[3], c[4])
+
+             name = _format_inline_code("color", rgb) .. name
+        end
     end
 
     return name
@@ -281,6 +284,37 @@ mod:hook_safe("HudElementPersonalPlayerPanel", "_update_player_features", modify
 mod:hook_safe("HudElementPersonalPlayerPanelHub", "_update_player_features", modify_player_panel_name)
 mod:hook_safe("HudElementTeamPlayerPanel", "_update_player_features", modify_player_panel_name)
 mod:hook_safe("HudElementTeamPlayerPanelHub", "_update_player_features", modify_player_panel_name)
+
+-- Combat Feed
+
+mod:hook_require("scripts/ui/constant_elements/elements/notification_feed/constant_element_notification_feed_settings", function (settings)
+    settings.header_size[1] = 800
+end)
+
+mod:hook("HudElementCombatFeed", "_get_unit_presentation_name", function(func, self, unit)
+    if mod:get("enable_combat_feed") then
+        local player_unit_spawn_manager = Managers.state.player_unit_spawn
+        local player = unit and player_unit_spawn_manager:owner(unit)
+
+        if player then
+            local account_id = player:account_id()
+
+            if account_id then
+                local player_slot = player:slot()
+                local player_slot_color = UISettings.player_slot_colors[player_slot] or Color.ui_hud_green_light(255, true)
+                local character_name = player:name()
+                local account_name = account_id and mod.account_name(account_id)
+                local ref = "combat_feed"
+                local modified_name = modify_character_name(character_name, account_name, account_id, ref)
+
+                return TextUtilities.apply_color_to_text(modified_name, player_slot_color)
+            end
+        end
+    end
+
+    return func(self, unit)
+end)
+
 
 -- ##############################
 -- Cycle Style

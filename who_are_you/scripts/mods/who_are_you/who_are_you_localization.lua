@@ -2,22 +2,21 @@ local mod = get_mod("who_are_you")
 
 mod.modified_elements = {
     "_chat",
+    "_combat_feed",
     "_lobby",
     "_nameplate",
     "_team_hud",
 }
 
 mod.sub_name_options = {
-    "color_r",
-    "color_g",
-    "color_b",
+    "custom_color",
     "enable_custom_color",
     "enable_custom_size",
     "enable_override",
     "sub_name_size",
 }
 
-local locres = {
+local loc = {
     mod_name = {
         en = "Who Are You",
         ru = "Кто ты",
@@ -101,17 +100,16 @@ local locres = {
         ru = "Глобально",
         ["zh-cn"] = "全局",
     },
-    enable_team_hud = {
-        en = "Team HUD",
-        ja = "チームHUD",
-        ru = "Интерфейс команды",
-        ["zh-cn"] = "团队 HUD",
-    },
     enable_chat = {
         en = "Chat",
         ja = "チャット",
         ru = "Чат",
         ["zh-cn"] = "聊天栏",
+    },
+    enable_combat_feed = {
+        en = "Combat Feed",
+        ja = "戦闘フィード",
+        ["zh-cn"] = "击杀通知栏",
     },
     enable_lobby = {
         en = "Lobby",
@@ -124,6 +122,12 @@ local locres = {
         ja = "ネームプレート",
         ru = "Табличка с именем",
         ["zh-cn"] = "名称标签",
+    },
+    enable_team_hud = {
+        en = "Team HUD",
+        ja = "チームHUD",
+        ru = "Интерфейс команды",
+        ["zh-cn"] = "团队 HUD",
     },
     sub_name_settings = {
         en = "Sub name settings",
@@ -161,6 +165,12 @@ local locres = {
         ru = "Изменить цвет доп. имени",
         ["zh-cn"] = "更改附加名字颜色",
     },
+    custom_color = {
+        en = "Custom color",
+        ja = "カスタムカラー",
+        ["zh-cn"] = "自定义颜色",
+        ru = "Пользовательские цвета",
+    },
     color_r = {
         en = "R",
         ru = "Красный",
@@ -180,23 +190,32 @@ local locres = {
 
 for _, element in ipairs(mod.modified_elements) do
     local local_name = "sub_name_settings" .. element
-    locres[local_name] = {}
-    for lang, text in pairs(locres.sub_name_settings) do
-        if (locres["enable" .. element][lang]) then
-            locres[local_name][lang] = text .. " (" .. locres["enable" .. element][lang] .. ")"
+    loc[local_name] = {}
+    for lang, text in pairs(loc.sub_name_settings) do
+        if (loc["enable" .. element][lang]) then
+            loc[local_name][lang] = text .. " (" .. loc["enable" .. element][lang] .. ")"
         end
     end
 end
-for lang, text in pairs(locres.sub_name_settings) do
-    if locres.global[lang] then
-        locres.sub_name_settings[lang] = text .. " (" .. locres.global[lang] .. ")"
+
+for lang, text in pairs(loc.sub_name_settings) do
+    if loc.global[lang] then
+        loc.sub_name_settings[lang] = text .. " (" .. loc.global[lang] .. ")"
     end
 end
 
 for _, element in ipairs(mod.modified_elements) do
     for _, option in ipairs(mod.sub_name_options) do
-        locres[option .. element] = locres[option]
+        loc[option .. element] = loc[option]
     end
 end
 
-return locres
+for i, name in ipairs(Color.list) do
+    local c = Color[name](255, true)
+    local text = string.format("{#color(%s,%s,%s)}%s{#reset()}", c[2], c[3], c[4], string.gsub(name, "_", " "))
+
+    loc[name] = {}
+    loc[name].en = text
+end
+
+return loc

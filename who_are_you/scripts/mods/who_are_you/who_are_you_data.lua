@@ -1,4 +1,31 @@
 local mod = get_mod("who_are_you")
+local color_option = {}
+
+local is_duplicated = function(a)
+    local join = function(t)
+        return string.format("%s,%s,%s", t[2], t[3], t[4])
+    end
+
+    for i, table in ipairs(color_option) do
+        local b = Color[table.text](255, true)
+
+        if join(a) == join(b) then
+            return true
+        end
+    end
+
+    return false
+end
+
+for i, name in ipairs(Color.list) do
+    if not is_duplicated(Color[name](255, true)) then
+        color_option[#color_option + 1] = { text = name, value = name }
+    end
+end
+
+table.sort(color_option, function(a, b)
+    return a.text < b.text
+end)
 
 local data = {
     name = mod:localize("mod_name"),
@@ -69,22 +96,10 @@ local data = {
                         default_value = false,
                         sub_widgets = {
                             {
-                                setting_id = "color_r",
-                                type = "numeric",
-                                default_value = 255,
-                                range = {1, 255},
-                            },
-                            {
-                                setting_id = "color_g",
-                                type = "numeric",
-                                default_value = 255,
-                                range = {1, 255},
-                            },
-                            {
-                                setting_id = "color_b",
-                                type = "numeric",
-                                default_value = 255,
-                                range = {1, 255},
+                                setting_id = "custom_color",
+                                type = "dropdown",
+                                default_value = "alice_blue",
+                                options = table.clone(color_option),
                             },
                         },
                     },
@@ -139,22 +154,10 @@ for _, element in ipairs(mod.modified_elements) do
                         default_value = false,
                         sub_widgets = {
                             {
-                                setting_id = "color_r" .. element,
-                                type = "numeric",
-                                default_value = 255,
-                                range = {1, 255},
-                            },
-                            {
-                                setting_id = "color_g" .. element,
-                                type = "numeric",
-                                default_value = 255,
-                                range = {1, 255},
-                            },
-                            {
-                                setting_id = "color_b" .. element,
-                                type = "numeric",
-                                default_value = 255,
-                                range = {1, 255},
+                                setting_id = "custom_color" .. element,
+                                type = "dropdown",
+                                default_value = "alice_blue",
+                                options = table.clone(color_option),
                             },
                         }
                     }
