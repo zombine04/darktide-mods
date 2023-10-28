@@ -35,6 +35,7 @@ mod._loc = {
     auto_mark = {
         en = "Auto Mark",
         ja = "自動マーク",
+        ["zh-cn"] = "自动标记",
     },
     auto_mark_keybind = {
         en = "Keybind",
@@ -47,10 +48,12 @@ mod._loc = {
     rarity_tooltip = {
         en = "Includes lower rarity.",
         ja = "下位のレアリティを含みます。",
+        ["zh-cn"] = "包括更低稀有度。",
     },
     auto_mark_criteria = {
         en = "Criteria",
         ja = "基準",
+        ["zh-cn"] = "基准",
     },
     base_rating = {
         en = Localize("loc_weapon_stats_display_base_rating"),
@@ -61,14 +64,17 @@ mod._loc = {
     auto_mark_threshold = {
         en = "Threshold",
         ja = "閾値",
+        ["zh-cn"] = "阈值",
     },
     total_auto_marked = {
         en = "Marked %s items",
         ja = "%s個のアイテムをマークしました",
+        ["zh-cn"] = "标记了 %s 个物品",
     },
     unmark_all = {
         en = "Unmark All",
         ja = "全選択解除",
+        ["zh-cn"] = "全部取消标记",
     },
     popup_header_discard_marked_items = {
         en = "Barter All Marked Items",
