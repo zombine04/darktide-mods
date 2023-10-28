@@ -1,4 +1,6 @@
 local mod = get_mod("barter_at_once")
+local RaritySettings = require("scripts/settings/item/rarity_settings")
+local TextUtils = require("scripts/utilities/ui/text")
 
 mod._loc = {
     mod_name = {
@@ -30,6 +32,44 @@ mod._loc = {
         ja = "不用品としてマークしました",
         ["zh-cn"] = "已标记为垃圾",
     },
+    auto_mark = {
+        en = "Auto Mark",
+        ja = "自動マーク",
+    },
+    auto_mark_keybind = {
+        en = "Keybind",
+        ja = "キーバインド",
+        ["zh-cn"] = "快捷键",
+    },
+    auto_mark_rarity = {
+        en = Localize("loc_inventory_item_grid_sort_title_rarity"),
+    },
+    rarity_tooltip = {
+        en = "Includes lower rarity.",
+        ja = "下位のレアリティを含みます。",
+    },
+    auto_mark_criteria = {
+        en = "Criteria",
+        ja = "基準",
+    },
+    base_rating = {
+        en = Localize("loc_weapon_stats_display_base_rating"),
+    },
+    total_rating = {
+        en = Localize("loc_item_information_item_level")
+    },
+    auto_mark_threshold = {
+        en = "Threshold",
+        ja = "閾値",
+    },
+    total_auto_marked = {
+        en = "Marked %s items",
+        ja = "%s個のアイテムをマークしました",
+    },
+    unmark_all = {
+        en = "Unmark All",
+        ja = "全選択解除",
+    },
     popup_header_discard_marked_items = {
         en = "Barter All Marked Items",
         ja = "マークした全アイテムの売却",
@@ -51,5 +91,16 @@ mod._loc = {
         ["zh-cn"] = "否",
     },
 }
+
+for i, rarity in ipairs(RaritySettings) do
+    if rarity.display_name ~= "" then
+        local display_name = RaritySettings[i].display_name
+        local color = RaritySettings[i].color
+
+        mod._loc["rarity_" .. i] = {
+            en = TextUtils.apply_color_to_text(Localize(display_name), color)
+        }
+    end
+end
 
 return mod._loc

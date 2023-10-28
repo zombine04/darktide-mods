@@ -1,8 +1,8 @@
 --[[
     title: barter_at_once
     author: Zombine
-    date: 26/10/2023
-    version: 1.2.0
+    date: 28/10/2023
+    version: 1.3.0
 ]]
 local mod = get_mod("barter_at_once")
 local NotifSettings = require("scripts/ui/constant_elements/elements/notification_feed/constant_element_notification_feed_settings")
@@ -25,6 +25,8 @@ local init = function(func, ...)
     mod._discard_item = false
     mod._now_discarding = false
     mod._num_discarded = 0
+    mod._start_auto_mark = false
+    mod._num_auto_marked = 0
 
     if func then
         func(...)
@@ -53,7 +55,7 @@ local _add_notification = function(message, sound_event)
     Managers.event:trigger("event_add_notification_message", "default", message, nil, sound_event)
 end
 
-local _update_trash_list = function(is_trash, item)
+local _update_trash_list = function(is_trash, item, no_notif)
     local list = mod._trash_list
     local list_index = table.find_by_key(list, "gear_id", item.gear_id)
 
@@ -64,29 +66,74 @@ local _update_trash_list = function(is_trash, item)
             item_level = item.itemLevel, item,
             rarity_color = ItemUtils.rarity_color(item)
         }
-        _clear_notifications()
-        _add_notification(mod:localize("marked_as_trash"), SoundEvents.mark)
+
+        if not no_notif then
+            _clear_notifications()
+            _add_notification(mod:localize("marked_as_trash"), SoundEvents.mark)
+        end
     elseif not is_trash and list_index then
         list[list_index] = nil
         Managers.ui:play_2d_sound(SoundEvents.unmark)
     end
 end
 
-local add_pressed_callback = function(obj)
-    function obj:cb_on_discard_pressed()
-        local widget = self:selected_grid_widget()
-        local display_name = widget.style.display_name
-        local item = widget.content.element.item
+local add_pressed_callback = function(inventory_weapons_view)
+    function inventory_weapons_view:cb_on_discard_pressed(id, widget, no_notif)
+        local selected_widget = widget or self:selected_grid_widget()
+        local display_name = selected_widget.style.display_name
+        local item = selected_widget.content.element.item
 
         if display_name and item then
-            widget.ba_marked_as_trash = not widget.ba_marked_as_trash
+            selected_widget.ba_marked_as_trash = not selected_widget.ba_marked_as_trash
 
-            local is_trash = widget.ba_marked_as_trash
+            local is_trash = selected_widget.ba_marked_as_trash
 
             display_name.default_color = _set_color(is_trash, "terminal_text_header")
             display_name.text_color = _set_color(is_trash, "terminal_text_header")
             display_name.hover_color = _set_color(is_trash, "terminal_text_header_selected")
-            _update_trash_list(is_trash, item)
+            _update_trash_list(is_trash, item, no_notif)
+        end
+    end
+
+    function inventory_weapons_view:cb_on_unmark_all_pressed()
+        local grid_widgets = self:grid_widgets()
+
+        for index, widget in ipairs(grid_widgets) do
+            if widget.ba_marked_as_trash then
+                self: cb_on_discard_pressed(nil, widget)
+            end
+        end
+    end
+
+    function inventory_weapons_view:cb_on_auto_mark_pressed()
+        local grid_widgets = self:grid_widgets()
+        local rarity = mod:get("auto_mark_rarity")
+        local criteria = mod:get("auto_mark_criteria")
+        local threshold = mod:get("auto_mark_threshold")
+
+        if rarity and criteria and threshold then
+            for index, widget in ipairs(grid_widgets) do
+                if not widget.ba_marked_as_trash then
+                    local item = widget.content.element.item
+                    local i_rarity = item and item.rarity
+
+                    if i_rarity and i_rarity <= rarity then
+                        if i_rarity == 1 and criteria == "baseItemLevel" then
+                            criteria = "itemLevel"
+                        end
+
+                        local stat = item[criteria]
+
+                        if stat and stat <= threshold then
+                            self:cb_on_discard_pressed(nil, widget, true)
+                            mod._num_auto_marked = mod._num_auto_marked + 1
+                        end
+                    end
+                end
+            end
+
+            mod:notify(mod:localize("total_auto_marked", mod._num_auto_marked))
+            mod._num_auto_marked = 0
         end
     end
 end
@@ -140,6 +187,37 @@ mod:hook("InventoryWeaponsView", "_setup_input_legend", function(func, self)
             return true
         end
     }
+
+    legend_inputs[#legend_inputs + 1] = {
+        input_action = "toggle_private_match",
+        display_name = "unmark_all",
+        alignment = "right_alignment",
+        on_pressed_callback = "cb_on_unmark_all_pressed",
+        visibility_function = function (parent)
+            if #mod._trash_list > 0 then
+                return true
+            end
+
+            return false
+        end
+    }
+
+    legend_inputs[#legend_inputs + 1] = {
+        input_action = "toggle_filter",
+        display_name = "auto_mark",
+        alignment = "right_alignment",
+        on_pressed_callback = "cb_on_auto_mark_pressed",
+        visibility_function = function (parent)
+            if mod:get("auto_mark_rarity") and
+               mod:get("auto_mark_criteria") and
+               mod:get("auto_mark_threshold") then
+                return true
+            end
+
+            return false
+        end
+    }
+
     func(self)
     add_pressed_callback(self)
 end)
