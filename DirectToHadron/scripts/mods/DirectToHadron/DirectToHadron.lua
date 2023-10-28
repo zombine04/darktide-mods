@@ -2,7 +2,7 @@
     name: DirectToHadron
     author: Zombine
     date: 28/10/2023
-    version: 1.0.0
+    version: 1.0.1
 ]]
 
 local mod = get_mod("DirectToHadron")
@@ -64,14 +64,12 @@ mod:hook_safe(CLASS.CraftingView, "on_enter", function(self)
     end
 end)
 
--- ##############################
--- Crafting: Item Select
--- ##############################
+mod:hook_safe(CLASS.CraftingView, "update", function(self)
+    if self._active_view == nil and self._previously_active_view_name == "crafting_modify_view" then
+        if mod:get("enable_skip_hadron") or mod.item then
+            Managers.ui:close_view("crafting_view")
+        end
 
-mod:hook_safe(CLASS.CraftingModifyView, "on_exit", function()
-    _init()
-
-    if mod:get("enable_skip_hadron") or mod.item then
-        Managers.ui:close_view("crafting_view")
+        _init()
     end
 end)
