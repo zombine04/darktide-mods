@@ -58,6 +58,13 @@ local loc = {
         ru = "Учётная запись",
         ["zh-cn"] = "账户名字",
     },
+    platform_icon = {
+        en = "Platform Icon",
+        ja = "プラットフォームアイコン",
+    },
+    off = {
+        en = Localize("loc_setting_checkbox_off"),
+    },
     cycle_style = {
         en = "Cycle Style",
         ja = "スタイルの切り替え",

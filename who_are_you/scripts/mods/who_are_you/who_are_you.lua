@@ -1,8 +1,8 @@
 --[[
     title: who_are_you
     author: Zombine
-    date: 27/10/2023
-    version: 3.1.0
+    date: 29/10/2023
+    version: 3.2.0
 ]]
 local mod = get_mod("who_are_you")
 local TextUtilities = require("scripts/utilities/ui/text")
@@ -118,6 +118,21 @@ end
 
 local modify_character_name = function(name, account_name, account_id, ref)
     local display_style = mod.current_style
+    local icon_style = mod:get("platform_icon")
+    local prefix = ""
+
+    for platform, icon in pairs(ICONS) do
+        if string.match(account_name, icon) then
+            prefix = icon .. " "
+        end
+    end
+
+    if icon_style == "off" then
+        account_name = string.gsub(account_name, prefix, "")
+    elseif icon_style == "character_only" then
+        account_name = string.gsub(account_name, prefix, "")
+        name = prefix .. name
+    end
 
     if display_style == "character_only" or (not mod:get("enable_display_self") and _is_myself(account_id)) then
         name = name

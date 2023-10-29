@@ -38,11 +38,21 @@ local data = {
                 type = "dropdown",
                 default_value = "character_first",
                 options = {
-                    {text = "character_first", value = "character_first"},
-                    {text = "account_first", value = "account_first"},
-                    {text = "character_only", value = "character_only"},
-                    {text = "account_only", value = "account_only"},
+                    { text = "character_first", value = "character_first" },
+                    { text = "account_first", value = "account_first" },
+                    { text = "character_only", value = "character_only" },
+                    { text = "account_only", value = "account_only" },
                 },
+            },
+            {
+                setting_id = "platform_icon",
+                type = "dropdown",
+                default_value = "account_only",
+                options = {
+                    { text = "off", value = "off" },
+                    { text = "character_only", value = "character_only" },
+                    { text = "account_only", value = "account_only" },
+                }
             },
             {
                 setting_id = "enable_display_self",
