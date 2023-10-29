@@ -2,7 +2,7 @@
     title: barter_at_once
     author: Zombine
     date: 29/10/2023
-    version: 1.4.0
+    version: 1.4.1
 ]]
 local mod = get_mod("barter_at_once")
 local NotifSettings = require("scripts/ui/constant_elements/elements/notification_feed/constant_element_notification_feed_settings")
@@ -78,15 +78,18 @@ local _update_trash_list = function(is_trash, item, no_notif)
 end
 
 local add_pressed_callback = function(inventory_weapons_view)
-    function inventory_weapons_view:cb_on_discard_pressed(id, widget, no_notif)
-        local selected_widget = widget or self:selected_grid_widget()
-        local display_name = selected_widget.style.display_name
-        local item = selected_widget.content.element.item
+    function inventory_weapons_view:cb_on_mark_item_pressed(id, widget, no_notif)
+        if not widget or type(widget) ~= "table" then
+            widget = self:selected_grid_widget()
+        end
+
+        local display_name = widget.style.display_name
+        local item = widget.content.element.item
 
         if display_name and item then
-            selected_widget.ba_marked_as_trash = not selected_widget.ba_marked_as_trash
+            widget.ba_marked_as_trash = not widget.ba_marked_as_trash
 
-            local is_trash = selected_widget.ba_marked_as_trash
+            local is_trash = widget.ba_marked_as_trash
 
             display_name.default_color = _set_color(is_trash, "terminal_text_header")
             display_name.text_color = _set_color(is_trash, "terminal_text_header")
@@ -100,7 +103,7 @@ local add_pressed_callback = function(inventory_weapons_view)
 
         for index, widget in ipairs(grid_widgets) do
             if widget.ba_marked_as_trash then
-                self: cb_on_discard_pressed(nil, widget)
+                self: cb_on_mark_item_pressed(nil, widget)
             end
         end
     end
@@ -125,7 +128,7 @@ local add_pressed_callback = function(inventory_weapons_view)
                         local stat = item[criteria]
 
                         if stat and stat <= threshold then
-                            self:cb_on_discard_pressed(nil, widget, true)
+                            self:cb_on_mark_item_pressed(nil, widget, true)
                             mod._num_auto_marked = mod._num_auto_marked + 1
                         end
                     end
@@ -162,7 +165,7 @@ mod:hook("InventoryWeaponsView", "_setup_input_legend", function(func, self)
             input_action = key_mark,
             display_name = "mark_as_trash",
             alignment = "right_alignment",
-            on_pressed_callback = "cb_on_discard_pressed",
+            on_pressed_callback = "cb_on_mark_item_pressed",
             visibility_function = function (parent)
                 local widget = parent:selected_grid_widget()
 
