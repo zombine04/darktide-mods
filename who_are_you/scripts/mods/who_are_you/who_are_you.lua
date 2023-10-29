@@ -2,7 +2,7 @@
     title: who_are_you
     author: Zombine
     date: 29/10/2023
-    version: 3.2.0
+    version: 3.2.1
 ]]
 local mod = get_mod("who_are_you")
 local TextUtilities = require("scripts/utilities/ui/text")
@@ -22,6 +22,10 @@ mod.current_style = mod:get("display_style")
 -- ##############################
 
 mod.is_unknown = function(account_name)
+    if string.match(account_name, ICONS.unknown) then
+        return true
+    end
+
     for _, icon in pairs(ICONS) do
         account_name = string.gsub(account_name, icon .. " ", "")
     end
@@ -70,6 +74,20 @@ end
 
 mod:hook_safe("PresenceManager", "get_presence", function(self, account_id)
     mod.account_name(account_id)
+end)
+
+-- change cross platform icon to acutual platform icons (experimental)
+
+mod:hook_origin("PresenceEntryImmaterium", "platform_icon", function(self)
+    local platform = self._immaterium_entry.platform
+
+    if platform == "steam" then
+        return ""
+    elseif platform == "xbox" then
+        return ""
+    end
+
+    return "" -- unknown
 end)
 
 -- ##############################
