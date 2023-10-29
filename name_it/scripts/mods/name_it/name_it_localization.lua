@@ -1,4 +1,5 @@
 local mod = get_mod("name_it")
+local InputUtils = require("scripts/managers/input/input_utils")
 
 mod:add_global_localize_strings({
     loc_change_item_name = {
@@ -26,7 +27,7 @@ mod:add_global_localize_strings({
     }
 })
 
-return {
+local loc = {
     mod_name = {
         en = "Name It",
         ["zh-cn"] = "物品自定义名称",
@@ -38,6 +39,14 @@ return {
              "注：アイテム名をデフォルトに戻したい場合、空欄で保存するか下記の\"全消去\"ボタンを使用してください。",
         ["zh-cn"] = "允许为物品设置不同的自定义名称。\n" ..
              "注意：如果要恢复物品默认名称，可以将名称留空再保存，或使用底部的“清除所有”按钮。",
+    },
+    keybind_change_name = {
+        en = "Keybind",
+        ja = "キーバインド",
+        ["zh-cn"] = "快捷键",
+    },
+    off = {
+        en = Localize("loc_setting_checkbox_off"),
     },
     enable_ime = {
         en = "Enable IME",
@@ -53,3 +62,29 @@ return {
         ["zh-cn"] = "已清除",
     }
 }
+
+mod._available_aliases = {
+    "hotkey_menu_special_1",      -- e,           x
+    "hotkey_inventory",           -- i,           back
+    "hotkey_loadout",             -- l,           y
+    "toggle_private_match",       -- p,           y
+    "hotkey_menu_special_2",      -- q,           y
+    "toggle_solo_play",           -- s,           left_thumb
+    "toggle_filter",              -- t,           y
+    "hotkey_start_game",          -- enter,       x
+    "next_hint",                  -- space,       a
+    "cycle_list_secondary",       -- tab,         right_thumb
+    "notification_option_a",      -- f9,          d_right + left_trigger,
+    "notification_option_b",      -- f10,         d_right + right_trigger,
+    "talent_unequip",             -- mouse_right, a
+}
+
+for _, gamepad_action in ipairs(mod._available_aliases) do
+    local service_type = "View"
+    local alias_key = Managers.ui:get_input_alias_key(gamepad_action, service_type)
+    local input_text = InputUtils.input_text_for_current_input_device(service_type, alias_key)
+
+    loc[gamepad_action] = { en = input_text }
+end
+
+return loc

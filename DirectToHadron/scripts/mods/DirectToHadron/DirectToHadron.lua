@@ -1,8 +1,8 @@
 --[[
     name: DirectToHadron
     author: Zombine
-    date: 28/10/2023
-    version: 1.0.1
+    date: 29/10/2023
+    version: 1.1.0
 ]]
 
 local mod = get_mod("DirectToHadron")
@@ -17,22 +17,25 @@ end
 
 mod:hook(CLASS.InventoryWeaponsView, "_setup_input_legend", function(func, self)
     local legend_inputs = self._definitions.legend_inputs
+    local key_hadron = mod:get("keybind_hadron")
 
-    legend_inputs[#legend_inputs + 1] = {
-        input_action = "next_hint",
-        display_name = "loc_crafting_view_option_modify",
-        alignment = "right_alignment",
-        on_pressed_callback = "cb_on_send_to_hadron",
-        visibility_function = function (parent)
-            local widget = parent:selected_grid_widget()
+    if key_hadron ~= "off" then
+        legend_inputs[#legend_inputs + 1] = {
+            input_action = key_hadron,
+            display_name = "loc_crafting_view_option_modify",
+            alignment = "right_alignment",
+            on_pressed_callback = "cb_on_send_to_hadron",
+            visibility_function = function (parent)
+                local widget = parent:selected_grid_widget()
 
-            if not widget then
-                return false
+                if not widget then
+                    return false
+                end
+
+                return true
             end
-
-            return true
-        end
-    }
+        }
+    end
 
     function self:cb_on_send_to_hadron()
         local widget = self:selected_grid_widget()

@@ -1,8 +1,8 @@
 --[[
     title: barter_at_once
     author: Zombine
-    date: 28/10/2023
-    version: 1.3.0
+    date: 29/10/2023
+    version: 1.4.0
 ]]
 local mod = get_mod("barter_at_once")
 local NotifSettings = require("scripts/ui/constant_elements/elements/notification_feed/constant_element_notification_feed_settings")
@@ -153,70 +153,79 @@ mod:hook("InventoryWeaponsView", "init", init)
 
 mod:hook("InventoryWeaponsView", "_setup_input_legend", function(func, self)
     local legend_inputs = self._definitions.legend_inputs
+    local key_mark = mod:get("keybind_mark_as_trash")
+    local key_unmark = mod:get("keybind_unmark_all")
+    local key_auto_mark = mod:get("keybind_auto_mark")
 
-    legend_inputs[#legend_inputs + 1] = {
-        input_action = "hotkey_menu_special_1",
-        display_name = "mark_as_trash",
-        alignment = "right_alignment",
-        on_pressed_callback = "cb_on_discard_pressed",
-        visibility_function = function (parent)
-            local widget = parent:selected_grid_widget()
+    if key_mark ~= "off" then
+        legend_inputs[#legend_inputs + 1] = {
+            input_action = key_mark,
+            display_name = "mark_as_trash",
+            alignment = "right_alignment",
+            on_pressed_callback = "cb_on_discard_pressed",
+            visibility_function = function (parent)
+                local widget = parent:selected_grid_widget()
 
-            if not widget then
-                return false
-            end
-
-            local myfav = get_mod("MyFavorites")
-
-            if myfav and myfav:is_enabled() then
-                local fav_list = myfav:get("favorite_item_list") or {}
-                local gear_id = widget.content.element.item.gear_id or "n/a"
-                local is_locked = fav_list[gear_id] and true or false
-
-                if is_locked then
+                if not widget then
                     return false
                 end
+
+                local myfav = get_mod("MyFavorites")
+
+                if myfav and myfav:is_enabled() then
+                    local fav_list = myfav:get("favorite_item_list") or {}
+                    local gear_id = widget.content.element.item.gear_id or "n/a"
+                    local is_locked = fav_list[gear_id] and true or false
+
+                    if is_locked then
+                        return false
+                    end
+                end
+
+                local is_item_equipped = parent:is_selected_item_equipped()
+
+                if is_item_equipped then
+                    return false
+                end
+
+                return true
             end
+        }
+    end
 
-            local is_item_equipped = parent:is_selected_item_equipped()
+    if key_unmark ~= "off" then
+        legend_inputs[#legend_inputs + 1] = {
+            input_action = key_unmark,
+            display_name = "unmark_all",
+            alignment = "right_alignment",
+            on_pressed_callback = "cb_on_unmark_all_pressed",
+            visibility_function = function (parent)
+                if #mod._trash_list > 0 then
+                    return true
+                end
 
-            if is_item_equipped then
                 return false
             end
+        }
+    end
 
-            return true
-        end
-    }
+    if key_auto_mark ~= "off" then
+        legend_inputs[#legend_inputs + 1] = {
+            input_action = key_auto_mark,
+            display_name = "auto_mark",
+            alignment = "right_alignment",
+            on_pressed_callback = "cb_on_auto_mark_pressed",
+            visibility_function = function (parent)
+                if mod:get("auto_mark_rarity") and
+                mod:get("auto_mark_criteria") and
+                mod:get("auto_mark_threshold") then
+                    return true
+                end
 
-    legend_inputs[#legend_inputs + 1] = {
-        input_action = "toggle_private_match",
-        display_name = "unmark_all",
-        alignment = "right_alignment",
-        on_pressed_callback = "cb_on_unmark_all_pressed",
-        visibility_function = function (parent)
-            if #mod._trash_list > 0 then
-                return true
+                return false
             end
-
-            return false
-        end
-    }
-
-    legend_inputs[#legend_inputs + 1] = {
-        input_action = "toggle_filter",
-        display_name = "auto_mark",
-        alignment = "right_alignment",
-        on_pressed_callback = "cb_on_auto_mark_pressed",
-        visibility_function = function (parent)
-            if mod:get("auto_mark_rarity") and
-               mod:get("auto_mark_criteria") and
-               mod:get("auto_mark_threshold") then
-                return true
-            end
-
-            return false
-        end
-    }
+        }
+    end
 
     func(self)
     add_pressed_callback(self)
@@ -265,7 +274,7 @@ end
 
 local discard_item = function(obj)
     local entry = mod._trash_list[1]
-    local index = _get_widget_index_from_gear_id(obj, entry.gear_id)
+    local index = entry and _get_widget_index_from_gear_id(obj, entry.gear_id)
 
     if index then
         obj:_mark_item_for_discard(index)

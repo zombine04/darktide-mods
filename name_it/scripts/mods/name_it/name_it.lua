@@ -1,8 +1,8 @@
 --[[
     title: name_it
     author: Zombine
-    date: 13/06/2023
-    version: 1.0.1
+    date: 29/10/2023
+    version: 1.1.0
 ]]
 local mod = get_mod("name_it")
 
@@ -266,13 +266,17 @@ local add_pressed_callback = function(obj)
 end
 
 local add_input_legend = function(legend_inputs, visibility_function)
-    legend_inputs[#legend_inputs + 1] = {
-        input_action = "hotkey_menu_special_2",
-        display_name = "loc_change_item_name",
-        alignment = "right_alignment",
-        on_pressed_callback = "cb_on_change_name_pressed",
-        visibility_function = visibility_function
-    }
+    local key_change_name = mod:get("keybind_change_name")
+
+    if key_change_name ~= "off" then
+        legend_inputs[#legend_inputs + 1] = {
+            input_action = key_change_name,
+            display_name = "loc_change_item_name",
+            alignment = "right_alignment",
+            on_pressed_callback = "cb_on_change_name_pressed",
+            visibility_function = visibility_function
+        }
+    end
 
     return legend_inputs
 end

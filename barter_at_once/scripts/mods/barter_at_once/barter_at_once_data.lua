@@ -15,6 +15,18 @@ local _get_rarity_list = function()
     return rarity_list
 end
 
+local _get_keybind_list = function()
+    local keydind_list = {
+        { text = "off", value = "off" }
+    }
+
+    for _, gamepad_action in ipairs(mod._available_aliases) do
+        keydind_list[#keydind_list + 1] = { text = gamepad_action, value = gamepad_action }
+    end
+
+    return keydind_list
+end
+
 return {
     name = mod:localize("mod_name"),
     description = mod:localize("mod_description"),
@@ -25,6 +37,30 @@ return {
                 setting_id = "enable_skip_popup",
                 type = "checkbox",
                 default_value = false,
+            },
+            {
+                setting_id = "keybind",
+                type = "group",
+                sub_widgets = {
+                    {
+                        setting_id = "keybind_mark_as_trash",
+                        type = "dropdown",
+                        default_value = "hotkey_menu_special_1",
+                        options = _get_keybind_list()
+                    },
+                    {
+                        setting_id = "keybind_auto_mark",
+                        type = "dropdown",
+                        default_value = "toggle_filter",
+                        options = _get_keybind_list()
+                    },
+                    {
+                        setting_id = "keybind_unmark_all",
+                        type = "dropdown",
+                        default_value = "toggle_private_match",
+                        options = _get_keybind_list()
+                    },
+                }
             },
             {
                 setting_id = "auto_mark",
