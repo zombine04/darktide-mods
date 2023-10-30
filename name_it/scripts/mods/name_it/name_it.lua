@@ -1,8 +1,8 @@
 --[[
     title: name_it
     author: Zombine
-    date: 29/10/2023
-    version: 1.1.0
+    date: 30/10/2023
+    version: 1.1.1
 ]]
 local mod = get_mod("name_it")
 
@@ -104,6 +104,7 @@ mod:hook_require("scripts/ui/constant_elements/elements/popup_handler/constant_e
     }
 
     wd.change_name_input = UIWidget.create_definition(input_template, "change_name_input")
+    wd.change_name_input.content.visible = false
 end)
 
 -- ##################################################
