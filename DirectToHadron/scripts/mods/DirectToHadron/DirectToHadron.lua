@@ -95,8 +95,9 @@ mod:hook_safe(CLASS.CraftingView, "on_enter", function(self)
 end)
 
 mod:hook_safe(CLASS.CraftingView, "update", function(self)
-    if self._active_view == nil and self._previously_active_view_name == "crafting_modify_view" then
+    if not self.dth_closed and self._active_view == nil and self._previously_active_view_name == "crafting_modify_view" then
         if mod:get("enable_skip_hadron") or mod.item then
+            self.dth_closed = true
             Managers.ui:close_view("crafting_view")
         end
     end
