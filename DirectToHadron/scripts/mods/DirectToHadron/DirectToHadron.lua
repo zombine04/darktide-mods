@@ -152,25 +152,3 @@ mod:hook_safe(CLASS.CraftingModifyView, "_preview_item", function(self, item)
     mod.index = self:selected_grid_index()
     mod.slot_name = self:_fetch_item_compare_slot_name(item)
 end)
-
-mod:hook_safe(CLASS.CraftingModifyView, "present_grid_layout", function(self)
-    if mod.item then
-        local index = 1
-        local grid_widgets = self:grid_widgets()
-
-        for i, widget in ipairs(grid_widgets) do
-            local item = widget.content.element.item
-
-            if mod.item.gear_id == item.gear_id then
-                index = i
-                break
-            end
-        end
-
-        self:focus_grid_index(index, 0 , true)
-        self:scroll_to_grid_index(index, true)
-        self._current_select_grid_index = index
-
-        _init()
-    end
-end)
