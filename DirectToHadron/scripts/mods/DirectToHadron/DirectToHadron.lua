@@ -1,18 +1,32 @@
 --[[
     name: DirectToHadron
     author: Zombine
-    date: 29/10/2023
-    version: 1.1.0
+    date: 31/10/2023
+    version: 1.2.0
 ]]
 
 local mod = get_mod("DirectToHadron")
 
 local _init = function()
     mod.item = nil
+    mod.index = nil
+    mod.slot_name = nil
+    mod.element = nil
 end
 
 -- ##############################
--- Setup for Inventory
+-- Inventory: Loadout
+-- ##############################
+
+mod:hook_safe(CLASS.InventoryView, "update", function(self)
+    if mod.element and not Managers.ui:view_active("inventory_weapons_view") then
+        self:cb_on_grid_entry_pressed(nil, mod.element)
+        mod.element = nil
+    end
+end)
+
+-- ##############################
+-- Inventory: Item List
 -- ##############################
 
 mod:hook(CLASS.InventoryWeaponsView, "_setup_input_legend", function(func, self)
@@ -38,8 +52,9 @@ mod:hook(CLASS.InventoryWeaponsView, "_setup_input_legend", function(func, self)
     end
 
     function self:cb_on_send_to_hadron()
-        local widget = self:selected_grid_widget()
+        _init()
 
+        local widget = self:selected_grid_widget()
         mod.item = widget.content.element.item
 
         if mod.item then
@@ -50,8 +65,20 @@ mod:hook(CLASS.InventoryWeaponsView, "_setup_input_legend", function(func, self)
     func(self)
 end)
 
-mod:hook_safe(CLASS.InventoryWeaponsView, "on_enter", _init)
-mod:hook_safe(CLASS.InventoryWeaponsView, "on_exit", _init)
+mod:hook_safe(CLASS.InventoryWeaponsView, "_cb_on_present", function(self)
+    if mod.index then
+        local grid_widgets = self:grid_widgets()
+        local num_widget = #grid_widgets
+
+        if mod.index > num_widget then
+            mod.index = 1
+        end
+
+        self:focus_grid_index(mod.index, 0 , true)
+        self:scroll_to_grid_index(mod.index, true)
+        _init()
+    end
+end)
 
 -- ##############################
 -- Crafting: Intro
@@ -72,6 +99,76 @@ mod:hook_safe(CLASS.CraftingView, "update", function(self)
         if mod:get("enable_skip_hadron") or mod.item then
             Managers.ui:close_view("crafting_view")
         end
+    end
+end)
+
+mod:hook_safe(CLASS.CraftingView, "on_exit", function(self)
+    local um = Managers.ui
+    local weapons_view = "inventory_weapons_view"
+    local inventory_view = "inventory_view"
+
+    if um:view_active(weapons_view) then
+        local view = um:view_instance(weapons_view)
+        local selected_slot = view._selected_slot
+        local curio_slot = "slot_attachment_"
+
+        if not selected_slot then
+            return
+        end
+
+        -- ignore curio slot number
+        if string.match(selected_slot.name, curio_slot) and string.match(mod.slot_name, curio_slot) then
+            mod.slot_name = selected_slot.name
+        end
+
+        if selected_slot.name == mod.slot_name then
+            view:_fetch_inventory_items(selected_slot)
+        else
+            um:close_view(weapons_view)
+            view = um:view_instance(inventory_view)
+
+            local widgets = view._loadout_widgets
+
+            if widgets then
+                for i, widget in ipairs(widgets) do
+                    local element = widget.content.element
+
+                    if element.slot and element.slot.name == mod.slot_name then
+                        mod.element = element
+                        break
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- ##############################
+-- Crafting: Item List
+-- ##############################
+
+mod:hook_safe(CLASS.CraftingModifyView, "_preview_item", function(self, item)
+    mod.index = self:selected_grid_index()
+    mod.slot_name = self:_fetch_item_compare_slot_name(item)
+end)
+
+mod:hook_safe(CLASS.CraftingModifyView, "present_grid_layout", function(self)
+    if mod.item then
+        local index = 1
+        local grid_widgets = self:grid_widgets()
+
+        for i, widget in ipairs(grid_widgets) do
+            local item = widget.content.element.item
+
+            if mod.item.gear_id == item.gear_id then
+                index = i
+                break
+            end
+        end
+
+        self:focus_grid_index(index, 0 , true)
+        self:scroll_to_grid_index(index, true)
+        self._current_select_grid_index = index
 
         _init()
     end
