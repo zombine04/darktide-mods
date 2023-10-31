@@ -62,6 +62,7 @@ local loc = {
         en = "Platform Icon",
         ja = "プラットフォームアイコン",
         ["zh-cn"] = "平台图标",
+        ru = "Иконка платформы",
     },
     off = {
         en = Localize("loc_setting_checkbox_off"),
@@ -118,6 +119,7 @@ local loc = {
         en = "Combat Feed",
         ja = "戦闘フィード",
         ["zh-cn"] = "击杀通知栏",
+        ru = "Лента убийств",
     },
     enable_lobby = {
         en = "Lobby",
