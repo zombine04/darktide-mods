@@ -1,8 +1,8 @@
 --[[
     title: who_are_you
     author: Zombine
-    date: 29/10/2023
-    version: 3.2.1
+    date: 01/11/2023
+    version: 3.2.2
 ]]
 local mod = get_mod("who_are_you")
 local TextUtilities = require("scripts/utilities/ui/text")
@@ -331,12 +331,12 @@ mod:hook("HudElementCombatFeed", "_get_unit_presentation_name", function(func, s
 
         if player then
             local account_id = player:account_id()
+            local account_name = account_id and mod.account_name(account_id)
 
-            if account_id then
+            if account_name then
                 local player_slot = player:slot()
                 local player_slot_color = UISettings.player_slot_colors[player_slot] or Color.ui_hud_green_light(255, true)
                 local character_name = player:name()
-                local account_name = account_id and mod.account_name(account_id)
                 local ref = "combat_feed"
                 local modified_name = modify_character_name(character_name, account_name, account_id, ref)
 
