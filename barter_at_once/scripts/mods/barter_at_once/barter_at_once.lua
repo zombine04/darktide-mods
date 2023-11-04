@@ -1,8 +1,8 @@
 --[[
     title: barter_at_once
     author: Zombine
-    date: 29/10/2023
-    version: 1.4.1
+    date: 04/11/2023
+    version: 1.4.2
 ]]
 local mod = get_mod("barter_at_once")
 local NotifSettings = require("scripts/ui/constant_elements/elements/notification_feed/constant_element_notification_feed_settings")
@@ -72,7 +72,7 @@ local _update_trash_list = function(is_trash, item, no_notif)
             _add_notification(mod:localize("marked_as_trash"), SoundEvents.mark)
         end
     elseif not is_trash and list_index then
-        list[list_index] = nil
+        table.remove(list, list_index)
         Managers.ui:play_2d_sound(SoundEvents.unmark)
     end
 end
@@ -381,6 +381,9 @@ mod:hook("LocalizationManager", "localize", function(func, self, key, ...)
 
         if key == "popup_description_discard_marked_items" then
             loc = loc .. "\n"
+            local is_huge = #mod._trash_list > 25
+            local separator = is_huge and ", " or "\n"
+            local marked_items = ""
             local list = table.clone(mod._trash_list)
 
             table.sort(list, function(a, b)
@@ -392,11 +395,15 @@ mod:hook("LocalizationManager", "localize", function(func, self, key, ...)
             end)
 
             for i, entry in ipairs(list) do
-                local display_name = InputUtils.apply_color_to_input_text(entry.name, entry.rarity_color)
-                local item_level = InputUtils.apply_color_to_input_text(entry.item_level, entry.rarity_color)
+                local prefix = marked_items == "" and "" or separator
+                local item_info = string.format("%s (%s)", entry.name, entry.item_level)
+                local colored_text = prefix .. InputUtils.apply_color_to_input_text(item_info, entry.rarity_color)
 
-                loc = loc .. "\n" .. string.format("%s (%s)", display_name, item_level)
+                colored_text = is_huge and "{#size(14)}" .. colored_text .. "{#reset()}" or colored_text
+                marked_items = marked_items .. colored_text
             end
+
+            loc = loc .. marked_items
         end
 
         return loc
