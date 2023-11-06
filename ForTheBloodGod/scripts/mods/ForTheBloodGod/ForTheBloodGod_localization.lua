@@ -108,7 +108,10 @@ local loc = {
         en = Localize("loc_setting_checkbox_off")
     },
     grenade_ability = {
-        en = Localize("loc_pickup_consumable_small_grenade_01")
+        en = Localize("loc_talents_category_tactical")
+    },
+    combat_ability = {
+        en = Localize("loc_talents_category_combat")
     },
     -- ##### Fixes for Weapon Category Names ##### --
     loc_weapon_pattern_name_combataxe_p3 = {
