@@ -1,8 +1,8 @@
 --[[
     title: ForTheBloodGod
     author: Zombine
-    date: 06/11/2023
-    version: 1.2.0
+    date: 07/11/2023
+    version: 1.2.1
 ]]
 local mod = get_mod("ForTheBloodGod")
 local BreedActions = require("scripts/settings/breed/breed_actions")
@@ -179,6 +179,24 @@ local play_extra_vfx_and_sfx = function(id_suffix, unit, is_special)
     end
 end
 
+mod:hook_require("scripts/ui/hud/hud_elements_spectator", function(elements)
+    if not table.find_by_key(elements, "class_name", "HudElementTeamPanelHandler") then
+        elements[#elements + 1] = {
+            package = "packages/ui/hud/team_player_panel/team_player_panel",
+            use_retained_mode = true,
+            use_hud_scale = true,
+            class_name = "HudElementTeamPanelHandler",
+            filename = "scripts/ui/hud/elements/team_panel_handler/hud_element_team_panel_handler",
+            visibility_groups = {
+                "dead",
+                "alive",
+                "communication_wheel",
+                "tactical_overlay"
+            }
+        }
+    end
+end)
+
 mod:hook_safe("HudElementTeamPlayerPanel", "_set_status_icon", function(self, status_icon)
     local player = self._data and self._data.player
 
@@ -259,7 +277,7 @@ mod:hook_safe("AttackReportManager", "add_attack_result", function(self, damage_
             local hit_zone_name_or_nil = _get_hit_zone(attacked_unit)
             local id_suffix = nil
 
-            if visual_loadout_extension and hit_zone_name_or_nil ~= nil and visual_loadout_extension:can_gib(hit_zone_name_or_nil) then
+            if visual_loadout_extension and visual_loadout_extension:can_gib(hit_zone_name_or_nil) then
                 damage_profile, _, hit_zone_name_or_nil, id_suffix = _get_modified_profile(attacked_unit, attacking_unit, damage_profile, hit_zone_name_or_nil)
 
                 if visual_loadout_extension:can_gib(hit_zone_name_or_nil) then

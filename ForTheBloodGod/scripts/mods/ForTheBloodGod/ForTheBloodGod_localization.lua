@@ -197,6 +197,13 @@ _add_weapon_and_localization(UISettings.weapon_template_display_settings)
 _add_weapon_and_localization(PlayerAbilities)
 
 local _add_extra_vfx_and_sfx = function(source)
+    local exception = {
+        "corruptor_core_erupt",
+        "power_maul_push_shockwave",
+        "stumm_grenade",
+        "smoke_grenade_initial_blast",
+    }
+
     for template, data in pairs(source) do
         local vfx = data.vfx and data.vfx[1]
         local sfx = data.sfx and data.sfx[1]
@@ -204,9 +211,7 @@ local _add_extra_vfx_and_sfx = function(source)
         if vfx then
             local text = string.match(vfx, "[%w_/]+/([%w_]+)")
 
-            if text == "corruptor_core_erupt" or
-               text == "power_maul_push_shockwave" or
-               text == "stumm_grenade" then
+            if table.find(exception, text) then
                 goto continue
             end
 
