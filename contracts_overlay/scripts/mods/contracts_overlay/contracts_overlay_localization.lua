@@ -25,6 +25,7 @@ return {
     enable_complete_notif = {
         en = "Notify when complete a task",
         ja = "タスクを完了した際に通知する",
+        ["zh-cn"] = "完成任务时通知",
     },
     enable_debug_mode = {
         en = "Enable Debug Mode",
