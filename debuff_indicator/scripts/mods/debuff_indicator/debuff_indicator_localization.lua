@@ -5,6 +5,7 @@ mod.buff_names = {
     "bleed",
     "flamer_assault",
     "rending_debuff",
+    "rending_debuff_medium",
     "warp_fire",
     "increase_impact_received_while_staggered",
     "increase_damage_received_while_staggered",

@@ -1,5 +1,6 @@
 local mod = get_mod("debuff_indicator")
 
+local BuffSettings = require("scripts/settings/buff/buff_settings")
 local BuffTemplates = require("scripts/settings/buff/buff_templates")
 local UIFontSettings = require("scripts/managers/ui/ui_font_settings")
 local UIWidget = require("scripts/managers/ui/ui_widget")
@@ -92,7 +93,7 @@ local _update_settings = function(style, template)
     }
 end
 
-local apply_display_style_and_color = function(buff_name, label, count)
+local _apply_display_style_and_color = function(buff_name, label, count)
     local buff_display_text = ""
 
     if display_style == "label" then
@@ -123,7 +124,7 @@ local _add_stagger_and_suppression = function(blackboard, content)
         local stagger_count = stagger_component.num_triggered_staggers
 
         if stagger_count > 0 then
-            content.body_text = apply_display_style_and_color("stagger", mod:localize("stagger"), stagger_count)
+            content.body_text = _apply_display_style_and_color("stagger", mod:localize("stagger"), stagger_count)
         end
     end
 
@@ -137,22 +138,12 @@ local _add_stagger_and_suppression = function(blackboard, content)
                 content.body_text = content.body_text .. "\n"
             end
 
-            content.body_text = content.body_text .. apply_display_style_and_color("suppression", mod:localize("suppression"), suppression_value)
+            content.body_text = content.body_text .. _apply_display_style_and_color("suppression", mod:localize("suppression"), suppression_value)
         end
     end
 end
 
-local is_in_table = function(buff_name, table_name)
-    for _, v in ipairs(mod[table_name]) do
-        if buff_name == v then
-            return true
-        end
-    end
-
-    return false
-end
-
-local get_stacks = function(buff_ext, buff_name)
+local _get_stacks = function(buff_ext, buff_name)
     local buff_template = BuffTemplates[buff_name]
     local max_stacks = buff_template and buff_template.max_stacks
     local stacks = buff_ext:current_stacks(buff_name)
@@ -164,28 +155,70 @@ local get_stacks = function(buff_ext, buff_name)
     return stacks
 end
 
+local _calculate_rending_percentage = function(buff_texts)
+    local buff_stat_buffs = BuffSettings.stat_buffs
+    local name_sm = "rending_debuff"
+    local name_md = "rending_debuff_medium"
+    local function _calculate(name)
+        local stacks = buff_texts[name] and buff_texts[name].stacks or 0
+        local stat_buffs = BuffTemplates[name] and BuffTemplates[name].stat_buffs or {}
+        local value = stat_buffs and stat_buffs[buff_stat_buffs.rending_multiplier] or 0
+
+        return value * stacks
+    end
+
+    if buff_texts[name_sm] or buff_texts[name_md] then
+        local total_sm = _calculate(name_sm)
+        local total_md = _calculate(name_md)
+
+        if not buff_texts[name_sm] and buff_texts[name_md] then
+            buff_texts[name_sm] = {
+                display_name = mod:localize(name_sm),
+                stacks = 0
+            }
+        end
+
+        buff_texts[name_sm].stacks = (total_sm + total_md) * 100 .. "%"
+        buff_texts[name_md] = nil
+    end
+
+    return buff_texts
+end
+
 local _add_buff_and_debuff = function(buff_ext, buffs, content)
+    local buff_texts = {}
+
     for _, buff in ipairs(buffs) do
         local buff_name = buff:template_name()
 
-        if (mod:get("enable_filter") and not is_in_table(buff_name, "buff_names")) or
-           (not mod:get("enable_dot") and is_in_table(buff_name, "dot_names")) or
-           (not mod:get("enable_debuff") and not is_in_table(buff_name, "dot_names"))
+        if (mod:get("enable_filter") and not table.find(mod.buff_names, buff_name)) or
+           (not mod:get("enable_dot") and table.find(mod.dot_names, buff_name)) or
+           (not mod:get("enable_debuff") and not table.find(mod.dot_names, buff_name))
         then
             goto continue
         end
 
-        local buff_display_name = mod:localize(buff_name) or buff_name
-        local stacks = get_stacks(buff_ext, buff_name)
-        local buff_display_text = apply_display_style_and_color(buff_name, buff_display_name, stacks)
+        local display_name = table.find(mod.buff_names, buff_name) and mod:localize(buff_name) or buff_name
+        local stacks = _get_stacks(buff_ext, buff_name)
+
+        buff_texts[buff_name] = {
+            display_name = display_name,
+            stacks = stacks
+        }
+
+        ::continue::
+    end
+
+    buff_texts = _calculate_rending_percentage(buff_texts)
+
+    for name, data in pairs(buff_texts) do
+        local buff_display_text = _apply_display_style_and_color(name, data.display_name, data.stacks)
 
         if content.body_text ~= "" then
             content.body_text = content.body_text .. "\n"
         end
 
         content.body_text = content.body_text .. buff_display_text
-
-        ::continue::
     end
 end
 
@@ -203,7 +236,7 @@ function template.create_widget_defintion(template, scenegraph_id)
             style = {
                 vertical_alignment = "center",
                 horizontal_alignment = "center",
-                text_vertical_alignment = "center",
+                text_vertical_alignment = "top",
                 text_horizontal_alignment = "left",
                 offset = {
                     size[1] * 0.5,

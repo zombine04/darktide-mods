@@ -125,12 +125,14 @@ table.sort(color_option, function(a, b)
 end)
 
 for _, buff_name in ipairs(mod.buff_names) do
-    widgets_debuff[#widgets_debuff + 1] = {
-        setting_id = "color_" .. buff_name,
-        type = "dropdown",
-        default_value = "white_smoke",
-        options = table.clone(color_option)
-    }
+    if not string.match(buff_name, "rending_debuff_") then
+        widgets_debuff[#widgets_debuff + 1] = {
+            setting_id = "color_" .. buff_name,
+            type = "dropdown",
+            default_value = "white_smoke",
+            options = table.clone(color_option)
+        }
+    end
 end
 
 widgets[#widgets + 1] = {
