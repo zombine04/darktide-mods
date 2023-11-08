@@ -1,17 +1,19 @@
 --[[
     title: contracts_overlay
     author: Zombine
-    date: 13/08/2023
-    version: 1.2.2
+    date: 08/11/2023
+    version: 1.3.0
 ]]
 local mod = get_mod("contracts_overlay")
 
 local MissionTemplates = require("scripts/settings/mission/mission_templates")
+local PlayerUnitStatus = require("scripts/utilities/attack/player_unit_status")
 local UIWidget = require("scripts/managers/ui/ui_widget")
 local ViewSettings = require("scripts/ui/views/contracts_view/contracts_view_settings")
 local WalletSettings = require("scripts/settings/wallet_settings")
 local debug_mode = mod:get("enable_debug_mode")
 local live_update = mod:get("enable_live_update")
+local notify_completion = mod:get("enable_complete_notif")
 
 local margin = 20
 local font_size = 20
@@ -22,7 +24,23 @@ local contract_total_size = contract_base_size
 -- functions
 -- ##############################
 
-local get_new_definitions = function()
+local _get_materials_amount = function ()
+    mod._materials_amount = mod:persistent_table("materials_amount")
+
+    if table.is_empty(mod._materials_amount) then
+        Managers.backend.interfaces.crafting:get_collected_materials_amount():next(function (materials_amount)
+            mod._materials_amount.large = materials_amount.large
+            mod._materials_amount.small = materials_amount.small
+
+            if debug_mode then
+                mod:echo("materials amount fetched")
+                mod:dump(mod._materials_amount, "materials_amount", 2)
+            end
+        end)
+    end
+end
+
+local _get_new_definitions = function()
     local Definitions = require("scripts/ui/hud/elements/tactical_overlay/hud_element_tactical_overlay_definitions")
     local scenegraph = Definitions.scenegraph_definition
 
@@ -140,16 +158,92 @@ local get_new_definitions = function()
     return Definitions
 end
 
+local _create_notification = function(task, task_type, i)
+    mod._task_index = i
+    Managers.contracts:notify_contract_task_complete(task.id)
+
+    if debug_mode then
+        mod:echo("{#color(60,230, 60)}task completed: {#reset()}" .. task_type)
+        mod:dump(task, "completed", 3)
+    end
+end
+
+local _check_task_progress = function(task_types, disable_notification)
+    local tasks = mod._contract_data.tasks
+
+    for _, task_type in ipairs(task_types) do
+        for i, task in ipairs(tasks) do
+            local counter = mod._live_counter
+            local criteria = task.criteria
+            local add_val = nil
+
+            if not task.co_notified and criteria.taskType == task_type then
+                if task_type == "KillBosses" then
+                    add_val = counter.kill.boss
+                elseif task_type == "KillMinions" then
+                    local key = criteria.enemyType .. "_" .. criteria.weaponType
+                    add_val = counter.kill[key]
+                elseif task_type == "CollectResource" then
+                    local key = criteria.resourceType or criteria.resourceTypes[1]
+                    add_val = counter.resource[key]
+                elseif task_type == "CollectPickup" then
+                    add_val = counter.pickup
+                elseif string.match(task_type, "CompleteMissions") then
+                    add_val = 1
+                end
+
+                if add_val and criteria.value + add_val >= criteria.count then
+                    if not disable_notification then
+                        _create_notification(task, task_type, i)
+                    end
+
+                    tasks[i].co_notified = true
+                end
+            end
+        end
+    end
+end
+
+local _check_no_death_progress = function(new_data)
+    local current_tasks = mod._contract_data.tasks
+
+    for i, task in ipairs(current_tasks) do
+        local criteria = task.criteria
+        local task_type = criteria.taskType
+
+        if task_type == "CompleteMissionsNoDeath" then
+            local new_tasks = new_data.tasks
+            local should_notify = new_tasks[i].fulfilled and not task.co_notified
+
+            if live_update and notify_completion and should_notify then
+                _create_notification(task, task_type, i)
+
+                if debug_mode then
+                    mod:echo("{#color(230,230,60)}no death count compensation{#reset()}")
+                end
+            end
+
+            break
+        end
+    end
+end
+
 local _init_counter = function(tasks)
     mod._live_counter = mod:persistent_table("live_counter")
 
     if not table.is_empty(mod._live_counter) then
+        for i, task in ipairs(tasks) do
+            local task_types = { task.criteria.taskType }
+
+            _check_task_progress(task_types, true)
+        end
+
         return
     end
 
     local live_counter = mod._live_counter
 
-    for _, task in pairs(tasks) do
+    for _, task in ipairs(tasks) do
         if not task.rewarded then
             local criteria = task.criteria
             local task_type = criteria.taskType
@@ -162,6 +256,12 @@ local _init_counter = function(tasks)
                 end
 
                 live_counter.resource[resource_type] = 0
+            elseif task_type == "CollectPickup" then
+                live_counter.pickup = 0
+            elseif task_type == "CompleteMissions" then
+                live_counter.win = 0
+            elseif task_type == "CompleteMissionsNoDeath" then
+                live_counter.death = 1 -- set 0 when opening cinematic played
             elseif task_type == "KillBosses" or task_type == "KillMinions" then
                 if not live_counter.kill then
                     live_counter.kill = {}
@@ -185,7 +285,7 @@ local _init_counter = function(tasks)
     end
 end
 
-local fetch_task_list = function()
+local _fetch_task_list = function()
     local profile = Managers.player:local_player_backend_profile()
     local character_id = profile and profile.character_id
 
@@ -202,6 +302,8 @@ local fetch_task_list = function()
         return
     end
 
+    mod._contract_data = mod:persistent_table("contract_data")
+
     if not mod._contract_promise then
         mod._contract_promise = Managers.backend.interfaces.contracts:get_current_contract(character_id)
 
@@ -211,19 +313,33 @@ local fetch_task_list = function()
 
         mod._contract_promise:next(function(data)
             mod._contract_promise = nil
-            mod._contract_data = data
+
+            if not table.is_empty(mod._contract_data) then
+                _check_no_death_progress(data)
+            end
+
+            mod._contract_data.tasks = data.tasks
             mod._update_tasks_list = true
 
-            if live_update and not mod._live_counter then
+            for i, task in ipairs(mod._contract_data.tasks) do
+                if task.fulfilled then
+                    mod._contract_data.tasks[i].co_notified = true
+                end
+            end
+
+            if live_update then
                 _init_counter(data.tasks)
             end
 
             if debug_mode then
                 mod:echo("contract fetched")
                 mod:dump(mod._contract_data, "contract", 4)
+                --mod:echo("{#color(120,180,230)}Notification Test...{#reset()}")
+                --mod._task_index = math.random(5)
+                --Managers.contracts:notify_contract_task_complete(mod._contract_data.tasks[mod._task_index].id)
             end
         end):catch(function(e)
-            mod:dump(e, "error_fetch_task_list", 3)
+            mod:dump(e, "error__fetch_task_list", 3)
         end)
     end
 end
@@ -241,7 +357,7 @@ local _get_task_description_and_target = function(task_criteria)
         title_loc = ViewSettings.task_label_kill_bosses
         desc_loc = ViewSettings.task_description_kill_bosses
     elseif task_type == "CollectPickup" then
-        local param_loc = task_parameter_strings[task_criteria.pickupType]
+        local param_loc = task_parameter_strings[task_criteria.pickupTypes]
 
         if not param_loc then
             local task_criteria_types = task_criteria.pickupTypes
@@ -327,7 +443,7 @@ local _update_count = function(criteria)
     return value
 end
 
-local update_contract_list = function(self)
+local _update_contract_list = function(self)
     local widgets = self._widgets_by_name
 
     if not (mod._contract_data and mod._update_tasks_list) or not widgets.contract_info then
@@ -385,7 +501,7 @@ local update_contract_list = function(self)
     end
 end
 
-local counter_update_notification = function(type, count)
+local _counter_update_notification = function(type, count)
     mod:echo("counter updated: " .. type .. " (" .. count .. ")")
 end
 
@@ -396,8 +512,8 @@ end
 -- update tactical overlay
 
 mod:hook("HudElementTacticalOverlay", "init", function(func, ...)
-    fetch_task_list()
-    Definitions = get_new_definitions()
+    _fetch_task_list()
+    Definitions = _get_new_definitions()
 
     func(...)
 end)
@@ -421,7 +537,7 @@ end)
 
 mod:hook_safe("HudElementTacticalOverlay", "update", function(self, ...)
     if not mod._completed then
-        update_contract_list(self)
+        _update_contract_list(self)
     end
 end)
 
@@ -431,33 +547,156 @@ mod:hook_safe("HudElementTacticalOverlay", "_start_animation", function(self, an
             mod._update_tasks_list = true
             mod._ready_to_update_tasks_list = false
         else
-            fetch_task_list()
+            _fetch_task_list()
         end
     end
 end)
 
--- update live counters
+-- update live counters and check progression
 
-mod:hook_safe("HudElementTacticalOverlay", "_update_materials_collected", function(self)
+-- # Crafting Materials
+
+mod:hook_safe("PickupSystem", "rpc_player_collected_materials", function(self, _, _, type_lookup, size_lookup)
+    local type = NetworkLookup.material_type_lookup[type_lookup]
+    local size = NetworkLookup.material_size_lookup[size_lookup]
+    local amount = mod._materials_amount
     local resource_counter = mod._live_counter and mod._live_counter.resource
+    local task_types = {}
 
-    if live_update and resource_counter then
-        for resource_type, count in pairs(resource_counter) do
-            if resource_type == "plasteel" or resource_type == "diamantine" then
-                local collected_amount = self._widgets_by_name[resource_type .. "_info"].content[resource_type .. "_amount_id"]
+    if table.is_empty(amount) then
+        amount.large = 25
+        amount.small = 10
+    end
 
-                if resource_counter[resource_type] ~= collected_amount then
-                    resource_counter[resource_type] = collected_amount
-                    mod._update_tasks_list = true
+    if live_update and resource_counter and resource_counter[type] then
+        resource_counter[type] = resource_counter[type] + amount[size]
+        mod._update_tasks_list = true
+        task_types[#task_types + 1] = "CollectResource"
 
-                    if debug_mode then
-                        counter_update_notification(resource_type, collected_amount)
-                    end
-                end
+        if notify_completion and not table.is_empty(task_types) then
+            _check_task_progress(task_types)
+        end
+
+        if debug_mode then
+            _counter_update_notification(type, resource_counter[type])
+        end
+    end
+end)
+
+-- # Side Objectives
+
+mod:hook_safe("HudElementMissionObjectiveFeed", "_synchronize_widget_with_hud_objective", function(self, objective_name)
+    if string.match(objective_name, "side_mission_") then
+        local hud_objective = self._hud_objectives[objective_name]
+        local current_amount = hud_objective:current_counter_amount()
+        local pickup_counter = mod._live_counter and mod._live_counter.pickup
+
+        if live_update and pickup_counter and current_amount then
+            mod._live_counter.pickup = current_amount
+
+            if debug_mode then
+                _counter_update_notification("pickup", current_amount)
             end
         end
     end
 end)
+
+-- # Complete Missions (includes side objectives)
+
+mod:hook_safe("UIManager", "close_view", function(self, view)
+    if view == "cutscene_view" and mod._play_intro then
+        local live_counter = mod._live_counter
+
+        if live_update and live_counter and live_counter.death then
+            live_counter.death = 0 -- fail no death challenge when late joined
+
+            if debug_mode then
+                mod:echo("reset death counter")
+            end
+        end
+    end
+end)
+
+--[[
+mod:hook_safe("ConstantElementChat", "cb_chat_manager_participant_removed", function(self)
+    local game_mode_name = Managers.state.game_mode and Managers.state.game_mode:game_mode_name()
+    local live_counter = mod._live_counter
+
+    if game_mode_name == "coop_complete_objective" and live_update and live_counter and live_counter.death then
+        live_counter.death = live_counter.death + 1 -- fail no death challenge when player left and bot spawned
+
+        if debug_mode then
+            _counter_update_notification("player_death",  live_counter.death)
+        end
+    end
+end)
+]]
+
+local track_player_death = function(func, self, ...)
+    local component = self._character_state_component or self._character_state_read_component
+
+    if component then
+        local is_dead = PlayerUnitStatus.is_dead(component)
+
+        if not self.co_player_died and is_dead then
+            local live_counter = mod._live_counter
+
+            if live_update and live_counter and live_counter.death then
+                live_counter.death = live_counter.death + 1
+
+                if debug_mode then
+                    _counter_update_notification("player_death",  live_counter.death)
+                end
+            end
+        end
+
+        self.co_player_died = is_dead
+    end
+
+    func(self, ...)
+end
+
+mod:hook("PlayerUnitHealthExtension", "fixed_update", track_player_death)
+mod:hook("PlayerHuskHealthExtension", "fixed_update", track_player_death)
+
+mod:hook_safe("CinematicSceneExtension", "setup_from_component", function(self)
+    local name = self._cinematic_name
+    local live_counter = mod._live_counter
+    local task_types = {}
+
+    if name == "intro_abc" then
+        mod._play_intro = true
+    end
+
+    if live_update and live_counter then
+        if name == "outro_win" and notify_completion then
+            if debug_mode then
+                mod:echo("check tasks on mission end")
+            end
+
+            if live_counter.pickup then
+                task_types[#task_types + 1] = "CollectPickup"
+            end
+
+            if live_counter.win then
+                live_counter.win = 1
+                _counter_update_notification("complete_mission",  1)
+                task_types[#task_types + 1] = "CompleteMissions"
+            end
+
+            if live_counter.death and live_counter.death == 0 then
+                _counter_update_notification("no_death",  1)
+                task_types[#task_types + 1] = "CompleteMissionsNoDeath"
+            end
+
+            if not table.is_empty(task_types) then
+                _check_task_progress(task_types)
+            end
+        end
+    end
+end)
+
+-- # Kills
 
 mod:hook_safe("AttackReportManager", "add_attack_result", function(self, _, unit, _, _, _, _, _, attack_result, attack_type)
     if attack_result ~= "died" then
@@ -470,6 +709,7 @@ mod:hook_safe("AttackReportManager", "add_attack_result", function(self, _, unit
         local unit_data_extension = ScriptUnit.extension(unit, "unit_data_system")
         local breed = unit_data_extension and unit_data_extension:breed()
         local sub_faction = breed and breed.sub_faction_name
+        local task_types = {}
 
         if not sub_faction then
             return
@@ -479,24 +719,64 @@ mod:hook_safe("AttackReportManager", "add_attack_result", function(self, _, unit
             if task_type == "boss" then
                 if breed.tags.monster or breed.tags.captain then
                     kill_counter.boss = count + 1
+                    task_types[#task_types + 1] = "KillBosses"
                     mod._ready_to_update_tasks_list = true
 
                     if debug_mode then
-                        counter_update_notification(task_type,  kill_counter[task_type])
+                        _counter_update_notification(task_type,  kill_counter[task_type])
                     end
                 end
-            elseif sub_faction ~= "chaos" and attack_type then
+            end
+
+            if sub_faction ~= "chaos" and attack_type then
                 if task_type == sub_faction .. "_" .. attack_type then
                     kill_counter[task_type] = count + 1
+                    task_types[#task_types + 1] = "KillMinions"
                     mod._ready_to_update_tasks_list = true
 
                     if debug_mode then
-                        counter_update_notification(task_type, kill_counter[task_type])
+                        _counter_update_notification(task_type, kill_counter[task_type])
                     end
                 end
             end
         end
+
+        if notify_completion and not table.is_empty(task_types) then
+            _check_task_progress(task_types)
+        end
     end
+end)
+
+-- Modify Notification
+
+mod:hook("ConstantElementNotificationFeed", "_add_notification_message", function(func, self, type, data, cb, sound_event, ...)
+    if type == "contract" then
+        sound_event = "wwise/events/ui/play_hud_notifications_item_tier_1"
+    end
+
+    func(self, type, data, cb, sound_event, ...)
+end)
+
+mod:hook("ConstantElementNotificationFeed", "_create_notification_entry", function(func, self, data)
+    local material_values = data.icon_material_values
+
+    if material_values and material_values.contract_type then
+        local tasks = mod._contract_data.tasks
+        local index = mod._task_index
+
+        if index then
+            local criteria = tasks[index] and tasks[index].criteria
+            local title = criteria and _get_task_description_and_target(criteria)
+
+            if title then
+                data.texts[1].display_name = title
+            end
+
+            mod._task_index = nil
+        end
+    end
+
+    return func(self, data)
 end)
 
 -- Overlay in Hub
@@ -551,12 +831,15 @@ local function recreate_hud()
 end
 
 mod.on_all_mods_loaded = function()
+    _get_materials_amount()
     recreate_hud()
 end
 
 mod.on_setting_changed = function()
     debug_mode = mod:get("enable_debug_mode")
     live_update = mod:get("enable_live_update")
+    notify_completion = mod:get("enable_complete_notif")
+    _get_materials_amount()
     recreate_hud()
 end
 
@@ -570,6 +853,10 @@ mod.on_game_state_changed = function(status, state_name)
 
         mod._live_counter = nil
         mod._contract_data = nil
+        mod._play_intro = nil
+        mod._task_index = nil
+
+        _get_materials_amount()
 
         if debug_mode then
             mod:echo("counter destroyed")

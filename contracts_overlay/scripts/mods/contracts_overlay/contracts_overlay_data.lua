@@ -11,6 +11,13 @@ return {
                 type = "checkbox",
                 default_value = true,
                 tooltip = "live_update_desc",
+                sub_widgets = {
+                    {
+                        setting_id = "enable_complete_notif",
+                        type = "checkbox",
+                        default_value = true,
+                    }
+                }
             },
             {
                 setting_id = "enable_debug_mode",

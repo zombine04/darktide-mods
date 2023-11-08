@@ -22,6 +22,10 @@ return {
         ["zh-cn"] = "在任务进行时动态更新收集的材料数和击杀数。",
         ru = "Обновление счётчиков для сбора материалов и убийств во время миссии.",
     },
+    enable_complete_notif = {
+        en = "Notify when complete a task",
+        ja = "タスクを完了した際に通知する",
+    },
     enable_debug_mode = {
         en = "Enable Debug Mode",
         ja = "デバッグモードを有効にする",
