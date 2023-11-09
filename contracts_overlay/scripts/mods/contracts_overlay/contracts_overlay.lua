@@ -1,8 +1,8 @@
 --[[
     title: contracts_overlay
     author: Zombine
-    date: 08/11/2023
-    version: 1.3.0
+    date: 09/11/2023
+    version: 1.3.1
 ]]
 local mod = get_mod("contracts_overlay")
 
@@ -680,13 +680,19 @@ mod:hook_safe("CinematicSceneExtension", "setup_from_component", function(self)
 
             if live_counter.win then
                 live_counter.win = 1
-                _counter_update_notification("complete_mission",  1)
                 task_types[#task_types + 1] = "CompleteMissions"
+
+                if debug_mode then
+                    _counter_update_notification("complete_mission",  1)
+                end
             end
 
             if live_counter.death and live_counter.death == 0 then
-                _counter_update_notification("no_death",  1)
                 task_types[#task_types + 1] = "CompleteMissionsNoDeath"
+
+                if debug_mode then
+                    _counter_update_notification("no_death",  1)
+                end
             end
 
             if not table.is_empty(task_types) then
