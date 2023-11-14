@@ -1,8 +1,8 @@
 --[[
     title: contracts_overlay
     author: Zombine
-    date: 09/11/2023
-    version: 1.3.1
+    date: 14/11/2023
+    version: 1.3.2
 ]]
 local mod = get_mod("contracts_overlay")
 
@@ -26,17 +26,37 @@ local contract_total_size = contract_base_size
 
 local _get_materials_amount = function ()
     mod._materials_amount = mod:persistent_table("materials_amount")
+    local types = { "plasteel", "diamantine" }
+    local sizes = { "small", "large" }
+    local is_zero = false
 
-    if table.is_empty(mod._materials_amount) then
-        Managers.backend.interfaces.crafting:get_collected_materials_amount():next(function (materials_amount)
-            mod._materials_amount.large = materials_amount.large
-            mod._materials_amount.small = materials_amount.small
-
-            if debug_mode then
-                mod:echo("materials amount fetched")
-                mod:dump(mod._materials_amount, "materials_amount", 2)
+    if not table.is_empty(mod._materials_amount) then
+        for _, type in ipairs(types) do
+            if not table.is_empty(mod._materials_amount[type]) then
+                for _, size in ipairs(sizes) do
+                    if mod._materials_amount[type][size] == 0 then
+                        is_zero = true
+                        break
+                    end
+                end
             end
-        end)
+        end
+    end
+
+    if table.is_empty(mod._materials_amount) or is_zero then
+
+        for _, type in ipairs(types) do
+            mod._materials_amount[type] = {}
+
+            for _, size in ipairs(sizes) do
+                mod._materials_amount[type][size] = Managers.backend:session_setting("craftingMaterials", type, size, "value")
+            end
+        end
+
+        if debug_mode then
+            mod:echo("materials amount fetched")
+            mod:dump(mod._materials_amount, "materials_amount", 2)
+        end
     end
 end
 
@@ -160,7 +180,7 @@ end
 
 local _create_notification = function(task, task_type, i)
     mod._task_index = i
-    Managers.contracts:notify_contract_task_complete(task.id)
+    Managers.event:trigger("event_add_notification_message", "contract", mod._contract_data.tasks[i])
 
     if debug_mode then
         mod:echo("{#color(60,230, 60)}task completed: {#reset()}" .. task_type)
@@ -334,9 +354,14 @@ local _fetch_task_list = function()
             if debug_mode then
                 mod:echo("contract fetched")
                 mod:dump(mod._contract_data, "contract", 4)
-                --mod:echo("{#color(120,180,230)}Notification Test...{#reset()}")
-                --mod._task_index = math.random(5)
-                --Managers.contracts:notify_contract_task_complete(mod._contract_data.tasks[mod._task_index].id)
+
+                --[[
+                mod:echo("{#color(120,180,230)}Notification Test...{#reset()}")
+                mod._task_index = math.random(5)
+                local task = mod._contract_data.tasks[mod._task_index]
+                local task_type = task.criteria.taskType
+                _create_notification(task, task_type, mod._task_index)
+                ]]
             end
         end):catch(function(e)
             mod:dump(e, "error__fetch_task_list", 3)
@@ -559,11 +584,11 @@ end)
 mod:hook_safe("PickupSystem", "rpc_player_collected_materials", function(self, _, _, type_lookup, size_lookup)
     local type = NetworkLookup.material_type_lookup[type_lookup]
     local size = NetworkLookup.material_size_lookup[size_lookup]
-    local amount = mod._materials_amount
+    local amount = mod._materials_amount[type]
     local resource_counter = mod._live_counter and mod._live_counter.resource
     local task_types = {}
 
-    if table.is_empty(amount) then
+    if table.is_empty(amount) or amount.large == 0 or amount.small == 0 then
         amount.large = 25
         amount.small = 10
     end
@@ -819,7 +844,7 @@ end)
 -- utility
 -- ##############################
 
-local function recreate_hud()
+local _recreate_hud = function()
     local ui_manager = Managers.ui
     local hud = ui_manager and ui_manager._hud
 
@@ -838,7 +863,7 @@ end
 
 mod.on_all_mods_loaded = function()
     _get_materials_amount()
-    recreate_hud()
+    _recreate_hud()
 end
 
 mod.on_setting_changed = function()
@@ -846,7 +871,7 @@ mod.on_setting_changed = function()
     live_update = mod:get("enable_live_update")
     notify_completion = mod:get("enable_complete_notif")
     _get_materials_amount()
-    recreate_hud()
+    _recreate_hud()
 end
 
 mod.on_game_state_changed = function(status, state_name)
@@ -861,7 +886,6 @@ mod.on_game_state_changed = function(status, state_name)
         mod._contract_data = nil
         mod._play_intro = nil
         mod._task_index = nil
-
         _get_materials_amount()
 
         if debug_mode then
