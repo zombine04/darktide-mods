@@ -2,7 +2,7 @@
     title: SpawnFeed
     author: Zombine
     date: 2023/11/17
-    version: 1.1.0
+    version: 1.1.1
 ]]
 local mod = get_mod("SpawnFeed")
 local FeedSettings = require("scripts/ui/hud/elements/combat_feed/hud_element_combat_feed_settings")
@@ -110,6 +110,10 @@ mod:hook_safe("HealthExtension", "init", _on_enemy_spawned)
 mod:hook_safe("HuskHealthExtension", "init", _on_enemy_spawned)
 
 mod:hook("HudElementCombatFeed", "_add_combat_feed_message", function(func, self, data)
+    local kfi = get_mod("KillfeedImprovements")
+    local kfi_is_enabled = kfi and kfi:is_enabled()
+    local notification, notification_id = self:_add_notification_message("default")
+
     if type(data) == "table" and data.is_spawned then
         for i, notification in ipairs(self._notifications) do
             if notification.is_spawned and notification.breed == data.breed then
@@ -120,7 +124,6 @@ mod:hook("HudElementCombatFeed", "_add_combat_feed_message", function(func, self
         end
 
         local message = data.message
-        local notification, notification_id = self:_add_notification_message("default")
 
         if data.count and data.count > 1 then
             message = message .. " x" .. tostring(data.count)
@@ -130,9 +133,13 @@ mod:hook("HudElementCombatFeed", "_add_combat_feed_message", function(func, self
         notification.breed = data.breed
         notification.count = data.count or 1
 
-        self:_set_text(notification_id, message)
-    else
-        func(self, data)
+        data = message
+    end
+
+    self:_set_text(notification_id, data)
+
+    if kfi_is_enabled then
+        return notification, notification_id
     end
 end)
 
