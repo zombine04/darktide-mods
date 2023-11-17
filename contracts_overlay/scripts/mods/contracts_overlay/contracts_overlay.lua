@@ -1,19 +1,19 @@
 --[[
     title: contracts_overlay
     author: Zombine
-    date: 14/11/2023
-    version: 1.3.2
+    date: 2023/11/17
+    version: 1.3.3
 ]]
 local mod = get_mod("contracts_overlay")
+local debug_mode = mod:get("enable_debug_mode")
+local live_update = mod:get("enable_live_update")
+local notify_completion = mod:get("enable_complete_notif")
 
 local MissionTemplates = require("scripts/settings/mission/mission_templates")
 local PlayerUnitStatus = require("scripts/utilities/attack/player_unit_status")
 local UIWidget = require("scripts/managers/ui/ui_widget")
 local ViewSettings = require("scripts/ui/views/contracts_view/contracts_view_settings")
 local WalletSettings = require("scripts/settings/wallet_settings")
-local debug_mode = mod:get("enable_debug_mode")
-local live_update = mod:get("enable_live_update")
-local notify_completion = mod:get("enable_complete_notif")
 
 local margin = 20
 local font_size = 20
@@ -23,6 +23,17 @@ local contract_total_size = contract_base_size
 -- ##############################
 -- functions
 -- ##############################
+
+local _is_valid_game = function()
+    local host_type = Managers.connection:host_type()
+    local is_valid_game = host_type == "mission_server"
+
+    return is_valid_game or debug_mode
+end
+
+local _live_update = function()
+    return live_update and _is_valid_game()
+end
 
 local _get_materials_amount = function ()
     mod._materials_amount = mod:persistent_table("materials_amount")
@@ -235,7 +246,7 @@ local _check_no_death_progress = function(new_data)
             local new_tasks = new_data.tasks
             local should_notify = new_tasks[i].fulfilled and not task.co_notified
 
-            if live_update and notify_completion and should_notify then
+            if _live_update() and notify_completion and should_notify then
                 _create_notification(task, task_type, i)
 
                 if debug_mode then
@@ -347,7 +358,7 @@ local _fetch_task_list = function()
                 end
             end
 
-            if live_update then
+            if _live_update() then
                 _init_counter(data.tasks)
             end
 
@@ -499,7 +510,7 @@ local _update_contract_list = function(self)
             local key_desc = "contract_desc_" .. index
             local key_count = "contract_count_" .. index
 
-            if live_update and mod._live_counter and _is_countable(criteria.taskType) then
+            if _live_update() and mod._live_counter and _is_countable(criteria.taskType) then
                 value = _update_count(criteria)
             end
 
@@ -593,7 +604,7 @@ mod:hook_safe("PickupSystem", "rpc_player_collected_materials", function(self, _
         amount.small = 10
     end
 
-    if live_update and resource_counter and resource_counter[type] then
+    if _live_update() and resource_counter and resource_counter[type] then
         resource_counter[type] = resource_counter[type] + amount[size]
         mod._update_tasks_list = true
         task_types[#task_types + 1] = "CollectResource"
@@ -616,7 +627,7 @@ mod:hook_safe("HudElementMissionObjectiveFeed", "_synchronize_widget_with_hud_ob
         local current_amount = hud_objective:current_counter_amount()
         local pickup_counter = mod._live_counter and mod._live_counter.pickup
 
-        if live_update and pickup_counter and current_amount then
+        if _live_update() and pickup_counter and current_amount then
             mod._live_counter.pickup = current_amount
 
             if debug_mode then
@@ -632,7 +643,7 @@ mod:hook_safe("UIManager", "close_view", function(self, view)
     if view == "cutscene_view" and mod._play_intro then
         local live_counter = mod._live_counter
 
-        if live_update and live_counter and live_counter.death then
+        if _live_update() and live_counter and live_counter.death then
             live_counter.death = 0 -- fail no death challenge when late joined
 
             if debug_mode then
@@ -666,7 +677,7 @@ local track_player_death = function(func, self, ...)
         if not self.co_player_died and is_dead then
             local live_counter = mod._live_counter
 
-            if live_update and live_counter and live_counter.death then
+            if _live_update() and live_counter and live_counter.death then
                 live_counter.death = live_counter.death + 1
 
                 if debug_mode then
@@ -693,7 +704,7 @@ mod:hook_safe("CinematicSceneExtension", "setup_from_component", function(self)
         mod._play_intro = true
     end
 
-    if live_update and live_counter then
+    if _live_update() and live_counter then
         if name == "outro_win" and notify_completion then
             if debug_mode then
                 mod:echo("check tasks on mission end")
@@ -736,7 +747,7 @@ mod:hook_safe("AttackReportManager", "add_attack_result", function(self, _, unit
 
     local kill_counter = mod._live_counter and mod._live_counter.kill
 
-    if live_update and kill_counter then
+    if _live_update() and kill_counter then
         local unit_data_extension = ScriptUnit.extension(unit, "unit_data_system")
         local breed = unit_data_extension and unit_data_extension:breed()
         local sub_faction = breed and breed.sub_faction_name
