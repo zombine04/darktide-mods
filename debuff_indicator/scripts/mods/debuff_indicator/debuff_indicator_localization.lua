@@ -13,6 +13,7 @@ mod.buff_names = {
     "psyker_protectorate_spread_chain_lightning_interval_improved",
     "ogryn_recieve_damage_taken_increase_debuff",
     "ogryn_taunt_increased_damage_taken_buff",
+    "veteran_improved_tag_debuff",
     "stagger",
     "suppression",
 }
@@ -250,6 +251,9 @@ local loc = {
     },
     ogryn_taunt_increased_damage_taken_buff = {
         en = Localize("loc_talent_ogryn_taunt_damage_taken_increase")
+    },
+    veteran_improved_tag_debuff = {
+        en = Localize("loc_talent_veteran_improved_tag")
     },
     stagger = {
         en = Localize("loc_stagger")
