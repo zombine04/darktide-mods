@@ -3,8 +3,10 @@ local mod = get_mod("who_are_you")
 mod.modified_elements = {
     "_chat",
     "_combat_feed",
+    "_inventory",
     "_lobby",
     "_nameplate",
+    "_inspect_player",
     "_team_hud",
 }
 
@@ -121,6 +123,12 @@ local loc = {
         ["zh-cn"] = "击杀通知栏",
         ru = "Лента убийств",
     },
+    enable_inventory = {
+        en = "Inventory",
+        ja = "インベントリ",
+        ru = "Инвентарь",
+        ["zh-cn"] = "库存",
+    },
     enable_lobby = {
         en = "Lobby",
         ja = "ロビー",
@@ -132,6 +140,9 @@ local loc = {
         ja = "ネームプレート",
         ru = "Табличка с именем",
         ["zh-cn"] = "名称标签",
+    },
+    enable_inspect_player = {
+        en = Localize("loc_lobby_entry_inspect"),
     },
     enable_team_hud = {
         en = "Team HUD",
@@ -202,9 +213,9 @@ for _, element in ipairs(mod.modified_elements) do
     local local_name = "sub_name_settings" .. element
     loc[local_name] = {}
     for lang, text in pairs(loc.sub_name_settings) do
-        if (loc["enable" .. element][lang]) then
-            loc[local_name][lang] = text .. " (" .. loc["enable" .. element][lang] .. ")"
-        end
+        local ele_text = loc["enable" .. element][lang] or loc["enable" .. element].en
+
+        loc[local_name][lang] = text .. " (" .. ele_text .. ")"
     end
 end
 

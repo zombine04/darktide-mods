@@ -1,8 +1,8 @@
 --[[
     title: who_are_you
     author: Zombine
-    date: 01/11/2023
-    version: 3.2.2
+    date: 2023/11/17
+    version: 3.3.0
 ]]
 local mod = get_mod("who_are_you")
 local TextUtilities = require("scripts/utilities/ui/text")
@@ -348,6 +348,41 @@ mod:hook("HudElementCombatFeed", "_get_unit_presentation_name", function(func, s
     return func(self, unit)
 end)
 
+-- Inventory
+
+mod:hook_safe("InventoryBackgroundView", "_fetch_character_progression", function(self, player)
+    if not mod:get("enable_inventory") then
+        return
+    end
+
+    local widget = self._widgets_by_name.character_name
+    local account_id = player:account_id()
+    local account_name = account_id and mod.account_name(account_id)
+
+    if account_name then
+        local character_name = player:name()
+        local ref = "inventory"
+        local modified_name = modify_character_name(character_name, account_name, account_id, ref)
+
+        widget.content.text = modified_name
+    end
+end)
+
+-- Inspect Player
+
+mod:hook("PlayerCharacterOptionsView", "_set_player_name", function(func, self, name, ...)
+    if mod:get("enable_inspect_player") then
+        local account_id = self._account_id
+        local account_name = account_id and mod.account_name(account_id)
+        local ref = "inspect_player"
+
+        if account_name then
+            name = modify_character_name(name, account_name, account_id, ref)
+        end
+    end
+
+    func(self, name, ...)
+end)
 
 -- ##############################
 -- Cycle Style

@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 11/10/2023
-    version: 1.3.4
+    date: 2023/11/17
+    version: 1.4.0
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -296,7 +296,7 @@ mod:hook_safe("HudElementWorldMarkers", "update", function(self, dt, t)
 
     local markers_by_type = self._markers_by_type
     local wru = get_mod("who_are_you")
-    local wru_is_enabled = wru and wru:is_enabled()
+    local wru_is_enabled = wru and wru:is_enabled() and wru:get("enable_nameplate")
 
     for marker_type, markers in pairs(markers_by_type) do
         if string.match(marker_type, "nameplate") then
@@ -340,7 +340,7 @@ mod:hook_safe("LobbyView", "_sync_player", function(self, unique_id, player)
     end
 
     local wru = get_mod("who_are_you")
-    local wru_is_enabled = wru and wru:is_enabled()
+    local wru_is_enabled = wru and wru:is_enabled() and wru:get("enable_lobby")
     local spawn_slots = self._spawn_slots
     local slot_id = self:_player_slot_id(unique_id)
     local slot = spawn_slots[slot_id]
@@ -477,6 +477,61 @@ mod:hook("SocialMenuRosterView", "formatted_character_name", function(func, self
     end
 
     return character_name
+end)
+
+-- ############################################################
+-- Inventory
+-- ############################################################
+
+mod:hook_safe("InventoryBackgroundView", "_set_player_profile_information", function(self, player)
+    if not mod:get("enable_inventory") then
+        return
+    end
+
+    local profile = player and player:profile()
+    local character_id = profile and profile.character_id or "N/A"
+    local memory = mod._memory
+    local progression_data = memory.progression[character_id] or memory.temp[character_id]
+
+    if character_id == "N/A" then
+        mod.debug.no_id()
+    end
+
+    if progression_data then
+        local widget = self._widgets_by_name.character_name
+        local text = widget.content.text
+
+        text = mod.replace_level_text(text, progression_data, "inventory", true)
+        widget.content.text = text
+    end
+end)
+
+-- ############################################################
+-- Inspect Player
+-- ############################################################
+
+mod:hook_safe("PlayerCharacterOptionsView", "_set_player_name", function(self)
+    if not mod:get("enable_inspect_player") then
+        return
+    end
+
+    local widget = self._widgets_by_name.player_name
+    local text = widget.content.text
+    local player_info = self._player_info
+    local profile = player_info and player_info:profile()
+    local character_id = profile and profile.character_id or "N/A"
+    local memory = mod._memory
+    local progression_data = memory.temp[character_id]
+
+    if character_id == "N/A" then
+        mod.debug.no_id()
+    end
+
+    if progression_data then
+        text = mod.replace_level_text(text, progression_data, "inspect_player")
+    end
+
+    widget.content.text = text
 end)
 
 -- ############################################################

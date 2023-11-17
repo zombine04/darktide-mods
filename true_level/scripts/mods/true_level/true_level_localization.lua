@@ -1,11 +1,13 @@
 local mod = get_mod("true_level")
 
 mod._elements = {
-    "player_panel",
-    "nameplate",
-    "lobby",
-    "main_menu",
     "end_view",
+    "inventory",
+    "lobby",
+    "nameplate",
+    "main_menu",
+    "inspect_player",
+    "player_panel",
     "social_menu",
 }
 
@@ -131,6 +133,12 @@ local loc = {
         ["zh-cn"] = "结算界面",
         ru = "Экран результатов",
     },
+    inventory = {
+        en = "Inventory",
+        ja = "インベントリ",
+        ["zh-cn"] = "库存",
+        ru = "Инвентарь",
+    },
     lobby = {
         en = "Lobby",
         ja = "ロビー",
@@ -148,6 +156,9 @@ local loc = {
         ja = "ネームプレート",
         ["zh-cn"] = "名称标签",
         ru = "Табличка с именем",
+    },
+    inspect_player = {
+        en = Localize("loc_lobby_entry_inspect"),
     },
     player_panel = {
         en = "Team HUD",
@@ -192,8 +203,9 @@ end
 for i, ele in pairs(mod._elements) do
     local toggle = "enable_" .. ele
     loc[toggle] = {}
-    for lang, text in pairs(loc[ele]) do
-        loc[toggle][lang] = loc.toggle[lang]
+
+    for lang, text in pairs(loc.toggle) do
+        loc[toggle][lang] = text
     end
 
     add_child_loc("display_style", ele)
