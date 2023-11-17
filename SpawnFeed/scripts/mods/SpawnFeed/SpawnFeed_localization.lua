@@ -34,16 +34,20 @@ local loc = {
     notification_style = {
         en = "Notification Style",
         ja = "通知方法",
+        ["zh-cn"] = "通知方式",
     },
     enable_count_mode = {
         en = "Enable Count Up Mode",
         ja = "カウントアップモードを有効にする",
+        ["zh-cn"] = "启用计数模式",
     },
     tooltip_count_mode = {
         en = "\nShow spawn counts instead of duplicate feeds.\n\n" ..
              "Note: This feature does not apply to chat.",
         ja = "\n重複したフィードを表示する代わりに出現数を表示します。\n\n" ..
              "注意: この機能はチャットには適用されません。",
+        ["zh-cn"] = "\n显示刷怪数量而不是重复发送消息。\n\n" ..
+             "注意：此功能不支持聊天。",
     },
     breed_specialist = {
         en = "Specialists",
