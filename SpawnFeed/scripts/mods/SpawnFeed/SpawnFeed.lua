@@ -1,8 +1,8 @@
 --[[
     title: SpawnFeed
     author: Zombine
-    date: 08/07/2023
-    version: 1.0.0
+    date: 2023/11/17
+    version: 1.1.0
 ]]
 local mod = get_mod("SpawnFeed")
 local FeedSettings = require("scripts/ui/hud/elements/combat_feed/hud_element_combat_feed_settings")
@@ -57,31 +57,133 @@ local _check_enemy_type = function(breed)
     return is_valid
 end
 
-local on_enemy_spawned = function(_, _, unit)
+local _on_enemy_spawned = function(_, _, unit)
     local unit_data_ext = ScriptUnit.extension(unit, "unit_data_system")
     local breed = unit_data_ext and unit_data_ext:breed()
     local is_sipecial_or_monster = _check_enemy_type(breed)
 
     if is_sipecial_or_monster and ALIVE[unit] then
+        local breed_name = string.match(breed.name, "(.+)_mutator$") or breed.name
+
+        if not mod:get(breed_name) then
+            return
+        end
+
         local display_name = _get_unit_presentation_name(unit)
 
         if display_name then
             local message = mod:localize("spawn_message", display_name)
 
             if mod:get("enable_combat_feed") then
-                Managers.event:trigger("event_add_combat_feed_message", message)
+                if mod:get("enable_count_mode") then
+                    Managers.event:trigger("event_add_combat_feed_message", {
+                        is_spawned = true,
+                        breed = breed_name,
+                        message = message
+                    })
+                else
+                    Managers.event:trigger("event_add_combat_feed_message", message)
+                end
+            end
+
+            if mod:get("enable_notification") then
+                if mod:get("enable_count_mode") then
+                    Managers.event:trigger("event_add_notification_message", "default", {
+                        is_spawned = true,
+                        breed = breed_name,
+                        message = message
+                    })
+                else
+                    Managers.event:trigger("event_add_notification_message", "default", message)
+                end
             end
 
             if mod:get("enable_chat") then
                 mod:echo(message)
             end
 
-            if mod:get("enable_notification") then
-                mod:notify(message)
-            end
         end
     end
 end
 
-mod:hook_safe("HealthExtension", "init", on_enemy_spawned)
-mod:hook_safe("HuskHealthExtension", "init", on_enemy_spawned)
+mod:hook_safe("HealthExtension", "init", _on_enemy_spawned)
+mod:hook_safe("HuskHealthExtension", "init", _on_enemy_spawned)
+
+mod:hook("HudElementCombatFeed", "_add_combat_feed_message", function(func, self, data)
+    if type(data) == "table" and data.is_spawned then
+        for i, notification in ipairs(self._notifications) do
+            if notification.is_spawned and notification.breed == data.breed then
+                data.count = notification.count and notification.count + 1 or 1
+                self:_remove_notification(notification.id)
+                break
+            end
+        end
+
+        local message = data.message
+        local notification, notification_id = self:_add_notification_message("default")
+
+        if data.count and data.count > 1 then
+            message = message .. " x" .. tostring(data.count)
+        end
+
+        notification.is_spawned = true
+        notification.breed = data.breed
+        notification.count = data.count or 1
+
+        self:_set_text(notification_id, message)
+    else
+        func(self, data)
+    end
+end)
+
+mod:hook("ConstantElementNotificationFeed", "_add_notification_message", function(func, self, message_type, data, ...)
+    if message_type == "default" and type(data) == "table" and data.is_spawned then
+        for i, notification in ipairs(self._notifications) do
+            if notification.is_spawned and notification.breed == data.breed then
+                data.count = notification.count and notification.count + 1 or 1
+                self:event_remove_notification(notification.id)
+                break
+            end
+        end
+
+        local message = data.message
+
+        if data.count and data.count > 1 then
+            message = message .. " x" .. tostring(data.count)
+        end
+
+        local notification_data = self:_generate_notification_data(message_type, message)
+
+        if notification_data then
+            local notification = self:_create_notification_entry(notification_data)
+
+            notification.is_spawned = true
+            notification.breed = data.breed
+            notification.count = data.count or 1
+
+            if notification.animation_enter then
+                self:_start_animation(notification.animation_enter, notification.widget)
+            end
+        end
+    else
+        func(self, message_type, data, ...)
+    end
+end)
+
+mod:hook("UIHud", "init", function(func, self, elements, visibility_groups, params)
+    if mod:get("enable_debug_mode") and not table.find_by_key(elements, "class_name", "HudElementCombatFeed") then
+        table.insert(elements, {
+            use_hud_scale = true,
+            class_name = "HudElementCombatFeed",
+            filename = "scripts/ui/hud/elements/combat_feed/hud_element_combat_feed",
+            visibility_groups = {
+                "dead",
+                "alive",
+                "communication_wheel",
+                "tactical_overlay"
+            }
+        })
+    end
+
+    return func(self, elements, visibility_groups, params)
+end)
