@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 2023/11/17
-    version: 1.4.0
+    date: 2023/11/20
+    version: 1.4.1
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -477,6 +477,31 @@ mod:hook("SocialMenuRosterView", "formatted_character_name", function(func, self
     end
 
     return character_name
+end)
+
+mod:hook_safe("ViewElementPlayerSocialPopup", "_set_player_info", function(self, _, player_info)
+    if not mod:get("enable_social_menu") then
+        return
+    end
+
+    local profile = player_info:profile()
+    local character_id = profile and profile.character_id or "N/A"
+    local memory = mod._memory
+    local progression_data = memory.progression[character_id] or memory.temp[character_id]
+
+    if character_id == "N/A" then
+        mod.debug.no_id()
+    end
+
+    if progression_data then
+        local widget = self._widgets_by_name.player_header
+        local content = widget and widget.content
+        local character_name = content and content.player_display_name
+
+        if character_name then
+            content.player_display_name = mod.replace_level_text(character_name, progression_data, "social_menu")
+        end
+    end
 end)
 
 -- ############################################################
