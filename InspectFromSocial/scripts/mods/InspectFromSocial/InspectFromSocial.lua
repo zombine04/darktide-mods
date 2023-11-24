@@ -1,8 +1,8 @@
 --[[
     title: InspectFromSocial
     author: Zombine
-    date: 2023/11/21
-    version: 1.0.0
+    date: 2023/11/24
+    version: 1.0.1
 ]]
 local mod = get_mod("InspectFromSocial")
 local SocialConstants = require("scripts/managers/data_service/services/social/social_constants")
