@@ -16,7 +16,7 @@ mod:hook_require("scripts/ui/view_elements/view_element_player_social_popup/view
 
         if not is_own_player then
             table.insert(popup_menu_items, 1, {
-                label = "divider_inspect_plaer",
+                label = "divider_inspect_player",
                 blueprint = "group_divider"
             })
             table.insert(popup_menu_items, 1, {
