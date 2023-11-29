@@ -1,8 +1,8 @@
 --[[
     title: name_it
     author: Zombine
-    date: 30/10/2023
-    version: 1.1.1
+    date: 29/11/2023
+    version: 1.1.2
 ]]
 local mod = get_mod("name_it")
 
@@ -278,8 +278,6 @@ local add_input_legend = function(legend_inputs, visibility_function)
             visibility_function = visibility_function
         }
     end
-
-    return legend_inputs
 end
 
 local init_and_add_cb = function(func, self, ...)
@@ -298,27 +296,34 @@ mod:hook("InventoryWeaponsView", "_setup_input_legend", function(func, self)
         return true
     end
 
-    legend_inputs = add_input_legend(legend_inputs, visibility_function)
+    add_input_legend(legend_inputs, visibility_function)
     func(self)
 end)
 
 mod:hook("CraftingView", "init", init_and_add_cb)
-mod:hook_require("scripts/ui/views/crafting_view/crafting_view_definitions", function(defs)
-    local visibility_function = function (parent)
-        local instance = Managers.ui:view_instance("crafting_modify_view")
+mod:hook("CraftingView", "_setup_tab_bar", function(func, self, tab_data, ...)
+    local new_tab_data = table.clone(tab_data)
 
-        if instance and instance._item_grid and instance:selected_grid_widget() then
-            return true
+    for _, tab_params in ipairs(new_tab_data.tabs_params) do
+        if tab_params.view == "crafting_modify_view" then
+            local legend_inputs = tab_params.input_legend_buttons
+            local visibility_function = function (parent)
+                local instance = Managers.ui:view_instance("crafting_modify_view")
+
+                if instance and instance._item_grid and instance:selected_grid_widget() then
+                    return true
+                end
+
+                return false
+            end
+
+            add_input_legend(legend_inputs, visibility_function)
+
+            break
         end
-
-        return false
     end
 
-    local legend_inputs = defs.crafting_tab_params.select_item.tabs_params[1].input_legend_buttons
-
-    if not table.find_by_key(legend_inputs, "display_name", "loc_change_item_name") then
-        legend_inputs = add_input_legend(legend_inputs, visibility_function)
-    end
+    func(self, new_tab_data, ...)
 end)
 
 local is_writing = function()
