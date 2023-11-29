@@ -16,7 +16,7 @@ local loc = {
     enable_skip_hadron = {
         en = "Skip \"" .. entreat_hadron .. "\"",
         ja = "「" .. entreat_hadron .. "」をスキップする",
-        ["zh-cn"] = "跳过“" .. entreat_hadron .. "”界面",
+        ["zh-cn"] = "跳过“" .. entreat_hadron .. "”选项",
     },
     keybind_hadron = {
         en = "Keybind",
