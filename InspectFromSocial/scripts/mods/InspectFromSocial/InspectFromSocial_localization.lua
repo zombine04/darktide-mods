@@ -13,5 +13,6 @@ return {
     enable_self_inspect = {
         en = "Add Inspect Button for Yourself",
         ja = "自身にも調べるボタンを追加する",
+        ru = "Добавить кнопку для осмотра себя",
     }
 }
