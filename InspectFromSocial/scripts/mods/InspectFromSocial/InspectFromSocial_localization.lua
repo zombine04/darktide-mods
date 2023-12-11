@@ -10,4 +10,8 @@ return {
         ru = "Inspect from Social - Добавляет кнопку для осмотра оперативника в социальное меню.",
         ["zh-cn"] = "在社交菜单添加“检视特工”按钮。",
     },
+    enable_self_inspect = {
+        en = "Add Inspect Button for Yourself",
+        ja = "自身にも調べるボタンを追加する",
+    }
 }

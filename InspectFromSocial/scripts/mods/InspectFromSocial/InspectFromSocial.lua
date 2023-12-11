@@ -1,8 +1,8 @@
 --[[
     title: InspectFromSocial
     author: Zombine
-    date: 2023/12/06
-    version: 1.0.2
+    date: 2023/12/11
+    version: 1.0.3
 ]]
 local mod = get_mod("InspectFromSocial")
 local SocialConstants = require("scripts/managers/data_service/services/social/social_constants")
@@ -11,8 +11,11 @@ local OnlineStatus = SocialConstants.OnlineStatus
 
 mod:hook(CLASS.ViewElementPlayerSocialPopup, "_set_player_info", function(func, self, parent, player_info, menu_items, num_menu_items, ...)
     local is_own_player = player_info:is_own_player()
+    local enable_self_inspect = mod:get("enable_self_inspect")
 
-    if not is_own_player then
+    if is_own_player and not enable_self_inspect then
+        -- do nothing
+    else
         table.insert(menu_items, 1, {
             label = "divider_inspect_player",
             blueprint = "group_divider"
