@@ -12,18 +12,18 @@ local _color_by_enemy_tags = function(tags)
     local color = nil
 
     if tags then
-		local colors_by_enemy_type = FeedSettings.colors_by_enemy_type
+        local colors_by_enemy_type = FeedSettings.colors_by_enemy_type
 
-		for key, enemy_color in pairs(colors_by_enemy_type) do
-			if tags[key] then
-				color = enemy_color
+        for key, enemy_color in pairs(colors_by_enemy_type) do
+            if tags[key] then
+                color = enemy_color
 
-				break
-			end
-		end
-	end
+                break
+            end
+        end
+    end
 
-	return color or Color.red(255, true)
+    return color or Color.red(255, true)
 end
 
 local _get_unit_presentation_name = function(unit)
