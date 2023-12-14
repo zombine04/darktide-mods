@@ -5,7 +5,11 @@ local UISoundEvents = require("scripts/settings/ui/ui_sound_events")
 local sound_events = {}
 for k, v in pairs(UISoundEvents) do
     if not table.find_by_key(sound_events, "text", k) and
-       not table.find_by_key(sound_events, "value", v)
+       not table.find_by_key(sound_events, "value", v) and
+       not string.match(k, "start") and
+       not string.match(k, "stoo") and
+       not string.match(v, "start") and
+       not string.match(v, "stoo")
     then
         sound_events[#sound_events + 1] = { text = k, value = v }
     end
@@ -48,6 +52,27 @@ return {
                 type = "group",
                 sub_widgets = {
                     {
+                        setting_id = "enable_pickup_notif",
+                        type = "checkbox",
+                        default_value = true,
+                    },
+                    {
+                        setting_id = "enable_drop_notif",
+                        type = "checkbox",
+                        default_value = true,
+                    },
+                    {
+                        setting_id = "enable_give_notif",
+                        type = "checkbox",
+                        default_value = true,
+                    }
+                }
+            },
+            {
+                setting_id = "notif_style",
+                type = "group",
+                sub_widgets = {
+                    {
                         setting_id = "enable_chat_notif",
                         type = "checkbox",
                         default_value = true,
@@ -56,17 +81,13 @@ return {
                         setting_id = "enable_popup_notif",
                         type = "checkbox",
                         default_value = false,
-                    },
-                    {
-                        setting_id = "enable_pickup_notif",
-                        type = "checkbox",
-                        default_value = false,
-                    },
-                    {
-                        setting_id = "enable_drop_notif",
-                        type = "checkbox",
-                        default_value = false,
-                    },
+                    }
+                }
+            },
+            {
+                setting_id = "additional_notif_settings",
+                type = "group",
+                sub_widgets = {
                     {
                         setting_id = "enable_repeat_notif",
                         type = "checkbox",

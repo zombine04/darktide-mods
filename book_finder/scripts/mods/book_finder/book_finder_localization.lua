@@ -34,6 +34,14 @@ return {
         ["zh-cn"] = "通知",
         ru = "Уведомления",
     },
+    notif_style = {
+        en = "Notification Style",
+        ja = "通知方法",
+    },
+    additional_notif_settings = {
+        en = "Additional Settings",
+        ja = "追加設定",
+    },
     enable_chat_notif = {
         en = "Enable Chat Notification",
         ja = "チャットでの通知を有効にする",
@@ -47,16 +55,20 @@ return {
         ru = "Всплывающее уведомление",
     },
     enable_pickup_notif = {
-        en = "Notify when someone picked up",
-        ja = "誰かが拾った際に通知する",
+        en = "Pick Up",
+        ja = "拾う",
         ["zh-cn"] = "有人拾取时通知",
         ru = "Уведомлять, когда кто-то поднимает гримуар/писание.",
     },
     enable_drop_notif = {
-        en = "Notify when someone drop a scripture",
-        ja = "誰かが聖書を落とした際に通知する",
+        en = "Drop / Discard",
+        ja = "落とす / 破棄",
         ["zh-cn"] = "有人丢弃圣经时通知",
         ru = "Уведомлять, когда кто-то\nвыбрасывает писание",
+    },
+    enable_give_notif = {
+        en = "Give",
+        ja = "渡す",
     },
     enable_repeat_notif = {
         en = "Notify when you're in the certain range again",
@@ -113,6 +125,10 @@ return {
         ja = "%sが%sを落とした。",
         ["zh-cn"] = "%s丢弃了%s。",
         ru = "%s выбрасывает %s.",
+    },
+    book_given = {
+        en = "%s passed %s to %s.",
+        ja = "%sが%sを%sに渡した。",
     },
     debug = {
         en = "Debug",
