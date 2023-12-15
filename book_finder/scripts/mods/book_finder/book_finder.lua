@@ -2,7 +2,7 @@
     title: book_finder
     author: Zombine
     date: 2023/12/15
-    version: 2.1.0
+    version: 2.1.1
 ]]
 local mod = get_mod("book_finder")
 local MarkerTemplateInteraction = require("scripts/ui/hud/elements/world_markers/templates/world_marker_template_interaction")
@@ -120,28 +120,6 @@ local _show_notification = function(key, play_sound, player, player_name, pickup
     end
 end
 
-local _check_owners_pocketable = function()
-    local is_dropped = false
-    local dropped_player = nil
-    local dropped_player_name = nil
-
-    for player_unit, pickup_name in pairs(mod._owners) do
-        local player = Managers.player:player_by_unit(player_unit)
-        local player_name = player:name()
-        local item_name = _get_slot_item_name(player_unit)
-
-        if not _is_book(item_name) then
-            is_dropped = true
-            dropped_player = player
-            dropped_player_name = player_name
-            mod._owners[player_unit] = nil
-            mod.debug.char_name(player)
-        end
-    end
-
-    return is_dropped, dropped_player, dropped_player_name
-end
-
 -- ##############################
 -- Register Books
 -- ##############################
@@ -215,16 +193,22 @@ mod.update = function()
 
                     for owner_unit, owned_pickup_name in pairs(mod._owners) do
                         local owner = Managers.player:player_by_unit(owner_unit)
-                        local _, owner_name, _, has_book = _get_vars(owner)
 
-                        if not has_book and pickup_name == owned_pickup_name then
-                            if mod:get("enable_give_notif") then
-                                _show_notification("book_given", false, owner, owner_name, pickup_name, player, player_name)
+                        if owner then
+                            local _, owner_name, _, has_book = _get_vars(owner)
+
+                            if not has_book and pickup_name == owned_pickup_name then
+                                if mod:get("enable_give_notif") then
+                                    _show_notification("book_given", false, owner, owner_name, pickup_name, player, player_name)
+                                end
+
+                                mod._owners[owner_unit] = nil
+                                mod.debug.char_name(owner)
+                                break
                             end
-
+                        else
                             mod._owners[owner_unit] = nil
-                            mod.debug.char_name(owner)
-                            break
+                            mod.debug.echo("owner left the game")
                         end
                     end
 
