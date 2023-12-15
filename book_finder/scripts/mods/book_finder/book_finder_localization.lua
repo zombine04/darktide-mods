@@ -38,11 +38,13 @@ return {
         en = "Notification Style",
         ja = "通知方法",
         ["zh-cn"] = "通知方式",
+        ru = "Стиль уведомлений",
     },
     additional_notif_settings = {
         en = "Additional Settings",
         ja = "追加設定",
         ["zh-cn"] = "额外设置",
+        ru = "Дополнительные настройки",
     },
     enable_chat_notif = {
         en = "Enable Chat Notification",
@@ -72,6 +74,7 @@ return {
         en = "Give",
         ja = "渡す",
         ["zh-cn"] = "赠送",
+        ru = "Передача книг",
     },
     enable_repeat_notif = {
         en = "Notify when you're in the certain range again",
@@ -133,6 +136,7 @@ return {
         en = "%s passed %s to %s.",
         ja = "%sが%sを%sに渡した。",
         ["zh-cn"] = "%s将%s赠送给了%s",
+        ru = "%s передаёт %s %s.",
     },
     debug = {
         en = "Debug",
