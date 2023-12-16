@@ -1,8 +1,8 @@
 --[[
     title: contracts_overlay
     author: Zombine
-    date: 2023/11/17
-    version: 1.3.3
+    date: 2023/12/16
+    version: 1.3.4
 ]]
 local mod = get_mod("contracts_overlay")
 local debug_mode = mod:get("enable_debug_mode")
@@ -824,17 +824,19 @@ end)
 -- Overlay in Hub
 
 mod:hook_require("scripts/ui/hud/hud_elements_player_hub", function(elements)
-    elements[#elements + 1] = {
-        package = "packages/ui/hud/tactical_overlay/tactical_overlay",
-        use_hud_scale = false,
-        class_name = "HudElementTacticalOverlay",
-        filename = "scripts/ui/hud/elements/tactical_overlay/hud_element_tactical_overlay",
-        visibility_groups = {
-            "tactical_overlay",
-            "alive",
-            "communication_wheel",
+    if not table.find_by_key(elements, "class_name", "HudElementTacticalOverlay") then
+        elements[#elements + 1] = {
+            package = "packages/ui/hud/tactical_overlay/tactical_overlay",
+            use_hud_scale = false,
+            class_name = "HudElementTacticalOverlay",
+            filename = "scripts/ui/hud/elements/tactical_overlay/hud_element_tactical_overlay",
+            visibility_groups = {
+                "tactical_overlay",
+                "alive",
+                "communication_wheel",
+            }
         }
-    }
+    end
 end)
 
 -- DarkCache Compatibility
