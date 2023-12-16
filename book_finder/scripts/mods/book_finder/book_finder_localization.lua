@@ -8,7 +8,7 @@ return {
         en = "Display a notification when you're in the certain distance of grimoires / scriptures.",
         ja = "魔術書や聖書から一定距離内に入った際に通知を表示します。",
         ["zh-cn"] = "进入魔法书 / 圣经一定范围内时，显示一条通知。",
-        ru = "Book Finder - Показывает уведомление, когда вы находитесь на определенном расстоянии от гримуаров/писаний.",
+        ru = "Book Finder - Показывает уведомление, когда вы находитесь на определённом расстоянии от гримуаров/писаний.",
     },
     search_distance = {
         en = "Search Distance",
@@ -38,11 +38,13 @@ return {
         en = "Notification Style",
         ja = "通知方法",
         ["zh-cn"] = "通知方式",
+        ru = "Стиль уведомлений",
     },
     additional_notif_settings = {
         en = "Additional Settings",
         ja = "追加設定",
         ["zh-cn"] = "额外设置",
+        ru = "Дополнительные настройки",
     },
     enable_chat_notif = {
         en = "Enable Chat Notification",
@@ -60,18 +62,19 @@ return {
         en = "Pick Up",
         ja = "拾う",
         ["zh-cn"] = "拾取",
-        ru = "Уведомлять, когда кто-то поднимает гримуар/писание.",
+        ru = "Подбор",
     },
     enable_drop_notif = {
         en = "Drop / Discard",
         ja = "落とす / 破棄",
         ["zh-cn"] = "丢弃 / 摧毁",
-        ru = "Уведомлять, когда кто-то\nвыбрасывает писание",
+        ru = "Сброс",
     },
     enable_give_notif = {
         en = "Give",
         ja = "渡す",
         ["zh-cn"] = "赠送",
+        ru = "Передача",
     },
     enable_repeat_notif = {
         en = "Notify when you're in the certain range again",
@@ -133,6 +136,7 @@ return {
         en = "%s passed %s to %s.",
         ja = "%sが%sを%sに渡した。",
         ["zh-cn"] = "%s将%s赠送给了%s",
+        ru = "%s передаёт %s %s.",
     },
     debug = {
         en = "Debug",
