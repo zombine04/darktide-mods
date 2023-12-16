@@ -8,7 +8,7 @@ return {
         en = "Display a notification when you're in the certain distance of grimoires / scriptures.",
         ja = "魔術書や聖書から一定距離内に入った際に通知を表示します。",
         ["zh-cn"] = "进入魔法书 / 圣经一定范围内时，显示一条通知。",
-        ru = "Book Finder - Показывает уведомление, когда вы находитесь на определенном расстоянии от гримуаров/писаний.",
+        ru = "Book Finder - Показывает уведомление, когда вы находитесь на определённом расстоянии от гримуаров/писаний.",
     },
     search_distance = {
         en = "Search Distance",
@@ -62,19 +62,19 @@ return {
         en = "Pick Up",
         ja = "拾う",
         ["zh-cn"] = "拾取",
-        ru = "Уведомлять, когда кто-то поднимает гримуар/писание.",
+        ru = "Подбор",
     },
     enable_drop_notif = {
         en = "Drop / Discard",
         ja = "落とす / 破棄",
         ["zh-cn"] = "丢弃 / 摧毁",
-        ru = "Уведомлять, когда кто-то\nвыбрасывает писание",
+        ru = "Сброс",
     },
     enable_give_notif = {
         en = "Give",
         ja = "渡す",
         ["zh-cn"] = "赠送",
-        ru = "Передача книг",
+        ru = "Передача",
     },
     enable_repeat_notif = {
         en = "Notify when you're in the certain range again",
