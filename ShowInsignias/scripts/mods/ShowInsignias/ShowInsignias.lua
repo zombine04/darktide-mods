@@ -2,7 +2,7 @@
     title: ShowInsignias
     author: Zombine
     date: 2023/12/15
-    version: 1.0.0
+    version: 1.0.1
 ]]
 local mod = get_mod("ShowInsignias")
 local path_personal = "scripts/ui/hud/elements/personal_player_panel/hud_element_personal_player_panel_definitions"
