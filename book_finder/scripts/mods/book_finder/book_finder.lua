@@ -1,8 +1,8 @@
 --[[
     title: book_finder
     author: Zombine
-    date: 2023/12/15
-    version: 2.1.1
+    date: 2023/12/16
+    version: 2.1.2
 ]]
 local mod = get_mod("book_finder")
 local MarkerTemplateInteraction = require("scripts/ui/hud/elements/world_markers/templates/world_marker_template_interaction")
