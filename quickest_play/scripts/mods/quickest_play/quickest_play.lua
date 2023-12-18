@@ -1,14 +1,16 @@
 --[[
     title: quickest_play
     author: Zombine
-    date: 11/10/2023
-    version: 1.4.0
+    date: 2023/12/18
+    version: 1.4.1
 ]]
 
 local mod = get_mod("quickest_play")
 local BackendUtilities = require("scripts/foundation/managers/backend/utilities/backend_utilities")
 local DangerSettings = require("scripts/settings/difficulty/danger_settings")
 local RESTART_DELAY = 15
+
+mod:set("_was_auric", mod:get("_was_auric") or false)
 
 local _is_in_hub = function()
     local game_mode_manager = Managers.state.game_mode
@@ -17,7 +19,7 @@ local _is_in_hub = function()
         return true
     end
 
-    return true
+    return false
 end
 
 local _get_difficulty = function(save_data)
@@ -54,6 +56,8 @@ local start_quickplay = function(is_auric)
         local danger = _get_difficulty(save_data)
         local type = is_auric and "auric" or "normal"
 
+        mod:set("_was_auric", is_auric)
+
         if type == "auric" and danger < 4 then
             danger = 4
         end
@@ -74,6 +78,12 @@ local start_quickplay = function(is_auric)
         end
     end
 end
+
+mod:hook_safe(CLASS.MissionBoardView, "_filter_mission_board", function(self, type)
+    local is_auric = type == "auric" and true or false
+
+    mod:set("_was_auric", is_auric)
+end)
 
 mod:hook_safe("PartyImmateriumManager", "wanted_mission_selected", function(self, id, is_private, reef)
     mod._matchmaking_details = {
@@ -120,7 +130,7 @@ mod:hook_safe("GameModeManager", "game_mode_ready", function()
         if mod._cancel_auto_queue then
             mod:notify(mod:localize("notif_canceled"))
         else
-            start_quickplay()
+            start_quickplay(mod:get("_was_auric"))
         end
     end
 end)
