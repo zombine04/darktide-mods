@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 2023/11/20
-    version: 1.4.1
+    date: 2024/02/22
+    version: 1.4.2
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -191,9 +191,9 @@ mod:hook_safe("MainMenuView", "_set_player_profile_information", function(self, 
 
     if progression_data then
         local content = widget.content
-        local specialization = content.character_title
+        local title = content.character_title
 
-        content.character_title = mod.replace_level_text(specialization, progression_data, "main_menu")
+        content.character_title = mod.replace_level_text(title, progression_data, "main_menu")
         widget.style.style_id_12.font_size = 15
         mod.debug.dump(progression[character_id], profile.name, 1)
     else
@@ -220,9 +220,8 @@ mod:hook_safe("MainMenuView", "_show_character_details", function(self, show, pr
     local progression_data = progression and progression[character_id]
 
     if progression_data then
-        local specialization = content.character_specialization
-        content.character_specialization = mod.replace_level_text(specialization, progression_data, "main_menu")
-        widget.style.text_specialization.font_size = 16
+        local title = content.character_title
+        content.character_title = mod.replace_level_text(title, progression_data, "main_menu")
     end
 end)
 
@@ -522,7 +521,7 @@ mod:hook_safe("InventoryBackgroundView", "_set_player_profile_information", func
         mod.debug.no_id()
     end
 
-    if progression_data then
+    if progression_data and progression_data.true_level then
         local widget = self._widgets_by_name.character_name
         local text = widget.content.text
 

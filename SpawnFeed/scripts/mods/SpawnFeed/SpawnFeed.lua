@@ -1,8 +1,8 @@
 --[[
     title: SpawnFeed
     author: Zombine
-    date: 2023/11/17
-    version: 1.1.1
+    date: 2024/02/22
+    version: 1.1.2
 ]]
 local mod = get_mod("SpawnFeed")
 local FeedSettings = require("scripts/ui/hud/elements/combat_feed/hud_element_combat_feed_settings")
@@ -109,7 +109,19 @@ end
 mod:hook_safe("HealthExtension", "init", _on_enemy_spawned)
 mod:hook_safe("HuskHealthExtension", "init", _on_enemy_spawned)
 
+mod:hook("HudElementCombatFeed", "_enabled", function(func, self)
+    if mod:get("enable_debug_mode") then
+        return true
+    end
+
+    return func(self)
+end)
+
 mod:hook("HudElementCombatFeed", "_add_combat_feed_message", function(func, self, data)
+    if not self:_enabled() then
+        return
+    end
+
     local kfi = get_mod("KillfeedImprovements")
     local kfi_is_enabled = kfi and kfi:is_enabled()
     local notification, notification_id = self:_add_notification_message("default")
