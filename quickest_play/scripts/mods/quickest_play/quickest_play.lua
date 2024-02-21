@@ -1,8 +1,8 @@
 --[[
     title: quickest_play
     author: Zombine
-    date: 2023/12/18
-    version: 1.4.1
+    date: 2024/02/22
+    version: 1.4.2
 ]]
 
 local mod = get_mod("quickest_play")
@@ -14,9 +14,24 @@ mod:set("_was_auric", mod:get("_was_auric") or false)
 
 local _is_in_hub = function()
     local game_mode_manager = Managers.state.game_mode
+    local gamemode_name = game_mode_manager and game_mode_manager:game_mode_name() or "unknown"
 
-    if game_mode_manager and game_mode_manager:game_mode_name() == "hub" then
+    if game_mode_manager and gamemode_name == "hub" then
         return true
+    end
+
+    -- psych_ward compatibility
+
+    local pw = get_mod("psych_ward")
+    local pw_is_enabled = pw and pw:is_enabled()
+
+    if pw_is_enabled then
+        local is_main_menu = Managers.ui:view_active("main_menu_view")
+        local is_psykhanium = gamemode_name == "shooting_range"
+
+        if is_main_menu or is_psykhanium then
+            return true
+        end
     end
 
     return false
