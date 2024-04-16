@@ -217,7 +217,7 @@ mod:hook_safe("MainMenuView", "_show_character_details", function(self, show, pr
     local character_id = profile.character_id
     local progression = mod._memory.progression
     local progression_data = progression and progression[character_id]
-    mod:dump(widget.style)
+
     if progression_data then
         local title = content.character_archetype_title
         content.character_archetype_title = mod.replace_level_text(title, progression_data, "main_menu")
