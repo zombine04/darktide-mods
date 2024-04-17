@@ -1,8 +1,8 @@
 --[[
     title: barter_at_once
     author: Zombine
-    date: 04/11/2023
-    version: 1.4.2
+    date: 2024/04/17
+    version: 1.4.3
 ]]
 local mod = get_mod("barter_at_once")
 local NotifSettings = require("scripts/ui/constant_elements/elements/notification_feed/constant_element_notification_feed_settings")
@@ -353,7 +353,7 @@ mod:hook("UIManager", "play_2d_sound", function(func, self, sound, ...)
         return
     end
 
-    func(self, sound, ...)
+    return func(self, sound, ...)
 end)
 
 -- ##############################
