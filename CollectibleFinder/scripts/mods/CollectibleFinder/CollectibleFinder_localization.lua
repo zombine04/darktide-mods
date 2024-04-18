@@ -24,6 +24,7 @@ mod:add_global_localize_strings({
         en = "Heretical Idol",
         ja = "異端の偶像",
         ["zh-cn"] = "异端雕像",
+        ru = "Еретический идол",
     }
 })
 
@@ -31,11 +32,13 @@ local loc = {
     mod_name = {
         en = "Collectible Finder",
         ["zh-cn"] = "收集物搜寻",
+        ru = "Поисковик собираемых предметов",
     },
     mod_description = {
         en = "Displays a notification once you are within a certain distance from the collectibles.",
         ja = "コレクタブルから一定距離内に入った際に通知を表示します。",
         ["zh-cn"] = "进入收集物一定范围内时，显示一条通知。",
+        ru = "Collectible Finder - Отображает уведомление, когда вы находитесь на определённом расстоянии от предметов, которые можно собрать.",
     },
     toggle = {
         en = "Toggle",
@@ -47,6 +50,7 @@ local loc = {
         en = "Detailed Settings",
         ja = "詳細設定",
         ["zh-cn"] = "详细设置",
+        ru = "Подробные настройки",
     },
     type_notif = {
         en = "Notification",
@@ -139,11 +143,13 @@ local settings = {
         en = "Repeat Notification",
         ja = "繰り返し通知",
         ["zh-cn"] = "重复通知",
+        ru = "Повторить уведомление",
     },
     enable_sound_cue = {
         en = "Additional Notification Sound",
         ja = "追加の通知音",
         ["zh-cn"] = "额外通知音效",
+        ru = "Дополнительный звук уведомления",
     },
     sound_cue = {
         en = "Notification Sound",
