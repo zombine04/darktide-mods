@@ -1,8 +1,8 @@
 --[[
     title: CollectibleFinder
     author: Zombine
-    date: 2024/04/18
-    version: 1.0.0
+    date: 2024/04/19
+    version: 1.0.1
 ]]
 local mod = get_mod("CollectibleFinder")
 local CollectibleFinderMarker = mod:io_dofile("CollectibleFinder/scripts/mods/CollectibleFinder/CollectibleFinder_marker")
@@ -342,7 +342,7 @@ mod:hook(CLASS.InteracteeExtension, "stopped", function(func, self, result)
         local pickup_name = _get_pickup_name(unit)
 
         if _is_collectible(pickup_name) then
-            if mod:get("enable_pickup_notif_" .. pickup_name) and _is_tracking(unit) or mod:get("enable_drop_notif_" .. pickup_name) then
+            if mod:get("enable_pickup_notif_" .. pickup_name) and (_is_tracking(unit) or mod:get("enable_drop_notif_" .. pickup_name)) then
                 _show_notification("collectible_picked_up", false, player, player_name, pickup_name)
             end
         end
