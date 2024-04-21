@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 2024/04/16
-    version: 1.4.3
+    date: 2024/04/21
+    version: 1.5.0
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -136,7 +136,27 @@ mod.replace_level_text = function(text, progression_data, key, need_to_add)
     local show_prestige_only = mod.get_best_setting("enable_prestige_only", key)
     local prestige_color = mod.get_best_setting("prestige_level_color", key)
 
+    local function _has_title(content)
+        local t = {}
+
+        for s in content:gmatch("[^\n]+") do
+            t[#t + 1] = s
+        end
+
+        return #t > 1, t
+    end
+
     if need_to_add then
+        local title = ""
+        local has_title, contents = _has_title(text)
+
+        if has_title then
+            text = contents[1]
+            title = contents[2]
+        else
+            text = text:gsub("\n", "")
+        end
+
         text = text .. " "
 
         if not progression_data.additional_level or display_style == "default" then
@@ -146,6 +166,10 @@ mod.replace_level_text = function(text, progression_data, key, need_to_add)
             text = text .. progression_data.level .. add
         elseif display_style == "total" and progression_data.true_level then
             text = text .. progression_data.true_level .. " "
+        end
+
+        if title then
+            text = text .. "\n" .. title
         end
     else
         if display_style == "separate" and progression_data.additional_level then
@@ -310,6 +334,27 @@ mod:hook_safe("HudElementWorldMarkers", "update", function(self, dt, t)
                 end
 
                 if can_replace then
+                    local save_data = Managers.save:account_data()
+                    local interface_settings = save_data.interface_settings
+                    local character_nameplates_in_mission_type = interface_settings.character_nameplates_in_mission_type
+
+                    if character_nameplates_in_mission_type ~= "none" then
+                        if character_nameplates_in_mission_type == "name_and_title" and is_combat and not marker.wru_modified then
+                            local data = marker.data
+                            local profile =  data:profile()
+                            local title = ProfileUtils.character_title(profile)
+
+                            if title then
+                                local content = marker.widget.content
+
+                                content.header_text = content.header_text .. "\n" .. title
+                            end
+                        end
+                    else
+                        marker.tl_modified = true
+                        return
+                    end
+
                     local player = marker.data
                     local character_id = player:character_id()
                     local memory = mod._memory

@@ -1,11 +1,12 @@
 --[[
     title: who_are_you
     author: Zombine
-    date: 2023/11/17
-    version: 3.3.0
+    date: 2024/04/21
+    version: 3.4.0
 ]]
 local mod = get_mod("who_are_you")
-local TextUtilities = require("scripts/utilities/ui/text")
+local ProfileUtils = require("scripts/utilities/profile_utils")
+local TextUtils = require("scripts/utilities/ui/text")
 local UISettings = require("scripts/settings/ui/ui_settings")
 local ICONS = {
     steam = "",
@@ -243,6 +244,18 @@ mod:hook_safe("HudElementWorldMarkers", "_calculate_markers", function(self, dt,
                 local is_combat = marker_type == "nameplate_party"
 
                 if not is_current_style(marker.wru_style) or not marker.wru_modified then
+                    -- update nameplate after exiting inventory
+                    marker.cb_event_player_profile_updated = function(self, synced_peer_id, synced_local_player_id, new_profile, force_update)
+                        local valid = force_update or self.peer_id and self.peer_id == synced_peer_id
+
+                        if not valid then
+                            return
+                        end
+
+                        marker.wru_modified = false
+                        marker.tl_modified = false
+                    end
+
                     local player = marker.data
                     local profile = player:profile()
                     local content = marker.widget.content
@@ -261,11 +274,36 @@ mod:hook_safe("HudElementWorldMarkers", "_calculate_markers", function(self, dt,
                             local slot_color = UISettings.player_slot_colors[slot] or Color.ui_hud_green_light(255, true)
                             local color = slot_color[2] .. "," .. slot_color[3] .. "," .. slot_color[4]
                             local color_code = _format_inline_code("color", color)
+                            local header_text = color_code .. string_symbol .. "{#reset()} " .. modified_name
+                            local icon_text = color_code .. string_symbol .. "{#reset()}"
 
-                            content.header_text = color_code .. string_symbol .. "{#reset()} " .. modified_name
-                            content.icon_text = color_code .. string_symbol .. "{#reset()}"
+                            local save_data = Managers.save:account_data()
+                            local interface_settings = save_data.interface_settings
+                            local character_nameplates_in_mission_type = interface_settings.character_nameplates_in_mission_type
+
+                            if character_nameplates_in_mission_type ~= "none" then
+                                if character_nameplates_in_mission_type == "name_and_title" then
+                                    local title = ProfileUtils.character_title(profile)
+
+                                    if title then
+                                        header_text = header_text .. "\n" .. title
+                                    end
+                                end
+                            else
+                                header_text = ""
+                            end
+
+                            content.header_text = header_text
+                            content.icon_text = icon_text
                         else
-                            content.header_text = string_symbol .. " " .. modified_name .. " - " .. character_level .. " "
+                            local header_text = string_symbol .. " " .. modified_name .. " - " .. character_level .. " "
+                            local title = ProfileUtils.character_title(profile)
+
+                            if title then
+                                header_text = header_text .. "\n" .. title
+                            end
+
+                            content.header_text = header_text
                         end
 
                         marker.wru_modified = true
@@ -340,7 +378,7 @@ mod:hook("HudElementCombatFeed", "_get_unit_presentation_name", function(func, s
                 local ref = "combat_feed"
                 local modified_name = modify_character_name(character_name, account_name, account_id, ref)
 
-                return TextUtilities.apply_color_to_text(modified_name, player_slot_color)
+                return TextUtils.apply_color_to_text(modified_name, player_slot_color)
             end
         end
     end
