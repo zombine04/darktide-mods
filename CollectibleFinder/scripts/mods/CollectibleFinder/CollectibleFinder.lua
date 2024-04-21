@@ -1,8 +1,8 @@
 --[[
     title: CollectibleFinder
     author: Zombine
-    date: 2024/04/19
-    version: 1.0.1
+    date: 2024/04/21
+    version: 1.0.2
 ]]
 local mod = get_mod("CollectibleFinder")
 local CollectibleFinderMarker = mod:io_dofile("CollectibleFinder/scripts/mods/CollectibleFinder/CollectibleFinder_marker")
@@ -346,9 +346,23 @@ mod:hook(CLASS.InteracteeExtension, "stopped", function(func, self, result)
                 _show_notification("collectible_picked_up", false, player, player_name, pickup_name)
             end
         end
+
+        if Unit.alive(unit) then
+            _set_tracking(unit, nil)
+        end
     end
 
     func(self, result)
+end)
+
+-- Remove tracker when destructed
+
+mod:hook_safe(CLASS.CollectiblesManager, "collectible_destroyed", function(self, data, attacking_unit)
+    local unit = data.unit
+
+    if Unit.alive(unit) then
+        _set_tracking(unit, nil)
+    end
 end)
 
 -- ##############################
