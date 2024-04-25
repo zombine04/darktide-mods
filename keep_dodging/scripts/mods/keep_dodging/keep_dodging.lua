@@ -1,58 +1,32 @@
 --[[
     title: keep_dodging
     author: Zombine
-    date: 05/10/2023
-    version: 1.0.4
+    date: 2024/04/25
+    version: 1.1.0
 ]]
 local mod = get_mod("keep_dodging")
 
-local path = "keep_dodging/scripts/mods/keep_dodging/keep_dodging_elements"
+-- ############################################################
+-- Register Hud Element
+-- ############################################################
+
 local element = {
     package = "packages/ui/views/inventory_view/inventory_view",
     use_hud_scale = true,
     class_name = "HudElementKeepDodging",
-    filename = path,
+    filename = "keep_dodging/scripts/mods/keep_dodging/keep_dodging_elements",
     visibility_groups = {
         "alive"
     }
 }
 
-local recreate_hud = function()
-    local ui_manager = Managers.ui
-    local hud = ui_manager and ui_manager._hud
+mod:register_hud_element(element)
 
-    if hud then
-        local player = Managers.player:local_player(1)
-        local peer_id = player:peer_id()
-        local local_player_id = player:local_player_id()
-        local elements = hud._element_definitions
-        local visibility_groups = hud._visibility_groups
+-- ############################################################
+-- Hook Input Service
+-- ############################################################
 
-        hud:destroy()
-        ui_manager:create_player_hud(peer_id, local_player_id, elements, visibility_groups)
-    end
-end
-
-local add_element = function(elements)
-    if not table.find_by_key(elements, "class_name", element.class_name) then
-        table.insert(elements, element)
-    end
-end
-
-local _set_was_active = function(delay)
-    mod._was_active = true
-    Promise.delay(delay):next(function()
-        mod._was_active = false
-    end)
-end
-
-mod:io_dofile(path)
-mod:add_require_path(path)
-
-mod:hook_require("scripts/ui/hud/hud_elements_player_onboarding", add_element)
-mod:hook_require("scripts/ui/hud/hud_elements_player", add_element)
-
-local input_hook = function(func, self, action_name, ...)
+local _input_hook = function(func, self, action_name, ...)
     local out = func(self, action_name, ...)
 
     if action_name == "dodge" and mod._is_active then
@@ -62,15 +36,26 @@ local input_hook = function(func, self, action_name, ...)
     return out
 end
 
-mod:hook("InputService", "_get", input_hook)
-mod:hook("InputService", "_get_simulate", input_hook)
+mod:hook("InputService", "_get", _input_hook)
+mod:hook("InputService", "_get_simulate", _input_hook)
 mod:hook("PlayerUnitInputExtension", "get", function(func, self, action)
-    if action == "stationary_dodge" and (mod._is_active or mod._was_active) then
+    if action == "stationary_dodge" and mod:get("disable_sd_while_active") and (mod._is_active or mod._was_active) then
         return false
     end
 
     return func(self, action)
 end)
+
+-- ############################################################
+-- Activation
+-- ############################################################
+
+local _set_was_active = function(delay)
+    mod._was_active = true
+    Promise.delay(delay):next(function()
+        mod._was_active = false
+    end)
+end
 
 mod.hold_keep_dodging = function(is_pressed)
     mod._is_active = is_pressed
@@ -94,8 +79,32 @@ mod.on_game_state_changed = function(status, state_name)
     end
 end
 
+-- ############################################################
+-- Sync
+-- ############################################################
+
+local _override_input_settings = function(allow_stationary_dodge)
+    local save_manager = Managers.save
+    local save_data = save_manager:account_data()
+    local input_settings = save_data.input_settings
+
+    input_settings.stationary_dodge = allow_stationary_dodge
+    save_manager:queue_save()
+end
+
+mod:hook_safe(CLASS.SaveManager, "cb_save_done", function(self)
+    if self._state == "idle" then
+        local save_manager = Managers.save
+        local save_data = save_manager:account_data()
+        local input_settings = save_data.input_settings
+        local allow_stationary_dodge = input_settings.stationary_dodge
+
+        mod:set("enable_stationary_dodge", allow_stationary_dodge)
+    end
+end)
+
 mod.on_all_mods_loaded = function()
-    recreate_hud()
+    _override_input_settings(mod:get("enable_stationary_dodge"))
 
     if not mod._is_in_hub() then
         mod._is_active = mod:get("enable_on_start")
@@ -103,7 +112,7 @@ mod.on_all_mods_loaded = function()
 end
 
 mod.on_setting_changed = function()
-    recreate_hud()
+    _override_input_settings(mod:get("enable_stationary_dodge"))
 
     if not mod._is_in_hub() then
         mod._is_active = mod:get("enable_on_start")

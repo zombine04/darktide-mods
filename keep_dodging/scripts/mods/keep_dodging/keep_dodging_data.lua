@@ -1,5 +1,8 @@
 local mod = get_mod("keep_dodging")
 
+local save_data = Managers.save:account_data()
+local input_settings = save_data.input_settings
+
 local color_options = {}
 
 local _get_color_options = function()
@@ -58,6 +61,19 @@ return {
                 setting_id = "enable_on_start",
                 type = "checkbox",
                 default_value = false,
+            },
+            {
+                setting_id = "enable_stationary_dodge",
+                type = "checkbox",
+                default_value = input_settings.stationary_dodge,
+                tooltip = "stationary_dodge_tooltip",
+                sub_widgets = {
+                    {
+                        setting_id = "disable_sd_while_active",
+                        type = "checkbox",
+                        default_value = true,
+                    }
+                }
             },
             {
                 setting_id = "icon_settings",

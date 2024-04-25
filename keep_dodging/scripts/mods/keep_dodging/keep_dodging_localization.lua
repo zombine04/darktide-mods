@@ -1,3 +1,6 @@
+local stationary_dodge = Localize("loc_setting_stationary_dodge")
+local sd_desc = Localize("loc_setting_stationary_dodge_desc")
+
 local loc = {
     mod_name = {
         en = "Keep Dodging",
@@ -22,6 +25,17 @@ local loc = {
         en = "Enable on Game Start",
         ja = "開始時点で有効にする",
         ["zh-cn"] = "游戏启动时启用",
+    },
+    enable_stationary_dodge = {
+        en = stationary_dodge,
+    },
+    stationary_dodge_tooltip = {
+        en = "This is synced with \"" .. stationary_dodge .. "\" option in Options -> Inputs." .. "\n\n" .. sd_desc,
+        ja = "これは「オプション」の「入力」にある「" .. stationary_dodge .. "」の設定と同期しています。" .. "\n\n" .. sd_desc,
+    },
+    disable_sd_while_active = {
+        en = "Disable " .. stationary_dodge .. " while the mod is active",
+        ja = "Modが有効な間は" .. stationary_dodge .. "を無効化する",
     },
     icon_settings = {
         en = "Icon Settings",
@@ -74,8 +88,7 @@ for i, name in ipairs(Color.list) do
     local c = Color[name](255, true)
     local text = string.format("{#color(%s,%s,%s)}%s{#reset()}", c[2], c[3], c[4], string.gsub(name, "_", " "))
 
-    loc[name] = {}
-    loc[name].en = text
+    loc[name] = { en = text }
 end
 
 return loc
