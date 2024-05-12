@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 2024/04/21
-    version: 1.5.0
+    date: 2024/05/13
+    version: 1.5.1
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -338,10 +338,22 @@ mod:hook_safe("HudElementWorldMarkers", "update", function(self, dt, t)
                     local interface_settings = save_data.interface_settings
                     local character_nameplates_in_mission_type = interface_settings.character_nameplates_in_mission_type
 
+                    -- update nameplate when the profile is updated
+                    marker.cb_event_player_profile_updated = function(self, synced_peer_id, synced_local_player_id, new_profile, force_update)
+                        local valid = force_update or self.peer_id and self.peer_id == synced_peer_id
+
+                        if not valid then
+                            return
+                        end
+
+                        marker.wru_modified = false
+                        marker.tl_modified = false
+                    end
+
                     if character_nameplates_in_mission_type ~= "none" then
                         if character_nameplates_in_mission_type == "name_and_title" and is_combat and not marker.wru_modified then
                             local data = marker.data
-                            local profile =  data:profile()
+                            local profile = data:profile()
                             local title = ProfileUtils.character_title(profile)
 
                             if title then
