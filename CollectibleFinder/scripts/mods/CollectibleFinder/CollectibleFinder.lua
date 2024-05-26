@@ -1,8 +1,8 @@
 --[[
     title: CollectibleFinder
     author: Zombine
-    date: 2024/04/21
-    version: 1.0.2
+    date: 2024/05/26
+    version: 1.1.0
 ]]
 local mod = get_mod("CollectibleFinder")
 local CollectibleFinderMarker = mod:io_dofile("CollectibleFinder/scripts/mods/CollectibleFinder/CollectibleFinder_marker")
@@ -76,8 +76,16 @@ local _is_notified = function(unit)
     return Unit.get_data(unit, "cf_notified")
 end
 
+local _is_collected = function(unit)
+    return Unit.get_data(unit, "cf_collected")
+end
+
 local _set_notified = function(unit, val)
     Unit.set_data(unit, "cf_notified", val)
+end
+
+local _set_collected = function(unit, val)
+    Unit.set_data(unit, "cf_collected", val)
 end
 
 local _set_last_t = function(unit, t)
@@ -142,14 +150,42 @@ local _show_notification = function(key, play_sound, player, player_name, collec
     end
 
     local notif_type = mod:get("notif_type_" .. collectible_name)
+    local message = mod:localize(key, player_name, display_name, target_name)
 
     if notif_type == "type_chat" or notif_type == "type_both" then
-        mod:echo(mod:localize(key, player_name, display_name, target_name))
+        mod:echo(message)
     end
+
     if notif_type == "type_notif" or notif_type == "type_both" then
-        mod:notify(mod:localize(key, player_name, display_name, target_name))
+        mod:notify(message)
     end
 end
+
+-- ##############################
+-- Register Hud Elements
+-- ##############################
+
+local package_penance = "packages/ui/views/penance_overview_view/penance_overview_view"
+
+mod:register_hud_element({
+    package = package_penance,
+    use_hud_scale = true,
+    class_name = "HudElementCollectibleFinder",
+    filename = "CollectibleFinder/scripts/mods/CollectibleFinder/CollectibleFinder_elements",
+    visibility_groups = {
+        "alive"
+    }
+})
+
+-- Load Package
+
+mod:hook_safe(CLASS.PackageManager, "load", function(self, package, ref)
+    if package == "packages/ui/hud/player_weapon/player_weapon" and
+       not self:has_loaded(package_penance) and
+       not self:is_loading(package_penance) then
+        self:load(package_penance, ref)
+    end
+end)
 
 -- ##############################
 -- Register Collectibles
@@ -226,11 +262,16 @@ mod:hook_safe(CollectibleFinderMarker, "update_function", function(_, _, widget,
         local is_repeatable = mod:get("enable_repeat_notif_" .. collectible_name)
         local content = widget.content
         local distance = content and content.distance
+        local use_icon_indicator = mod:get("enable_icon_indicator_" .. collectible_name)
 
         if distance then
             mod.debug.start_tracking(unit, distance)
 
             if distance < search_distance then
+                if use_icon_indicator and not _is_collected(unit) and Unit.alive(unit) then
+                    Managers.event:trigger("event_cf_add_icon_indicator", unit, collectible_name, distance, search_distance)
+                end
+
                 if not _is_notified(unit) then
                     _set_notified(unit, true)
                     _set_last_t(unit, t)
@@ -238,8 +279,14 @@ mod:hook_safe(CollectibleFinderMarker, "update_function", function(_, _, widget,
 
                     mod.debug.notify_sensed(unit, distance)
                 end
-            elseif is_repeatable and _is_notified(unit) and _can_repeat(unit, t) then
-                _set_notified(unit, false)
+            else
+                if is_repeatable and not _is_collected(unit) and _is_notified(unit) and _can_repeat(unit, t) then
+                    _set_notified(unit, false)
+                end
+
+                if use_icon_indicator then
+                    Managers.event:trigger("event_cf_remove_icon_indicator", unit)
+                end
             end
         end
     end
@@ -345,23 +392,41 @@ mod:hook(CLASS.InteracteeExtension, "stopped", function(func, self, result)
             if mod:get("enable_pickup_notif_" .. pickup_name) and (_is_tracking(unit) or mod:get("enable_drop_notif_" .. pickup_name)) then
                 _show_notification("collectible_picked_up", false, player, player_name, pickup_name)
             end
-        end
 
-        if Unit.alive(unit) then
-            _set_tracking(unit, nil)
+            if Unit.alive(unit) then
+                _set_collected(unit, true)
+            end
+
+            if mod:get("enable_icon_indicator_" .. pickup_name) then
+                Managers.event:trigger("event_cf_remove_icon_indicator", unit)
+            end
         end
-    end
+   end
 
     func(self, result)
 end)
 
 -- Remove tracker when destructed
 
-mod:hook_safe(CLASS.CollectiblesManager, "collectible_destroyed", function(self, data, attacking_unit)
+mod:hook_safe(CLASS.CollectiblesManager, "_show_destructible_notification", function(self, peer_id, section_id, id)
+    local collectible_data = self._destructibles
+    local section_data = collectible_data[section_id]
+    local data = section_data[id]
     local unit = data.unit
+    local destructible_name = "idol"
+    local player = Managers.player:player(peer_id, 1)
+    local player_name = player and player:name()
 
     if Unit.alive(unit) then
         _set_tracking(unit, nil)
+    end
+
+    if mod:get("enable_destruct_notif_" .. destructible_name) and player then
+        _show_notification("collectible_destructed", false, player, player_name, destructible_name)
+    end
+
+    if mod:get("enable_icon_indicator_" .. destructible_name) then
+        Managers.event:trigger("event_cf_remove_icon_indicator", unit)
     end
 end)
 

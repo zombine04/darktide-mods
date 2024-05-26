@@ -76,6 +76,10 @@ local loc = {
         ["zh-cn"] = "感应到附近有%s%s的存在...",
         ru = "Чувствую, что где-то рядом %s%s...",
     },
+    collectible_destructed = {
+        en = "%s destroyed %s",
+        ja = "%sが%sを破壊した",
+    },
     collectible_picked_up = {
         en = "%s picked up a %s.",
         ja = "%sが%sを拾った。",
@@ -115,11 +119,31 @@ local settings = {
         ["zh-cn"] = "感应范围",
         ru = "Расстояние поиска",
     },
+    enable_icon_indicator = {
+        en = "Icon Indicator",
+        ja = "アイコン表示",
+    },
+    icon_size = {
+        en = "Size",
+        ja = "大きさ",
+        ["zh-cn"] = "大小",
+        ru = "Размер",
+    },
+    icon_color = {
+        en = "Color",
+        ja = "色",
+        ["zh-cn"] = "颜色",
+        ru = "цвета",
+    },
     notif_type = {
         en = "Notification Type",
         ja = "通知方法",
         ["zh-cn"] = "通知方式",
         ru = "Стиль уведомлений",
+    },
+    enable_destruct_notif = {
+        en = "Destroy",
+        ja = "破壊",
     },
     enable_pickup_notif = {
         en = "Pick Up",
@@ -170,6 +194,13 @@ for _, collectible in ipairs(mod._collectibles) do
     for key, vals in pairs(settings) do
         loc[key .. "_" .. collectible.name] = vals
     end
+end
+
+for i, name in ipairs(Color.list) do
+    local c = Color[name](255, true)
+    local text = string.format("{#color(%s,%s,%s)}%s{#reset()}", c[2], c[3], c[4], string.gsub(name, "_", " "))
+
+    loc[name] = { en = text }
 end
 
 return loc
