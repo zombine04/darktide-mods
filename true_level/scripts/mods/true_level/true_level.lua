@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 2024/05/13
-    version: 1.5.1
+    date: 2024/05/27
+    version: 1.5.2
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -359,7 +359,9 @@ mod:hook_safe("HudElementWorldMarkers", "update", function(self, dt, t)
                             if title then
                                 local content = marker.widget.content
 
-                                content.header_text = content.header_text .. "\n" .. title
+                                if not string.match(content.header_text, "\n") then
+                                    content.header_text = content.header_text .. "\n" .. title
+                                end
                             end
                         end
                     else
