@@ -79,6 +79,7 @@ local loc = {
     collectible_destructed = {
         en = "%s destroyed %s",
         ja = "%sが%sを破壊した",
+        ["zh-cn"] = "%s破坏了%s。",
     },
     collectible_picked_up = {
         en = "%s picked up a %s.",
@@ -122,6 +123,7 @@ local settings = {
     enable_icon_indicator = {
         en = "Icon Indicator",
         ja = "アイコン表示",
+        ["zh-cn"] = "图标指示器",
     },
     icon_size = {
         en = "Size",
@@ -144,6 +146,7 @@ local settings = {
     enable_destruct_notif = {
         en = "Destroy",
         ja = "破壊",
+        ["zh-cn"] = "破坏",
     },
     enable_pickup_notif = {
         en = "Pick Up",
