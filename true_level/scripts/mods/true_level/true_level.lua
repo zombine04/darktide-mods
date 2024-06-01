@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 2024/05/27
-    version: 1.5.2
+    date: 2024/06/01
+    version: 1.5.3
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -182,6 +182,8 @@ mod.replace_level_text = function(text, progression_data, key, need_to_add)
 
     if show_prestige and progression_data.prestige then
         local prestige = "" .. progression_data.prestige
+
+        text = text:gsub("[^\n]*", "")
 
         if prestige_color ~= "default" then
             local c = Color[prestige_color](255, true)
