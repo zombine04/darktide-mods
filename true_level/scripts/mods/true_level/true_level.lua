@@ -183,7 +183,7 @@ mod.replace_level_text = function(text, progression_data, key, need_to_add)
     if show_prestige and progression_data.prestige then
         local prestige = "" .. progression_data.prestige
 
-        text = text:gsub("[^\n]*", "")
+        text = text:gsub("[^\n%s]*", "")
 
         if prestige_color ~= "default" then
             local c = Color[prestige_color](255, true)
