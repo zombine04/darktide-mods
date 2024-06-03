@@ -14,14 +14,13 @@ mod.buff_names = {
     "ogryn_recieve_damage_taken_increase_debuff",
     "ogryn_taunt_increased_damage_taken_buff",
     "veteran_improved_tag_debuff",
-    "stagger",
-    "suppression",
+    -- "stagger",
+    -- "suppression",
 }
 
-mod.dot_names = {
-    "bleed",
-    "flamer_assault",
-    "warp_fire",
+mod.merged_buffs = {
+    psyker_protectorate_spread_charged_chain_lightning_interval_improved = "psyker_protectorate_spread_chain_lightning_interval_improved",
+    rending_debuff_medium = "rending_debuff",
 }
 
 mod.display_style_names = {
@@ -117,13 +116,13 @@ local loc = {
         ["zh-cn"] = "显示对象",
         ru = "Что показывается",
     },
-    enable_debuff = {
+    debuff = {
         en = "Debuff",
         ja = "デバフ",
         ["zh-cn"] = "负面效果",
         ru = "Дебафф",
     },
-    enable_dot = {
+    dot = {
         en = "Damage over Time",
         ja = "継続ダメージ",
         ["zh-cn"] = "持续伤害",
@@ -165,11 +164,23 @@ local loc = {
         ["zh-cn"] = "位置（高度）",
         ru = "Положение (высота)",
     },
+    toggle = {
+        en = "Toggle",
+        ja = "切り替え",
+        ["zh-cn"] = "开关",
+        ru = "Переключатели",
+    },
     custom_color = {
         en = "Custom color",
         ja = "カスタムカラー",
         ["zh-cn"] = "自定义颜色",
         ru = "Пользовательские цвета",
+    },
+    color = {
+        en = "Color",
+        ja = "色",
+        ["zh-cn"] = "颜色",
+        ru = "цвета",
     },
     color_r = {
         en = "R",
@@ -268,7 +279,22 @@ local loc = {
 }
 
 for _, buff_name in ipairs(mod.buff_names) do
-    loc["color_" .. buff_name] = loc[buff_name]
+    loc["enable_" .. buff_name] = loc["toggle"]
+    loc["color_" .. buff_name] = loc["color"]
+
+    if loc[buff_name] then
+        for lang, text in pairs(loc[buff_name]) do
+            local key = "group_" .. buff_name
+
+            loc[key] = loc[key] or {}
+            loc[key][lang] = "    " .. text
+        end
+    end
+end
+
+for lang, text in pairs(loc["debuff"]) do
+    loc["debuff_and_dot"] = loc["debuff_and_dot"] or {}
+    loc["debuff_and_dot"][lang] = text .. " / " .. loc["dot"][lang]
 end
 
 for breed_name, breed in pairs(Breeds) do

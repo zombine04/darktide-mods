@@ -205,28 +205,38 @@ local _merge_psyker_smite_debuff = function(buff_texts)
     return buff_texts
 end
 
+local _check_merged_buff = function(buff_name)
+    local parent_name = mod.merged_buffs[buff_name]
+
+    if parent_name then
+        return mod:get("enable_" .. parent_name)
+    end
+
+    return false
+end
+
 local _add_buff_and_debuff = function(buff_ext, buffs, content)
     local buff_texts = {}
 
     for _, buff in ipairs(buffs) do
         local buff_name = buff:template_name()
+        local can_display = false
 
-        if (mod:get("enable_filter") and not table.find(mod.buff_names, buff_name)) or
-           (not mod:get("enable_dot") and table.find(mod.dot_names, buff_name)) or
-           (not mod:get("enable_debuff") and not table.find(mod.dot_names, buff_name))
-        then
-            goto continue
+        if mod:get("enable_" .. buff_name) or
+           _check_merged_buff(buff_name) or
+           not mod:get("enable_filter") and not table.find(mod.buff_names, buff_name) then
+            can_display = true
         end
 
-        local display_name = table.find(mod.buff_names, buff_name) and mod:localize(buff_name) or buff_name
-        local stacks = _get_stacks(buff_ext, buff_name)
+        if can_display then
+            local display_name = table.find(mod.buff_names, buff_name) and mod:localize(buff_name) or buff_name
+            local stacks = _get_stacks(buff_ext, buff_name)
 
-        buff_texts[buff_name] = {
-            display_name = display_name,
-            stacks = stacks
-        }
-
-        ::continue::
+            buff_texts[buff_name] = {
+                display_name = display_name,
+                stacks = stacks
+            }
+        end
     end
 
     buff_texts = _calculate_rending_percentage(buff_texts)
@@ -308,11 +318,14 @@ function template.update_function(parent, ui_renderer, widget, marker, template,
         return
     end
 
+--[[
+    -- stagger and suppression
     local blackboard = BLACKBOARDS[unit]
 
     if blackboard then
         _add_stagger_and_suppression(blackboard, content)
     end
+]]
 
     local buff_ext = ScriptUnit.extension(unit, "buff_system")
     local buffs = buff_ext and buff_ext:buffs()

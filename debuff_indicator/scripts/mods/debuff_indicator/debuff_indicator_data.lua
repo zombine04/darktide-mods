@@ -1,7 +1,7 @@
 local mod = get_mod("debuff_indicator")
 local Breeds = require("scripts/settings/breed/breeds")
 
-local get_options = function()
+local _get_options = function()
     local options = {}
 
     for _, v in ipairs(mod.display_style_names) do
@@ -14,33 +14,13 @@ local get_options = function()
     return options
 end
 
-local get_groups = function()
-    local groups = {}
-
-    for _, v in ipairs(mod.display_group_names) do
-        local default = true
-
-        if v == "stagger" or v == "suppression" then
-            default = false
-        end
-
-        groups[#groups + 1] = {
-            setting_id = "enable_" .. v,
-            type = "checkbox",
-            default_value = default,
-        }
-    end
-
-    return groups
-end
-
 local widgets = {
     {
         setting_id = "display_style",
         type = "dropdown",
         default_value = "both",
         tooltip = "display_style_options",
-        options = get_options(),
+        options = _get_options(),
         sub_widgets = {
             {
                 setting_id = "key_cycle_style",
@@ -88,17 +68,12 @@ local widgets = {
             },
         }
     },
-    {
-        setting_id = "display_group",
-        type = "group",
-        sub_widgets = get_groups()
-    },
 }
 
 local widgets_debuff = {}
 local color_option = {}
 
-local is_duplicated = function(a)
+local _is_duplicated = function(a)
     local join = function(t)
         return string.format("%s,%s,%s", t[2], t[3], t[4])
     end
@@ -115,7 +90,7 @@ local is_duplicated = function(a)
 end
 
 for i, name in ipairs(Color.list) do
-    if not is_duplicated(Color[name](255, true)) then
+    if not _is_duplicated(Color[name](255, true)) then
         color_option[#color_option + 1] = { text = name, value = name }
     end
 end
@@ -128,16 +103,27 @@ for _, buff_name in ipairs(mod.buff_names) do
     if not string.match(buff_name, "rending_debuff_") and
        not string.match(buff_name, "psyker_protectorate_spread_charged") then
         widgets_debuff[#widgets_debuff + 1] = {
-            setting_id = "color_" .. buff_name,
-            type = "dropdown",
-            default_value = "white_smoke",
-            options = table.clone(color_option)
+            setting_id = "group_" .. buff_name,
+            type = "group",
+            sub_widgets = {
+                {
+                    setting_id = "enable_" .. buff_name,
+                    type = "checkbox",
+                    default_value = true
+                },
+                {
+                    setting_id = "color_" .. buff_name,
+                    type = "dropdown",
+                    default_value = "white_smoke",
+                    options = table.clone(color_option)
+                }
+            }
         }
     end
 end
 
 widgets[#widgets + 1] = {
-    setting_id = "custom_color",
+    setting_id = "debuff_and_dot",
     type = "group",
     sub_widgets = widgets_debuff,
 }
