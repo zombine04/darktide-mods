@@ -125,7 +125,8 @@ table.sort(color_option, function(a, b)
 end)
 
 for _, buff_name in ipairs(mod.buff_names) do
-    if not string.match(buff_name, "rending_debuff_") then
+    if not string.match(buff_name, "rending_debuff_") and
+       not string.match(buff_name, "psyker_protectorate_spread_charged") then
         widgets_debuff[#widgets_debuff + 1] = {
             setting_id = "color_" .. buff_name,
             type = "dropdown",

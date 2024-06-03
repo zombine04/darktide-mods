@@ -185,6 +185,26 @@ local _calculate_rending_percentage = function(buff_texts)
     return buff_texts
 end
 
+local _merge_psyker_smite_debuff = function(buff_texts)
+    local buff_name = "psyker_protectorate_spread_chain_lightning_interval_improved"
+    local buff_name_charged = "psyker_protectorate_spread_charged_chain_lightning_interval_improved"
+
+    if buff_texts[buff_name_charged] then
+        if buff_texts[buff_name] then
+            buff_texts[buff_name].stacks = buff_texts[buff_name].stacks + buff_texts[buff_name_charged].stacks
+        else
+            buff_texts[buff_name] = {
+                display_name = mod:localize(buff_name),
+                stacks = buff_texts[buff_name_charged].stacks
+            }
+        end
+
+        buff_texts[buff_name_charged] = nil
+    end
+
+    return buff_texts
+end
+
 local _add_buff_and_debuff = function(buff_ext, buffs, content)
     local buff_texts = {}
 
@@ -210,6 +230,7 @@ local _add_buff_and_debuff = function(buff_ext, buffs, content)
     end
 
     buff_texts = _calculate_rending_percentage(buff_texts)
+    buff_texts = _merge_psyker_smite_debuff(buff_texts)
 
     for name, data in pairs(buff_texts) do
         local buff_display_text = _apply_display_style_and_color(name, data.display_name, data.stacks)

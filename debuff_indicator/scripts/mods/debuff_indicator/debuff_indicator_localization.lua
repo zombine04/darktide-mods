@@ -9,8 +9,8 @@ mod.buff_names = {
     "warp_fire",
     "increase_impact_received_while_staggered",
     "increase_damage_received_while_staggered",
---  "psyker_biomancer_smite_vulnerable_debuff",
     "psyker_protectorate_spread_chain_lightning_interval_improved",
+    "psyker_protectorate_spread_charged_chain_lightning_interval_improved",
     "ogryn_recieve_damage_taken_increase_debuff",
     "ogryn_taunt_increased_damage_taken_buff",
     "veteran_improved_tag_debuff",
@@ -244,6 +244,9 @@ local loc = {
         en = Localize("loc_talent_biomancer_smite_increases_non_warp_damage")
     },
     psyker_protectorate_spread_chain_lightning_interval_improved = {
+        en = Localize("loc_talent_psyker_chain_lightning_improved_target_buff")
+    },
+    psyker_protectorate_spread_charged_chain_lightning_interval_improved = {
         en = Localize("loc_talent_psyker_chain_lightning_improved_target_buff")
     },
     ogryn_recieve_damage_taken_increase_debuff = {
