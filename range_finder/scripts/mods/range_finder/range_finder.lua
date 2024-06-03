@@ -1,6 +1,6 @@
 --[[
     title: range_finder
-    author: kanateko
+    author: Zombine
     date: 13/10/2023
     version: 1.1.5
 ]]
