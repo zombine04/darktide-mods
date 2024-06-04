@@ -6,6 +6,7 @@ mod:add_global_localize_strings({
         en = "Change Name",
         ja = "名前を変更する",
         ["zh-cn"] = "更改名称",
+        ru = "Изменить название",
     },
     loc_popup_description_change_name = {
         en = "\n",
@@ -14,16 +15,19 @@ mod:add_global_localize_strings({
         en = "Cancel",
         ja = "キャンセル",
         ["zh-cn"] = "取消",
+        ru = "Отмена",
     },
     loc_reset_all_item_names = {
         en = "Clear All Custom Names",
         ja = "全カスタム名の消去",
         ["zh-cn"] = "清除所有自定义名称",
+        ru = "Очистить все изменённые названия",
     },
     loc_popup_description_reset_all_item_names = {
         en = "Are you sure you want to clear all custom names?",
         ja = "本当に全てのカスタム名を消去してもいいですか？",
         ["zh-cn"] = "你确定要清除所有自定义名称吗？",
+        ru = "Вы действительно хотите очистить все изменённые названия?",
     }
 })
 
@@ -31,6 +35,7 @@ local loc = {
     mod_name = {
         en = "Name It",
         ["zh-cn"] = "物品自定义名称",
+        ru = "Назови это",
     },
     mod_description = {
         en = "Allows each item to set a custom name.\n" ..
@@ -39,11 +44,14 @@ local loc = {
              "注：アイテム名をデフォルトに戻したい場合、空欄で保存するか下記の\"全消去\"ボタンを使用してください。",
         ["zh-cn"] = "允许为物品设置不同的自定义名称。\n" ..
              "注意：如果要恢复物品默认名称，可以将名称留空再保存，或使用底部的“清除所有”按钮。",
+        ru = "Позволяет изменить название любого предмета.\n" ..
+             "Внимание:Если вы хотите вернуть стандартное название предмета, сохраните пустую строку или используйте кнопку «Очистить все изменённые названия», расположенную ниже.",
     },
     keybind_change_name = {
         en = "Keybind",
         ja = "キーバインド",
         ["zh-cn"] = "快捷键",
+        ru = "Горячая клавиша",
     },
     off = {
         en = Localize("loc_setting_checkbox_off"),
@@ -52,6 +60,7 @@ local loc = {
         en = "Enable IME",
         ja = "IMEを有効にする",
         ["zh-cn"] = "启用输入法",
+        ru = "Включить Редактор метода ввода",
     },
     button_reset_all = {
         en = Localize("loc_reset_all_item_names")
@@ -60,6 +69,7 @@ local loc = {
         en = "Cleared",
         ja = "消去しました",
         ["zh-cn"] = "已清除",
+        ru = "Очищено",
     }
 }
 
