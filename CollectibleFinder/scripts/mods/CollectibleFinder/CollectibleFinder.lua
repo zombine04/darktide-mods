@@ -1,8 +1,8 @@
 --[[
     title: CollectibleFinder
     author: Zombine
-    date: 2024/06/01
-    version: 1.1.1
+    date: 2024/06/04
+    version: 1.1.2
 ]]
 local mod = get_mod("CollectibleFinder")
 local CollectibleFinderMarker = mod:io_dofile("CollectibleFinder/scripts/mods/CollectibleFinder/CollectibleFinder_marker")
@@ -13,6 +13,7 @@ local REPEAT_DELAY = 1
 mod._current_sound_cue = {}
 mod._owners = mod:persistent_table("owners")
 mod._collectible_units = mod:persistent_table("spawned_items")
+mod._package_ids = mod:persistent_table("package_ids")
 
 for _, collectible in ipairs(mod._collectibles) do
     local name = collectible.name
@@ -179,11 +180,41 @@ mod:register_hud_element({
 
 -- Load Package
 
-mod:hook_safe(CLASS.PackageManager, "load", function(self, package, ref)
-    if package == "packages/ui/hud/player_weapon/player_weapon" and
-       not self:has_loaded(package_penance) and
-       not self:is_loading(package_penance) then
-        self:load(package_penance, ref)
+local _load_package = function()
+    local package_manager = Managers.package
+    local ids = mod._package_ids
+
+    if not package_manager:has_loaded(package_penance) and
+       not package_manager:is_loading(package_penance) then
+        local id = package_manager:load(package_penance, "CollectibleFinder")
+
+        ids[#ids + 1] = id
+        mod.debug.echo("package loaded")
+    end
+end
+
+local _release_package = function()
+    local package_manager = Managers.package
+    local ids = mod._package_ids
+
+    if not table.is_empty(ids) then
+        for i, id in ipairs(ids) do
+            package_manager:release(id)
+            table.remove(ids, i)
+            mod.debug.echo("package released")
+        end
+    end
+end
+
+mod:hook_safe("StateLoading", "_start_loading", function(self)
+    local mission_name = self._mission_name
+
+    if mission_name and mission_name ~= "hub_ship" then
+        -- load
+        _load_package()
+    else
+        -- unload
+        _release_package()
     end
 end)
 
