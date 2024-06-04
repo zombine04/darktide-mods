@@ -1,8 +1,8 @@
 --[[
     title: name_it
     author: Zombine
-    date: 29/11/2023
-    version: 1.1.2
+    date: 2024/06/04
+    version: 1.1.3
 ]]
 local mod = get_mod("name_it")
 
