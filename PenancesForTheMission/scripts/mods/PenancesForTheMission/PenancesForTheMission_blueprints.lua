@@ -151,11 +151,39 @@ local blueprints = {
             }
         },
         init = function(parent, widget, config)
+            local player = Managers.player:local_player_safe(1)
             local content = widget.content
             local style = widget.style
-            local definition = config.achievemnet_definition
+            local definition = config.achievement_definition
             local title = AchievementUIHelper.localized_title(definition)
             local desc = AchievementUIHelper.localized_description(definition)
+
+            if player and definition.achievements then
+                local achievement_manager = Managers.achievements
+                local child = ""
+                local separator = " | "
+
+                for id, _ in pairs(definition.achievements) do
+                    local is_completed = achievement_manager:achievement_completed(player, id)
+
+                    if mod:get("enable_debug_mode") then
+                        is_completed = false
+                    end
+
+                    if not is_completed then
+                        local child_definition = achievement_manager:achievement_definition(id)
+                        local child_title = AchievementUIHelper.localized_title(child_definition)
+
+                        child = child .. child_title .. separator
+                    end
+                end
+
+                child = "{#size(12)}" .. child:gsub(separator .. "$", "") .. "{#reset}"
+
+                if child ~= "" then
+                    desc = desc .. "\n" .. child
+                end
+            end
 
             content.title = title
             content.desc = desc

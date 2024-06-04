@@ -1,8 +1,8 @@
 --[[
     name: PenancesForTheMission
     author: Zombine
-    date: 2024/06/01
-    version: 1.0.0
+    date: 2024/06/04
+    version: 1.0.1
 ]]
 
 local mod = get_mod("PenancesForTheMission")
@@ -248,12 +248,12 @@ mod:hook_safe(CLASS.MissionBoardView, "_set_selected_mission", function(self, mi
     for category, achievements in pairs(achievements_by_category) do
         for i = 1, #achievements do
             local achievement_id = achievements[i]
-            local is_matched, achievemnet_definition, progress, goal = _is_for_the_mission(category, achievement_id, mission)
+            local is_matched, achievement_definition, progress, goal = _is_for_the_mission(category, achievement_id, mission)
 
-            if is_matched and achievemnet_definition then
+            if is_matched and achievement_definition then
                 penance_list[#penance_list + 1] = {
                     widget_type = "penance_list_item",
-                    achievemnet_definition = achievemnet_definition,
+                    achievement_definition = achievement_definition,
                     progress = progress,
                     goal = goal
                 }
