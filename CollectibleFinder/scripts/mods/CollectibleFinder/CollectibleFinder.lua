@@ -1,8 +1,8 @@
 --[[
     title: CollectibleFinder
     author: Zombine
-    date: 2024/06/04
-    version: 1.1.2
+    date: 2024/06/06
+    version: 1.1.3
 ]]
 local mod = get_mod("CollectibleFinder")
 local CollectibleFinderMarker = mod:io_dofile("CollectibleFinder/scripts/mods/CollectibleFinder/CollectibleFinder_marker")
@@ -180,20 +180,20 @@ mod:register_hud_element({
 
 -- Load Package
 
-local _load_package = function()
+mod.load_package = function(package)
     local package_manager = Managers.package
     local ids = mod._package_ids
 
-    if not package_manager:has_loaded(package_penance) and
-       not package_manager:is_loading(package_penance) then
-        local id = package_manager:load(package_penance, "CollectibleFinder")
+    if not package_manager:has_loaded(package) and
+       not package_manager:is_loading(package) then
+        local id = package_manager:load(package, "CollectibleFinder")
 
         ids[#ids + 1] = id
-        mod.debug.echo("package loaded")
+        mod.debug.package(true)
     end
 end
 
-local _release_package = function()
+mod.release_package = function()
     local package_manager = Managers.package
     local ids = mod._package_ids
 
@@ -201,21 +201,31 @@ local _release_package = function()
         for i, id in ipairs(ids) do
             package_manager:release(id)
             table.remove(ids, i)
-            mod.debug.echo("package released")
+            mod.debug.package()
         end
     end
 end
 
-mod:hook_safe("StateLoading", "_start_loading", function(self)
+mod:hook_safe(CLASS.MissionIntroView, "on_enter", function(self)
+    -- load
+    mod.load_package(package_penance)
+end)
+
+mod:hook_safe(CLASS.StateLoading, "_start_loading", function(self)
     local mission_name = self._mission_name
 
     if mission_name and mission_name ~= "hub_ship" then
         -- load
-        _load_package()
-    else
+        mod.load_package(package_penance)
+    elseif mission_name == "hub_ship" then
         -- unload
-        _release_package()
+        mod.release_package()
     end
+end)
+
+mod:hook_safe(CLASS.MainMenuView, "on_enter", function(self)
+    -- unload
+    mod.release_package()
 end)
 
 -- ##############################
@@ -511,6 +521,13 @@ mod.debug = {
     echo = function(text)
         if mod.debug.is_enabled() then
             mod:echo(text)
+        end
+    end,
+    package = function(is_loaded)
+        if mod.debug.is_enabled() then
+            local state = is_loaded and "{#color(60,240,60)}loaded" or "{#color(240,60,60)}released"
+
+            mod:echo("package: " .. state .. "{#reset}")
         end
     end,
     start_tracking = function(unit, distance)
