@@ -1,8 +1,8 @@
 --[[
     title: CollectibleFinder
     author: Zombine
-    date: 2024/06/06
-    version: 1.1.3
+    date: 2024/06/17
+    version: 1.1.4
 ]]
 local mod = get_mod("CollectibleFinder")
 local CollectibleFinderMarker = mod:io_dofile("CollectibleFinder/scripts/mods/CollectibleFinder/CollectibleFinder_marker")
@@ -199,7 +199,11 @@ mod.release_package = function()
 
     if not table.is_empty(ids) then
         for i, id in ipairs(ids) do
-            package_manager:release(id)
+            if mod.debug.is_enabled() then
+                -- temporarily debug only
+                package_manager:release(id)
+            end
+
             table.remove(ids, i)
             mod.debug.package()
         end
@@ -477,10 +481,10 @@ end)
 
 mod.on_game_state_changed = function(status, state_name)
     if state_name == "StateLoading" and status == "enter" then
-        mod.debug.reset_count()
-        mod._owners = {}
-        mod._collectible_units = {}
+        table.clear(mod._owners)
+        table.clear(mod._collectible_units)
         mod._tracked_unit = nil
+        mod.debug.reset_count()
     end
 end
 
