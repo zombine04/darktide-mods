@@ -19,9 +19,15 @@ mod.debug = {
             mod:echo(str)
         end
     end,
-    no_id = function()
+    compare = function(prev, now)
         if mod._debug_mode then
-            mod:echo("Character ID Not Found")
+            mod.debug.echo("{#color(230,60,60)}BEFORE:{#reset()}", prev)
+            mod.debug.echo("{#color(60,60,230)}AFTER:{#reset()}", now)
         end
     end,
 }
+
+mod:command("debug_true_level", "", function()
+    mod:dump(mod._self, "self")
+    mod:dump(mod._others, "others")
+end)

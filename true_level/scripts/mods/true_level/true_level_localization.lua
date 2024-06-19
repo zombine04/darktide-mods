@@ -7,7 +7,7 @@ mod._elements = {
     "nameplate",
     "main_menu",
     "inspect_player",
-    "player_panel",
+    "team_panel",
     "social_menu",
 }
 
@@ -160,7 +160,7 @@ local loc = {
     inspect_player = {
         en = Localize("loc_lobby_entry_inspect"),
     },
-    player_panel = {
+    team_panel = {
         en = "Team HUD",
         ja = "チームHUD",
         ["zh-cn"] = "团队 HUD",
@@ -190,9 +190,13 @@ local loc = {
     off = {
         en = Localize("loc_settings_menu_off")
     },
+    account_level = {
+        en = "Account Level: %s",
+        ja = "アカウントレベル：%s",
+    },
 }
 
-local add_child_loc = function(parent, ele)
+local _add_child_loc = function(parent, ele)
     local child = parent .. "_" .. ele
     loc[child] = {}
     for lang, text in pairs(loc[parent]) do
@@ -208,10 +212,10 @@ for i, ele in pairs(mod._elements) do
         loc[toggle][lang] = text
     end
 
-    add_child_loc("display_style", ele)
-    add_child_loc("enable_prestige_level", ele)
-    add_child_loc("enable_prestige_only", ele)
-    add_child_loc("prestige_level_color", ele)
+    _add_child_loc("display_style", ele)
+    _add_child_loc("enable_prestige_level", ele)
+    _add_child_loc("enable_prestige_only", ele)
+    _add_child_loc("prestige_level_color", ele)
 end
 
 for i, name in ipairs(Color.list) do
