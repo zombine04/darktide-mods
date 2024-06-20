@@ -10,15 +10,33 @@ local _get_markers_by_id = function()
     return markers_by_id
 end
 
-local events = {
-    event_player_profile_updated = true,
+local _events = {
+ -- event_player_profile_updated = true,
     event_titles_in_mission_setting_changed = true,
     event_in_mission_title_color_type_changed = true
 }
 
-mod:hook_safe(CLASS.EventManager, "trigger", function(self, event_name)
-    if mod.is_enabled_feature(ref) and events[event_name] then
+mod:hook_safe(CLASS.EventManager, "trigger", function(self, event_name, synced_peer_id, _, _, force_update)
+    if mod.is_enabled_feature(ref) and _events[event_name] then
         mod.desynced(ref)
+    end
+
+    if event_name == "event_player_profile_updated" then
+        local events = self._events[event_name]
+
+        if events then
+            for marker, callback_name in pairs(events) do
+                if callback_name == "cb_event_player_profile_updated" then
+                    local peer_id = marker.peer_id
+                    local valid = force_update or peer_id and peer_id == synced_peer_id
+
+                    if valid then
+                        marker.wru_modified = false
+                        marker.tl_modified = false
+                    end
+                end
+            end
+        end
     end
 end)
 
@@ -27,24 +45,29 @@ mod:hook_safe(CLASS.HudElementNameplates, "update", function(self)
         return
     end
 
+    if mod.should_replace(ref) then
+        local nameplate_units = self._nameplate_units
+
+        for unit, data in pairs(nameplate_units) do
+            local marker_id = data.marker_id
+
+            if marker_id then
+                Managers.event:trigger("remove_world_marker", marker_id)
+
+                nameplate_units[unit] = nil
+            end
+        end
+
+        self:_nameplate_extension_scan()
+        mod.synced(ref)
+
+        return
+    end
+
     local nameplates = self._nameplate_units
     local markers_by_id = _get_markers_by_id()
 
     if markers_by_id then
-        if mod.should_replace(ref) then
-            for _, data in pairs(nameplates) do
-                local id = data.marker_id
-                local marker = markers_by_id[id]
-
-                if marker then
-                    marker.wru_modified = false
-                    marker.tl_modified = false
-                end
-            end
-
-            mod.synced(ref)
-        end
-
         for _, data in pairs(nameplates) do
             local id = data.marker_id
             local marker = markers_by_id[id]

@@ -52,11 +52,14 @@ mod:hook_safe(CLASS.HudElementTeamPanelHandler, "update", function(self, dt, t, 
         for _, data in ipairs(player_panels_array) do
             local panel = data.panel
 
+            panel._current_player_name = nil
             panel.tl_modified = false
             panel.wru_modified = false
         end
 
         mod.synced(ref)
+
+        return
     end
 
     for _, data in ipairs(player_panels_array) do

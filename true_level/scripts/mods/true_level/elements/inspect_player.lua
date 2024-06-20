@@ -10,15 +10,18 @@ mod:hook_safe(CLASS.PlayerCharacterOptionsView, "update", function(self)
         return
     end
 
+    local player = self._inspected_player
     local content = self._widgets_by_name.player_name.content
-    local character_name = content.text
-    local player_info = self._player_info
-    local profile = player_info and player_info:profile()
+    local profile = player and player:profile()
     local character_id = profile and profile.character_id
     local true_levels = mod.get_true_levels(character_id)
 
     if true_levels then
-        content.text = mod.replace_level(character_name, true_levels, ref)
+        local player_name = player:name()
+        local current_level = true_levels.current_level
+
+        self:_set_player_name(player_name, current_level)
+        content.text = mod.replace_level(content.text, true_levels, ref)
         mod.synced(ref)
     end
 end)
