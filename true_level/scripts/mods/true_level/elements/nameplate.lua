@@ -30,46 +30,48 @@ mod:hook_safe(CLASS.HudElementNameplates, "update", function(self)
     local nameplates = self._nameplate_units
     local markers_by_id = _get_markers_by_id()
 
-    if mod.should_replace(ref) then
+    if markers_by_id then
+        if mod.should_replace(ref) then
+            for _, data in pairs(nameplates) do
+                local id = data.marker_id
+                local marker = markers_by_id[id]
+
+                if marker then
+                    marker.wru_modified = false
+                    marker.tl_modified = false
+                end
+            end
+
+            mod.synced(ref)
+        end
+
         for _, data in pairs(nameplates) do
             local id = data.marker_id
             local marker = markers_by_id[id]
 
             if marker then
-                marker.wru_modified = false
-                marker.tl_modified = false
-            end
-        end
+                local player = marker.data
+                local player_deleted = player.__deleted
 
-        mod.synced(ref)
-    end
+                if not player_deleted then
+                    local type = marker.type
+                    local is_combat = type == "nameplate_party"
+                    local can_replace = mod.is_ready(marker, ref)
 
-    for _, data in pairs(nameplates) do
-        local id = data.marker_id
-        local marker = markers_by_id[id]
+                    if can_replace then
+                        local profile = player:profile()
+                        local character_id = profile and profile.character_id
+                        local true_levels = mod.get_true_levels(character_id)
 
-        if marker then
-            local player = marker.data
-            local player_deleted = player.__deleted
+                        if true_levels then
+                            local content = marker.widget.content
+                            local header_text = content.header_text
+                            local need_adding = is_combat and not header_text:match(mod.get_symbol())
 
-            if not player_deleted then
-                local type = marker.type
-                local is_combat = type == "nameplate_party"
-                local can_replace = mod.is_ready(marker, ref)
-
-                if can_replace then
-                    local profile = player:profile()
-                    local character_id = profile and profile.character_id
-                    local true_levels = mod.get_true_levels(character_id)
-
-                    if true_levels then
-                        local content = marker.widget.content
-                        local header_text = content.header_text
-                        local need_adding = is_combat and not header_text:match(mod.get_symbol())
-
-                        content.header_text = mod.replace_level(header_text, true_levels, ref, need_adding)
-                        marker.tl_modified = true
-                        mod.debug.echo(content.header_text)
+                            content.header_text = mod.replace_level(header_text, true_levels, ref, need_adding)
+                            marker.tl_modified = true
+                            mod.debug.echo(content.header_text)
+                        end
                     end
                 end
             end

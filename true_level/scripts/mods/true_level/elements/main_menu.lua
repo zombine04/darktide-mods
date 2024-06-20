@@ -59,6 +59,8 @@ mod:hook_safe(CLASS.MainMenuView, "init", function(self)
 end)
 
 mod:hook_safe(CLASS.MainMenuView, "_event_profiles_changed", function(self)
+    mod._fetch_xp_settings()
+
     if not self._tl_promise then
         _get_all_progression(self)
     end

@@ -2,7 +2,7 @@
     title: true_level
     author: Zombine
     date: 2024/06/20
-    version: 1.6.0
+    version: 1.6.1
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -19,19 +19,19 @@ mod._self = mod:persistent_table("self")
 mod._others = mod:persistent_table("others")
 mod._queue = mod:persistent_table("queue")
 mod._xp_settings = mod:persistent_table("xp_settings")
+mod._xp_promise = nil
 mod._synced = {}
 mod._is_in_hub = false
-
-for _, element in ipairs(mod._elements) do
-    mod._synced[element] = false
-end
 
 mod._fetch_xp_settings = function()
     local xp_settings = mod._xp_settings
 
-    if table.is_empty(xp_settings) then
+    if table.is_empty(xp_settings) and not mod._xp_promise then
         local backend_interface = Managers.backend.interfaces
         local xp_promise = backend_interface.progression:get_xp_table("character")
+
+        mod._xp_promise = true
+        mod:info("fetching xp settings...")
 
         xp_promise:next(function(xp_per_level_array)
             local max_level = #xp_per_level_array
@@ -44,16 +44,19 @@ mod._fetch_xp_settings = function()
             local queue = mod._queue
 
             if not table.is_empty(queue) then
-                for i, arg in ipairs(queue) do
+                for char_id, arg in pairs(queue) do
                     mod.cache_true_levels(arg[1], arg[2], arg[3])
-                    table.remove(queue, i)
+                    queue[char_id] = nil
                 end
             end
+
+            mod._xp_promise = nil
+            mod.desync_all()
+        end):catch(function(e)
+            mod:dump(e, "xp_settings", 3)
         end)
     end
 end
-
-mod._fetch_xp_settings()
 
 local _populate_data = function(base_data)
     local xp_settings = mod._xp_settings
@@ -93,13 +96,17 @@ end
 
 mod.cache_true_levels = function(self_or_others, character_id, base_data)
     if table.is_empty(mod._xp_settings) then
+        mod._fetch_xp_settings()
+
         local queue = mod._queue
 
-        queue[#queue + 1] = {
-            self_or_others,
-            character_id,
-            base_data
-        }
+        if not queue[character_id] then
+            queue[character_id] = {
+                self_or_others,
+                character_id,
+                base_data
+            }
+        end
 
         return
     end
@@ -251,6 +258,14 @@ end
 mod.desynced = function(ref)
     mod._synced[ref] = false
 end
+
+mod.desync_all = function()
+    for _, element in ipairs(mod._elements) do
+        mod._synced[element] = false
+    end
+end
+
+mod.desync_all()
 
 -- ############################################################
 -- Load Files
