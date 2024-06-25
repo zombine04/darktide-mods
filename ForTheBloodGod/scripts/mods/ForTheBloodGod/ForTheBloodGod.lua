@@ -1,8 +1,8 @@
 --[[
     title: ForTheBloodGod
     author: Zombine
-    date: 07/11/2023
-    version: 1.2.1
+    date: 2024/06/25
+    version: 1.2.2
 ]]
 local mod = get_mod("ForTheBloodGod")
 local BreedActions = require("scripts/settings/breed/breed_actions")

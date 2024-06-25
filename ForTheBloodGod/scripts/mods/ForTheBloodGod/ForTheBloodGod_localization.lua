@@ -154,6 +154,63 @@ local loc = {
     },
 }
 
+-- new weapons (perhaps Fatshark no longer updates UISettings.weapon_template_display_settings)
+
+mod:add_global_localize_strings({
+    loc_weapon_pattern_name_boltpistol_p1 = {
+        en = "Bolt Pistol",
+        ja = "ボルトピストル",
+    },
+    loc_weapon_pattern_name_shotgun_p2 = {
+        en = "Assault Shotgun",
+        ja = "アサルトショットガン",
+    },
+    loc_weapon_pattern_name_powermaul_p1 = {
+        en = "Shockmaul",
+        ja = "ショックモール",
+    },
+    loc_weapon_pattern_name_ogryn_pickaxe_2h_p1 = {
+        en = "Pickaxe",
+        ja = "ピックアックス",
+    }
+})
+
+local new_wep_settings = {
+    boltpistol_p1_m1 = {
+        display_name_pattern = "loc_weapon_pattern_name_boltpistol_p1",
+        dispaly_name = "loc_boltpistol_p1_m1"
+    },
+    shotgun_p2_m1 = {
+        display_name_pattern = "loc_weapon_pattern_name_shotgun_p2",
+        display_name = "loc_shotgun_p2_m1"
+    },
+    powermaul_p1_m1 = {
+        display_name_pattern = "loc_weapon_pattern_name_powermaul_p1",
+        dispaly_name = "loc_powermaul_p1_m1"
+    },
+    powermaul_p1_m2 = {
+        display_name_pattern = "loc_weapon_pattern_name_powermaul_p1",
+        dispaly_name = "loc_powermaul_p1_m2"
+    },
+    powermaul_p1_m3 = {
+        display_name_pattern = "loc_weapon_pattern_name_powermaul_p1",
+        dispaly_name = "loc_powermaul_p1_m3"
+    },
+    ogryn_pickaxe_2h_p1_m1 = {
+        display_name_pattern = "loc_weapon_pattern_name_ogryn_pickaxe_2h_p1",
+        display_name = "loc_ogryn_pickaxe_2h_p1_m1"
+    },
+    ogryn_pickaxe_2h_p1_m2 = {
+        display_name_pattern = "loc_weapon_pattern_name_ogryn_pickaxe_2h_p1",
+        display_name = "loc_ogryn_pickaxe_2h_p1_m2"
+    },
+    ogryn_pickaxe_2h_p1_m3 = {
+        display_name_pattern = "loc_weapon_pattern_name_ogryn_pickaxe_2h_p1",
+        display_name = "loc_ogryn_pickaxe_2h_p1_m3"
+    }
+}
+
+
 local local_settings  = table.append({ "toggle" }, mod._settings)
 
 local _add_local_settings = function(suffix)
@@ -194,6 +251,7 @@ local _add_weapon_and_localization = function(source)
 end
 
 _add_weapon_and_localization(UISettings.weapon_template_display_settings)
+_add_weapon_and_localization(new_wep_settings)
 _add_weapon_and_localization(PlayerAbilities)
 
 local _add_extra_vfx_and_sfx = function(source)
