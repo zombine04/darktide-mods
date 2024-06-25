@@ -82,7 +82,3 @@ mod:hook_safe(CLASS.EndPlayerView, "_set_carousel_state", function()
         mod._level_up = false
     end
 end)
-
-mod:hook_safe(CLASS.EndPlayerView, "init", function(self, settings, context)
-    mod:dump(context.session_report, "session_report", 10)
-end)
