@@ -1,8 +1,8 @@
 --[[
     name: PenancesForTheMission
     author: Zombine
-    date: 2024/06/04
-    version: 1.0.1
+    date: 2024/06/25
+    version: 1.0.2
 ]]
 
 local mod = get_mod("PenancesForTheMission")
@@ -112,7 +112,7 @@ local _is_for_the_mission = function(category, achievement_id, mission)
         local mission_template = MissionTemplates[mission_map]
         local mission_difficulty = DangerSettings.calculate_danger(mission.challenge, mission.resistance)
         local mission_zone = mission_template.zone_id
-        local mission_type = MissionTypes[mission_template.mission_type].id
+        local mission_type = MissionTypes[mission_template.mission_type].index
         local mission_circumstance = mission.circumstance and CircumstanceTemplates[mission.circumstance]
         local mission_circumstance_tag = mission_circumstance and mission_circumstance.theme_tag
         local side_objective = mission.flags.side and mission.sideMission
