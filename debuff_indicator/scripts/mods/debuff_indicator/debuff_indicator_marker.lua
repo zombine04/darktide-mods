@@ -215,21 +215,22 @@ local _check_merged_buff = function(buff_name)
     return false
 end
 
-local _add_buff_and_debuff = function(buff_ext, buffs, content)
-    local buff_texts = {}
+local buff_texts = {}
 
+local _add_buff_and_debuff = function(buff_ext, buffs)
     for _, buff in ipairs(buffs) do
         local buff_name = buff:template_name()
         local can_display = false
+        local is_important = table.find(mod.buff_names, buff_name)
 
         if mod:get("enable_" .. buff_name) or
            _check_merged_buff(buff_name) or
-           not mod:get("enable_filter") and not table.find(mod.buff_names, buff_name) then
+           not mod:get("enable_filter") and not is_important then
             can_display = true
         end
 
         if can_display then
-            local display_name = table.find(mod.buff_names, buff_name) and mod:localize(buff_name) or buff_name
+            local display_name = is_important and mod:localize(buff_name) or buff_name
             local stacks = _get_stacks(buff_ext, buff_name)
 
             buff_texts[buff_name] = {
@@ -241,15 +242,27 @@ local _add_buff_and_debuff = function(buff_ext, buffs, content)
 
     buff_texts = _calculate_rending_percentage(buff_texts)
     buff_texts = _merge_psyker_smite_debuff(buff_texts)
+end
 
-    for name, data in pairs(buff_texts) do
-        local buff_display_text = _apply_display_style_and_color(name, data.display_name, data.stacks)
+local _add_buff_and_debuff_by_keywords = function(buff_ext, keywords)
+    for keyword, _ in pairs(keywords) do
+        local can_display = false
+        local is_important = table.find(mod.keywords, keyword)
 
-        if content.body_text ~= "" then
-            content.body_text = content.body_text .. "\n"
+        if mod:get("enable_" .. keyword) or
+           not mod:get("enable_filter") and not is_important then
+            can_display = true
         end
 
-        content.body_text = content.body_text .. buff_display_text
+        if can_display and not buff_texts[keyword] then
+            local display_name = is_important and mod:localize(keyword) or keyword
+            local stacks = 0
+
+            buff_texts[keyword] = {
+                display_name = display_name,
+                stacks = stacks
+            }
+        end
     end
 end
 
@@ -302,6 +315,7 @@ function template.update_function(parent, ui_renderer, widget, marker, template,
     local style = widget.style
     local unit = marker.unit
 
+    buff_texts = {}
     content.body_text = ""
 
     if mod._setting_changed then
@@ -329,9 +343,26 @@ function template.update_function(parent, ui_renderer, widget, marker, template,
 
     local buff_ext = ScriptUnit.extension(unit, "buff_system")
     local buffs = buff_ext and buff_ext:buffs()
+    local keywords = buff_ext and buff_ext:keywords()
 
     if buffs then
-        _add_buff_and_debuff(buff_ext, buffs, content)
+        _add_buff_and_debuff(buff_ext, buffs)
+    end
+
+    if keywords then
+        _add_buff_and_debuff_by_keywords(buff_ext, keywords)
+    end
+
+    if not table.is_empty(buff_texts) then
+        for name, data in pairs(buff_texts) do
+            local buff_display_text = _apply_display_style_and_color(name, data.display_name, data.stacks)
+
+            if content.body_text ~= "" then
+                content.body_text = content.body_text .. "\n"
+            end
+
+            content.body_text = content.body_text .. buff_display_text
+        end
     end
 
     if display_style == "count" then

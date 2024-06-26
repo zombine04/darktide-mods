@@ -122,6 +122,26 @@ for _, buff_name in ipairs(mod.buff_names) do
     end
 end
 
+for _, keyword in ipairs(mod.keywords) do
+    widgets_debuff[#widgets_debuff + 1] = {
+        setting_id = "group_" .. keyword,
+        type = "group",
+        sub_widgets = {
+            {
+                setting_id = "enable_" .. keyword,
+                type = "checkbox",
+                default_value = true
+            },
+            {
+                setting_id = "color_" .. keyword,
+                type = "dropdown",
+                default_value = "white_smoke",
+                options = table.clone(color_option)
+            }
+        }
+    }
+end
+
 widgets[#widgets + 1] = {
     setting_id = "debuff_and_dot",
     type = "group",
