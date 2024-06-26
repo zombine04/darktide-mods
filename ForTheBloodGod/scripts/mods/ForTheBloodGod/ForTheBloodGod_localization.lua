@@ -160,18 +160,22 @@ mod:add_global_localize_strings({
     loc_weapon_pattern_name_boltpistol_p1 = {
         en = "Bolt Pistol",
         ja = "ボルトピストル",
+        ["zh-cn"] = "爆矢手枪",
     },
     loc_weapon_pattern_name_shotgun_p2 = {
         en = "Assault Shotgun",
         ja = "アサルトショットガン",
+        ["zh-cn"] = "突击霰弹枪",
     },
     loc_weapon_pattern_name_powermaul_p1 = {
         en = "Shockmaul",
         ja = "ショックモール",
+        ["zh-cn"] = "震慑锤",
     },
     loc_weapon_pattern_name_ogryn_pickaxe_2h_p1 = {
         en = "Pickaxe",
         ja = "ピックアックス",
+        ["zh-cn"] = "镐",
     }
 })
 
