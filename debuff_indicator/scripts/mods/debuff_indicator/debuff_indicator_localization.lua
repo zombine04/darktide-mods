@@ -14,6 +14,8 @@ mod.buff_names = {
     "ogryn_recieve_damage_taken_increase_debuff",
     "ogryn_taunt_increased_damage_taken_buff",
     "veteran_improved_tag_debuff",
+    "power_maul_stun",
+    "power_maul_sticky_tick",
     -- "stagger",
     -- "suppression",
 }
@@ -244,6 +246,14 @@ local loc = {
         ja = "ソウルファイア",
         ["zh-cn"] = "灵魂之火",
         ru = "Горение души",
+    },
+    power_maul_stun = {
+        en = "Shock Stun",
+        ja = "感電スタン",
+    },
+    power_maul_sticky_tick = {
+        en = "Shock",
+        ja = "感電",
     },
     increase_impact_received_while_staggered = {
         en = Localize("loc_trait_bespoke_staggered_targets_receive_increased_stagger_debuff")
