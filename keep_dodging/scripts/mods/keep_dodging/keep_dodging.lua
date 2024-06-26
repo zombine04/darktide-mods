@@ -1,8 +1,8 @@
 --[[
     title: keep_dodging
     author: Zombine
-    date: 2024/04/25
-    version: 1.1.0
+    date: 2024/06/27
+    version: 1.1.1
 ]]
 local mod = get_mod("keep_dodging")
 
