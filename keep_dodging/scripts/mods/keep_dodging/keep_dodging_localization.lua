@@ -32,10 +32,12 @@ local loc = {
     stationary_dodge_tooltip = {
         en = "This is synced with \"" .. stationary_dodge .. "\" option in Options -> Inputs." .. "\n\n" .. sd_desc,
         ja = "これは「オプション」の「入力」にある「" .. stationary_dodge .. "」の設定と同期しています。" .. "\n\n" .. sd_desc,
+        ["zh-cn"] = "与“选项 -> 输入”中的“" .. stationary_dodge .. "”选项同步。\n\n" .. sd_desc,
     },
     disable_sd_while_active = {
         en = "Disable " .. stationary_dodge .. " while the mod is active",
         ja = "Modが有効な間は" .. stationary_dodge .. "を無効化する",
+        ["zh-cn"] = "启用模组时，禁用" .. stationary_dodge,
     },
     icon_settings = {
         en = "Icon Settings",

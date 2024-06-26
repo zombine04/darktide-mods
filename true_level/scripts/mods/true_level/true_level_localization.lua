@@ -193,6 +193,7 @@ local loc = {
     account_level = {
         en = "Account Level: %s",
         ja = "アカウントレベル：%s",
+        ["zh-cn"] = "账户等级：%s",
     },
 }
 
