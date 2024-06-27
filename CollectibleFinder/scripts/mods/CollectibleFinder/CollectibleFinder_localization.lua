@@ -61,8 +61,8 @@ local loc = {
     type_chat = {
         en = "Chat",
         ja = "チャット",
-        ru = "Чат",
         ["zh-cn"] = "聊天栏",
+        ru = "Чат",
     },
     type_both = {
         en = "Both",
@@ -80,6 +80,7 @@ local loc = {
         en = "%s destroyed %s.",
         ja = "%sが%sを破壊した。",
         ["zh-cn"] = "%s破坏了%s。",
+        ru = "%s уничтожает %s.",
     },
     collectible_picked_up = {
         en = "%s picked up %s.",
@@ -124,6 +125,7 @@ local settings = {
         en = "Icon Indicator",
         ja = "アイコン表示",
         ["zh-cn"] = "图标指示器",
+        ru = "Иконка индикатора",
     },
     icon_size = {
         en = "Size",
@@ -135,18 +137,19 @@ local settings = {
         en = "Color",
         ja = "色",
         ["zh-cn"] = "颜色",
-        ru = "цвета",
+        ru = "Цвет",
     },
     notif_type = {
         en = "Notification Type",
         ja = "通知方法",
         ["zh-cn"] = "通知方式",
-        ru = "Стиль уведомлений",
+        ru = "Тип уведомлений",
     },
     enable_destruct_notif = {
         en = "Destroy",
         ja = "破壊",
         ["zh-cn"] = "破坏",
+        ru = "Уничтожение",
     },
     enable_pickup_notif = {
         en = "Pick Up",
@@ -158,7 +161,7 @@ local settings = {
         en = "Drop / Discard",
         ja = "落とす / 破棄",
         ["zh-cn"] = "丢弃 / 摧毁",
-        ru = "Сброс",
+        ru = "Выбрасывание",
     },
     enable_give_notif = {
         en = "Give",
@@ -170,7 +173,7 @@ local settings = {
         en = "Repeat Notification",
         ja = "繰り返し通知",
         ["zh-cn"] = "重复通知",
-        ru = "Повторить уведомление",
+        ru = "Повторение уведомления",
     },
     enable_sound_cue = {
         en = "Additional Notification Sound",
