@@ -1,8 +1,8 @@
 --[[
     title: CollectibleFinder
     author: Zombine
-    date: 2024/06/17
-    version: 1.1.4
+    date: 2024/06/27
+    version: 1.1.5
 ]]
 local mod = get_mod("CollectibleFinder")
 local CollectibleFinderMarker = mod:io_dofile("CollectibleFinder/scripts/mods/CollectibleFinder/CollectibleFinder_marker")
