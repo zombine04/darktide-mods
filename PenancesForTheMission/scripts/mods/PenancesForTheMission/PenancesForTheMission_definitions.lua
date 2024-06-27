@@ -50,4 +50,4 @@ local definitions = {
     penance_grid_settings = penance_grid_settings
 }
 
-return settings("PenancesForTheMission", definitions)
+return definitions

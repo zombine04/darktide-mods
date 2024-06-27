@@ -199,4 +199,4 @@ local blueprints = {
     }
 }
 
-return settings("PennacesForTheMissionBlueprints", blueprints)
+return blueprints
