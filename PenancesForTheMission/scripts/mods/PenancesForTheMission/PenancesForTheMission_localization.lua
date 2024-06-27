@@ -5,31 +5,37 @@ local loc = {
     mod_name = {
         en = "Penances for the Mission",
         ["zh-cn"] = "显示任务苦修",
+        ru = "Искупления для миссий",
     },
     mod_description = {
         en = "Displays available penances for the selected mission in the mission terminal.",
         ja = "ミッションターミナルにおいて、選択したミッションで獲得可能な苦行を表示します。",
         ["zh-cn"] = "在任务终端内，显示所选任务的可用苦修。",
+        ru = "Penances for the Mission - Показывает доступные Искупления для выбранной миссии в терминале миссии.",
     },
     show_by_default = {
         en = "Display penances by default",
         ja = "苦行をデフォルトで表示する",
         ["zh-cn"] = "默认显示苦修",
+        ru = "Показывать Искупления по умолчанию",
     },
     keybind_toggle = {
         en = "Keybind",
         ja = "キーバインド",
         ["zh-cn"] = "快捷键",
+        ru = "Горячая клавиша",
     },
     grid_width = {
         en = "Grid Width",
         ja = "グリッドの幅",
         ["zh-cn"] = "网格宽度",
+        ru = "Ширина сетки",
     },
     grid_height = {
         en = "Grid Height",
         ja = "グリッドの高さ",
         ["zh-cn"] = "网格高度",
+        ru = "Высота сетки",
     },
     enable_debug_mode = {
         en = "Enable Debug Mode",
