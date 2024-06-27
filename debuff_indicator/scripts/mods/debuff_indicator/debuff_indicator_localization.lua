@@ -255,11 +255,13 @@ local loc = {
         en = "Electrocuted",
         ja = "感電",
         ["zh-cn"] = "触电",
+        ru = "Наэлектризован",
     },
     power_maul_sticky_tick = {
         en = "Shock",
         ja = "電撃",
         ["zh-cn"] = "震击",
+        ru = "Шок",
     },
     increase_damage_taken = {
         en = Localize("loc_weapon_special_hook_pull")
