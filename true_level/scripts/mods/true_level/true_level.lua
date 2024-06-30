@@ -130,6 +130,16 @@ local _get_best_setting = function(base_id, reference)
     return setting
 end
 
+local _has_title = function(text)
+    local t = {}
+
+    for s in text:gmatch("[^\n]+") do
+        t[#t + 1] = s
+    end
+
+    return #t > 1, t[1], t[2]
+end
+
 mod.replace_level = function(text, true_levels, reference, need_adding)
     local display_style = _get_best_setting("display_style", reference)
     local show_prestige = _get_best_setting("enable_prestige_level", reference)
@@ -140,16 +150,6 @@ mod.replace_level = function(text, true_levels, reference, need_adding)
     local true_level = true_levels.true_level
     local prestige = true_levels.prestige
     local suffix = " " .. mod.get_symbol()
-
-    local _has_title = function (text)
-        local t = {}
-
-        for s in text:gmatch("[^\n]+") do
-            t[#t + 1] = s
-        end
-
-        return #t > 1, t[1], t[2]
-    end
 
     if need_adding then
         local has_title, player_name, title = _has_title(text)
@@ -323,8 +323,5 @@ end
 mod.on_setting_changed = function(id)
     mod._debug_mode = mod:get("enable_debug_mode")
     mod._is_in_hub = _is_in_hub()
-
-    for _, element in pairs(mod._elements) do
-        mod.desynced(element)
-    end
+    mod.desyc_all()
 end
