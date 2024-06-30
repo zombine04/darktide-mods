@@ -33,8 +33,9 @@ HudElementQuickKick.init = function(self, parent, draw_layer, start_scale)
     self._cursor_pushed = false
     self._player_list_grid = nil
     self._player_widgets = {}
-    self._players = self:_get_players()
+    self._players = {}
     self._party_promise = nil
+    self:_get_players()
     self:_update_scenegrapth_position()
 
     Managers.event:register(self, "event_update_player_list", "event_update_player_list")
@@ -53,10 +54,10 @@ HudElementQuickKick.destroy = function(self, ui_renderer)
 end
 
 HudElementQuickKick.event_update_player_list = function(self)
-    self._players = self:_get_players()
+    self:_get_players()
 end
 
-HudElementQuickKick.event_toggle_player_list = function(self, force_close, initiated)
+HudElementQuickKick.event_toggle_player_list = function(self, initiated)
     self._is_visible = not self._is_visible
 
     if self._is_visible then
@@ -112,7 +113,7 @@ HudElementQuickKick.event_initiate_kick_vote = function(self, index)
 
     if content.can_kick then
         social_service:initiate_kick_vote(player_info)
-        self:event_toggle_player_list(nil, true) -- close
+        self:event_toggle_player_list(true) -- close
         mod:notify(mod:localize("kick_vote_initiated", content.character_name))
     elseif content.message then
         mod:notify(self:_convert_message(content.message))
@@ -226,10 +227,10 @@ HudElementQuickKick._setup_player_grid = function(self, ui_renderer)
 end
 
 HudElementQuickKick._update_player_widgets = function(self, ui_renderer)
-    if self._players then
+    if not table.is_empty(self._players) then
         self:_setup_player_widgets()
         self:_setup_player_grid()
-        self._players = nil
+        self._players = {}
     end
 
     if self._is_visible then
@@ -467,7 +468,8 @@ HudElementQuickKick._update_scenegrapth_position = function(self)
     end
 end
 
-local _add_player = function(players, unique_id, player)
+HudElementQuickKick._add_player = function(self, unique_id, player)
+    local players = self._players
     local local_player = Managers.player:local_player_safe(1)
     local player_deleted = player.__deleted
 
@@ -489,9 +491,9 @@ HudElementQuickKick._get_players = function(self)
         return
     end
 
-    local players = self:_get_players_from_player_panels_array()
+    self:_get_players_from_player_panels_array()
 
-    if #players == 0 then
+    if #self._players == 0 then
         if self._debug then
             mod:echo("can't find player panels array")
         end
@@ -499,26 +501,19 @@ HudElementQuickKick._get_players = function(self)
         local current_players = Managers.player:players()
 
         for unique_id, player in pairs(current_players) do
-            _add_player(players, unique_id, player)
+            self:_add_player(unique_id, player)
         end
     end
 
     if self._debug then
-        mod:echo("player count updated: " .. tostring(#players))
+        mod:echo("player count updated: " .. tostring(#self._players))
     end
-
-    if #players == 0 then
-        return nil
-    end
-
-    return players
 end
 
 HudElementQuickKick._get_players_from_player_panels_array = function(self)
     -- match list order to team panel
     local team_panel = self:_get_team_panel()
     local player_manager = Managers.player
-    local players = {}
 
     if team_panel and player_manager then
         local player_panels_array = team_panel._player_panels_array
@@ -528,11 +523,11 @@ HudElementQuickKick._get_players_from_player_panels_array = function(self)
                 local player = data.player
                 local unique_id = data.unique_id
 
-                _add_player(players, unique_id, player)
+                self:_add_player(unique_id, player)
             end
 
-            if #players > 0 then
-                table.reverse(players)
+            if #self._players > 0 then
+                table.reverse(self._players)
 
                 if self._debug then
                     mod:echo("got players from player panels array")
@@ -540,8 +535,6 @@ HudElementQuickKick._get_players_from_player_panels_array = function(self)
             end
         end
     end
-
-    return players
 end
 
 HudElementQuickKick._play_sound = function(self, event_name)
