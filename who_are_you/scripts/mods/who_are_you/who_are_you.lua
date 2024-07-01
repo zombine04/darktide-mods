@@ -1,17 +1,17 @@
 --[[
     title: who_are_you
     author: Zombine
-    date: 2024/04/21
-    version: 3.4.0
+    date: 2024/07/01
+    version: 3.4.1
 ]]
 local mod = get_mod("who_are_you")
 local ProfileUtils = require("scripts/utilities/profile_utils")
 local TextUtils = require("scripts/utilities/ui/text")
 local UISettings = require("scripts/settings/ui/ui_settings")
 local ICONS = {
-    steam = "",
-    xbox = "",
-    unknown = ""
+    steam = "\xEE\x81\xAB",
+    xbox = "\xEE\x81\xAC",
+    unknown = "\xEE\x81\xAF"
 }
 
 mod._account_names = mod:persistent_table("account_names")
@@ -267,7 +267,7 @@ mod:hook_safe("HudElementWorldMarkers", "_calculate_markers", function(self, dt,
                         local modified_name = modify_character_name(character_name, account_name, account_id, "nameplate")
                         local character_level = profile.current_level or 1
                         local archetype = profile.archetype
-                        local string_symbol = archetype and archetype.string_symbol or ""
+                        local string_symbol = "\xEE\x80\x85"
 
                         if is_combat then
                             local slot = player.slot and player:slot()
@@ -291,6 +291,19 @@ mod:hook_safe("HudElementWorldMarkers", "_calculate_markers", function(self, dt,
                                 end
                             else
                                 header_text = ""
+                            end
+
+                            -- reflects Numeric UI settings
+                            local NumericUI = get_mod("NumericUI")
+
+                            if NumericUI and NumericUI:is_enabled() then
+                                if NumericUI:get("archetype_icons_in_nameplates") then
+                                    local search = NumericUI:get("color_nameplate") and "\xEE\x80\x85{#reset%(%)}" or "\xEE\x80\x85"
+
+                                    string_symbol = archetype and archetype.string_symbol or "\xEE\x80\x85"
+                                    header_text = header_text:gsub(search, string_symbol)
+                                    icon_text = icon_text:gsub(search, string_symbol)
+                                end
                             end
 
                             content.header_text = header_text
@@ -319,14 +332,14 @@ end)
 -- Team Hud
 
 local modify_player_panel_name = function(self, dt, t, player)
-    if not mod:get("enable_team_hud") then
+    if not mod:get("enable_team_panel") then
         return
     end
 
     local player_name = self._widgets_by_name.player_name
     local content = player_name.content
     local container_size = player_name.style.text.size
-    local ref = "team_hud"
+    local ref = "team_panel"
 
     if container_size then
         container_size[1] = 500

@@ -7,7 +7,7 @@ mod.modified_elements = {
     "_lobby",
     "_nameplate",
     "_inspect_player",
-    "_team_hud",
+    "_team_panel",
 }
 
 mod.sub_name_options = {
@@ -144,7 +144,7 @@ local loc = {
     enable_inspect_player = {
         en = Localize("loc_lobby_entry_inspect"),
     },
-    enable_team_hud = {
+    enable_team_panel = {
         en = "Team HUD",
         ja = "チームHUD",
         ru = "Интерфейс команды",
