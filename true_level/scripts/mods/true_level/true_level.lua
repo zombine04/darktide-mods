@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 2024/07/01
-    version: 1.6.4
+    date: 2024/07/03
+    version: 1.6.5
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -323,5 +323,5 @@ end
 mod.on_setting_changed = function(id)
     mod._debug_mode = mod:get("enable_debug_mode")
     mod._is_in_hub = _is_in_hub()
-    mod.desyc_all()
+    mod.desync_all()
 end
