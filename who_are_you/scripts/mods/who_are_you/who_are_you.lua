@@ -1,8 +1,8 @@
 --[[
     title: who_are_you
     author: Zombine
-    date: 2024/07/01
-    version: 3.4.1
+    date: 2024/07/04
+    version: 3.4.2
 ]]
 local mod = get_mod("who_are_you")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -267,9 +267,11 @@ mod:hook_safe("HudElementWorldMarkers", "_calculate_markers", function(self, dt,
                         local modified_name = modify_character_name(character_name, account_name, account_id, "nameplate")
                         local character_level = profile.current_level or 1
                         local archetype = profile.archetype
-                        local string_symbol = "\xEE\x80\x85"
+                        local string_symbol = archetype and archetype.string_symbol or ""
 
                         if is_combat then
+                            string_symbol = "\xEE\x80\x85"
+
                             local slot = player.slot and player:slot()
                             local slot_color = UISettings.player_slot_colors[slot] or Color.ui_hud_green_light(255, true)
                             local color = slot_color[2] .. "," .. slot_color[3] .. "," .. slot_color[4]
