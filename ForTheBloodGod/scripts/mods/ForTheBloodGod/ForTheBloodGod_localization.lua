@@ -228,35 +228,49 @@ local _add_local_settings = function(suffix)
     end
 end
 
-local _add_weapon_and_localization = function(source)
+local _add_template = function(template_name, pattern)
+    local template = WeaponTemplates[template_name]
+    local keywords = template and template.keywords
+
+    if keywords then
+        for type, _ in pairs(mod._weapons) do
+            if table.find(keywords, type) then
+                mod._weapons[type][template_name] = pattern
+            end
+        end
+    end
+
+    if string.match(pattern, "loc_") then
+        if not loc[pattern] then
+            loc[pattern] = { en = Localize(pattern) }
+        elseif not loc[pattern].en then
+            loc[pattern].en = Localize(pattern)
+        end
+    end
+
+    _add_local_settings(pattern)
+end
+
+local _add_ability_and_localization = function(source)
     for template_name, data in pairs(source) do
-        local pattern = data.display_name_pattern or data.ability_type
-        local template = WeaponTemplates[template_name]
-        local keywords = template and template.keywords
+        local pattern = data.ability_type
 
-        if keywords then
-            for type, _ in pairs(mod._weapons) do
-                if table.find(keywords, type) then
-                    mod._weapons[type][template_name] = pattern
-                end
-            end
-        end
-
-        if string.match(pattern, "loc_") then
-            if not loc[pattern] then
-                loc[pattern] = { en = Localize(pattern) }
-            elseif not loc[pattern].en then
-                loc[pattern].en = Localize(pattern)
-            end
-        end
-
-        _add_local_settings(pattern)
+        _add_template(template_name, pattern)
     end
 end
 
-_add_weapon_and_localization(UISettings.weapon_template_display_settings)
-_add_weapon_and_localization(new_wep_settings)
-_add_weapon_and_localization(PlayerAbilities)
+local _add_weapon_and_localization = function(source)
+    for family_name, data in pairs(source) do
+        local pattern = data.display_name
+
+        for _, mark in ipairs(data.marks) do
+            _add_template(mark.name, pattern)
+        end
+    end
+end
+
+_add_weapon_and_localization(UISettings.weapon_patterns)
+_add_ability_and_localization(PlayerAbilities)
 
 local _add_extra_vfx_and_sfx = function(source)
     local exception = {
