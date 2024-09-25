@@ -2,7 +2,7 @@
     title: name_it
     author: Zombine
     date: 2024/09/26
-    version: 1.2.0
+    version: 1.2.1
 ]]
 local mod = get_mod("name_it")
 
@@ -204,7 +204,7 @@ local _save_name = function()
 end
 
 mod:hook_safe("InventoryWeaponsView", "update", update_display_name)
-mod:hook_safe("CraftingModifyView", "update", update_display_name)
+mod:hook_safe("CraftingMechanicusModifyView", "update", update_display_name)
 
 -- ##################################################
 -- Remove Custom Name
@@ -320,10 +320,10 @@ mod:hook("CraftingView", "_setup_tab_bar", function(func, self, tab_data, ...)
     local new_tab_data = table.clone(tab_data)
 
     for _, tab_params in ipairs(new_tab_data.tabs_params) do
-        if tab_params.view == "crafting_modify_view" then
+        if tab_params.view == "crafting_mechanicus_modify_view" then
             local legend_inputs = tab_params.input_legend_buttons
             local visibility_function = function (parent)
-                local instance = Managers.ui:view_instance("crafting_modify_view")
+                local instance = Managers.ui:view_instance("crafting_mechanicus_modify_view")
 
                 if instance and instance._item_grid and instance:selected_grid_widget() then
                     return true
@@ -380,7 +380,7 @@ local get_selected_item_data = function(self, item)
 end
 
 mod:hook_safe("InventoryWeaponsView", "_preview_item", get_selected_item_data)
-mod:hook_safe("CraftingModifyView", "_preview_item", get_selected_item_data)
+mod:hook_safe("CraftingMechanicusModifyView", "_preview_item", get_selected_item_data)
 
 -- ##################################################
 -- Prevent Hotkeys
@@ -399,4 +399,3 @@ mod:hook("UIManager", "close_all_views", prevent_close_view)
 mod:hook("UIManager", "chat_using_input", function(func, ...)
     return func(...) or _is_writing()
 end)
-
