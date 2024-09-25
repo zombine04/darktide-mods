@@ -6,11 +6,13 @@ mod.buff_names = {
     "flamer_assault",
     "rending_debuff",
     "rending_debuff_medium",
+    "rending_burn_debuff",
     "warp_fire",
     "increase_impact_received_while_staggered",
     "increase_damage_received_while_staggered",
     "psyker_protectorate_spread_chain_lightning_interval_improved",
     "psyker_protectorate_spread_charged_chain_lightning_interval_improved",
+    "psyker_force_staff_quick_attack_debuff",
     "ogryn_recieve_damage_taken_increase_debuff",
     "ogryn_taunt_increased_damage_taken_buff",
     "veteran_improved_tag_debuff",
@@ -280,6 +282,9 @@ local loc = {
     },
     psyker_protectorate_spread_charged_chain_lightning_interval_improved = {
         en = Localize("loc_talent_psyker_chain_lightning_improved_target_buff")
+    },
+    psyker_force_staff_quick_attack_debuff = {
+        en = Localize("loc_talent_psyker_force_staff_quick_attack_bonus")
     },
     ogryn_recieve_damage_taken_increase_debuff = {
         en = Localize("loc_talent_ogryn_targets_recieve_damage_increase_debuff")

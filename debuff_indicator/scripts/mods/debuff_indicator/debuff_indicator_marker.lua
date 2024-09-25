@@ -159,6 +159,7 @@ local _calculate_rending_percentage = function(buff_texts)
     local buff_stat_buffs = BuffSettings.stat_buffs
     local name_sm = "rending_debuff"
     local name_md = "rending_debuff_medium"
+    local name_bn = "rending_burn_debuff"
     local function _calculate(name)
         local stacks = buff_texts[name] and buff_texts[name].stacks or 0
         local stat_buffs = BuffTemplates[name] and BuffTemplates[name].stat_buffs or {}
@@ -170,16 +171,18 @@ local _calculate_rending_percentage = function(buff_texts)
     if buff_texts[name_sm] or buff_texts[name_md] then
         local total_sm = _calculate(name_sm)
         local total_md = _calculate(name_md)
+        local total_bn = _calculate(name_bn)
 
-        if not buff_texts[name_sm] and buff_texts[name_md] then
+        if not buff_texts[name_sm] and (buff_texts[name_md] or buff_texts[name_bn]) then
             buff_texts[name_sm] = {
                 display_name = mod:localize(name_sm),
                 stacks = 0
             }
         end
 
-        buff_texts[name_sm].stacks = (total_sm + total_md) * 100 .. "%"
+        buff_texts[name_sm].stacks = (total_sm + total_md + total_bn) * 100 .. "%"
         buff_texts[name_md] = nil
+        buff_texts[name_bn] = nil
     end
 
     return buff_texts
