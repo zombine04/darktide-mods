@@ -1,8 +1,8 @@
 --[[
     title: modular_menu_buttons
     author: Zombine
-    date: 29/05/2023
-    version: 1.1.0
+    date: 2024/09/25
+    version: 1.1.1
 ]]
 local mod = get_mod("modular_menu_buttons")
 
@@ -143,10 +143,9 @@ mod:hook("SystemView", "init", function(func, self, ...)
 
     local definitions = require("scripts/ui/views/system_view/system_view_definitions")
     local new_defs = table.clone(definitions)
-    local background = new_defs.scenegraph_definition.background
+    local background = new_defs.scenegraph_definition.grid
     local scrollbar = new_defs.scenegraph_definition.scrollbar
 
-    --background.position[2] = 80
     background.size[2] = 1000
     scrollbar.size[2] = 1000
 
@@ -161,7 +160,6 @@ end)
 
 mod:hook_safe("SystemView", "on_enter", function(self)
     local widgets = self._widgets_by_name
-    local scenegraph = self._ui_scenegraph.background
     local num_btn = 0
 
     for name, _ in pairs(widgets) do
@@ -169,8 +167,6 @@ mod:hook_safe("SystemView", "on_enter", function(self)
             num_btn = num_btn + 1
         end
     end
-
-    scenegraph.position[2] = 540 - num_btn * 65 / 2
 end)
 
 -- For Psykanium in Lobby and Main Menu
