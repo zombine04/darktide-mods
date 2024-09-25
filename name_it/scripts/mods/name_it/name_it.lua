@@ -1,8 +1,8 @@
 --[[
     title: name_it
     author: Zombine
-    date: 2024/06/04
-    version: 1.1.3
+    date: 2024/09/26
+    version: 1.2.0
 ]]
 local mod = get_mod("name_it")
 
@@ -11,7 +11,6 @@ local mod = get_mod("name_it")
 -- ##################################################
 
 local TextInputPassTemplates = require("scripts/ui/pass_templates/text_input_pass_templates")
-local UIConstantElements = require("scripts/managers/ui/ui_constant_elements")
 local UIWidget = require("scripts/managers/ui/ui_widget")
 
 -- ##################################################
@@ -37,7 +36,6 @@ mod.on_all_mods_loaded = function()
     local ui_manager = Managers.ui
     local constant_elements = ui_manager and ui_manager:ui_constant_elements()
     local popup_handler = constant_elements and constant_elements:element("ConstantElementPopupHandler")
-    -- ui_manager._ui_constant_elements = UIConstantElements:new(ui_manager, require("scripts/ui/constant_elements/constant_elements"))
 
     if popup_handler then
         popup_handler:init(constant_elements, 0)
@@ -83,6 +81,8 @@ end
 -- Input Field Definition
 -- ##################################################
 
+local input_height = 40
+
 mod:hook_require("scripts/ui/constant_elements/elements/popup_handler/constant_element_popup_handler_definitions", function(defs)
     local sgd = defs.scenegraph_definition
     local wd = defs.widget_definitions
@@ -94,7 +94,7 @@ mod:hook_require("scripts/ui/constant_elements/elements/popup_handler/constant_e
         horizontal_alignment = "center",
         size = {
             600,
-            40
+            input_height
         },
         position = {
             0,
@@ -115,8 +115,15 @@ local get_name_list = function()
     return mod:get("name_list") or {}
 end
 
-mod:hook_require("scripts/utilities/items", function(instance)
-    instance.display_name = function(item)
+mod:hook_require("scripts/utilities/items", function(Items)
+    Items.weapon_card_display_name = function(item)
+        local gear_id = item.gear_id or "n/a"
+        local name_list = get_name_list()
+
+        return name_list[gear_id] or Items.weapon_lore_family_name(item)
+    end
+
+    Items.display_name = function(item)
         if not item then
             return "n/a"
         end
@@ -125,6 +132,14 @@ mod:hook_require("scripts/utilities/items", function(instance)
         local display_name_localized = display_name and Localize(display_name) or "-"
         local gear_id = item.gear_id or "n/a"
         local name_list = get_name_list()
+
+        if Items.is_weapon(item.item_type) then
+            local lore_family_name = Items.weapon_lore_family_name(item)
+            local lore_pattern_name = Items.weapon_lore_pattern_name(item)
+            local lore_mark_name = Items.weapon_lore_mark_name(item)
+
+            display_name_localized = string.format("%s %s %s", lore_pattern_name, lore_mark_name, lore_family_name)
+        end
 
         return name_list[gear_id] or display_name_localized
     end
@@ -326,18 +341,28 @@ mod:hook("CraftingView", "_setup_tab_bar", function(func, self, tab_data, ...)
     func(self, new_tab_data, ...)
 end)
 
-local is_writing = function()
+local _is_writing = function()
     return mod._input_field and mod._input_field.content.is_writing or false
 end
 
-mod:hook_safe("ConstantElementPopupHandler", "update", function()
+mod:hook_safe("ConstantElementPopupHandler", "update", function(self)
     if mod._input_field then
+        local ime_enable = get_mod("IME_Enable")
+
         mod._input_field.content.visible = mod._show_input_field
 
-        if mod:get("enable_ime") then
-            Window.set_ime_enabled(is_writing())
+        if not ime_enable and mod:get("enable_ime") then
+            Window.set_ime_enabled(_is_writing())
         end
     end
+end)
+
+mod:hook("ConstantElementPopupHandler", "_get_text_height", function(func, self, description_text, ...)
+    if mod._show_input_field and description_text == Localize("loc_popup_description_change_name") then
+       return input_height + 20
+    end
+
+    return func(self, description_text, ...)
 end)
 
 -- ##################################################
@@ -372,6 +397,6 @@ end
 mod:hook("UIManager", "close_view", prevent_close_view)
 mod:hook("UIManager", "close_all_views", prevent_close_view)
 mod:hook("UIManager", "chat_using_input", function(func, ...)
-    return func(...) or is_writing()
+    return func(...) or _is_writing()
 end)
 
