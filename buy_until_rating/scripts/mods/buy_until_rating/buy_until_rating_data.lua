@@ -1,5 +1,5 @@
 local mod = get_mod("buy_until_rating")
-
+local rating_range = { 200, 280 }
 return {
     name = mod:localize("mod_name"),
     description = mod:localize("mod_description"),
@@ -9,8 +9,8 @@ return {
             {
                 setting_id = "desired_rating",
                 type = "numeric",
-                default_value = 370,
-                range = { 300, 380 },
+                default_value = 280,
+                range = rating_range,
             },
             {
                 setting_id = "cancel_key",
@@ -52,8 +52,8 @@ return {
                             {
                                 setting_id = "discard_threshold",
                                 type = "numeric",
-                                default_value = 349,
-                                range = {300, 380},
+                                default_value = 269,
+                                range = rating_range,
                             },
                         }
                     },
