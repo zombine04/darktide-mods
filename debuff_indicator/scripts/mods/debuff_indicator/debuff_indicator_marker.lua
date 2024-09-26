@@ -116,33 +116,6 @@ local _apply_display_style_and_color = function(buff_name, label, count)
     return buff_display_text
 end
 
-local _add_stagger_and_suppression = function(blackboard, content)
-    local stagger_component = blackboard.stagger
-    local suppression_component = blackboard.suppression
-
-    if mod:get("enable_stagger") and stagger_component then
-        local stagger_count = stagger_component.num_triggered_staggers
-
-        if stagger_count > 0 then
-            content.body_text = _apply_display_style_and_color("stagger", mod:localize("stagger"), stagger_count)
-        end
-    end
-
-    if mod:get("enable_suppression") and suppression_component then
-        local is_suppressed = suppression_component.is_suppressed
-
-        if is_suppressed then
-            local suppression_value = suppression_component.suppress_value
-
-            if content.body_text ~= "" then
-                content.body_text = content.body_text .. "\n"
-            end
-
-            content.body_text = content.body_text .. _apply_display_style_and_color("suppression", mod:localize("suppression"), suppression_value)
-        end
-    end
-end
-
 local _get_stacks = function(buff_ext, buff_name)
     local buff_template = BuffTemplates[buff_name]
     local max_stacks = buff_template and buff_template.max_stacks
@@ -155,34 +128,20 @@ local _get_stacks = function(buff_ext, buff_name)
     return stacks
 end
 
-local _calculate_rending_percentage = function(buff_texts)
-    local buff_stat_buffs = BuffSettings.stat_buffs
-    local name_sm = "rending_debuff"
-    local name_md = "rending_debuff_medium"
-    local name_bn = "rending_burn_debuff"
-    local function _calculate(name)
-        local stacks = buff_texts[name] and buff_texts[name].stacks or 0
-        local stat_buffs = BuffTemplates[name] and BuffTemplates[name].stat_buffs or {}
-        local value = stat_buffs and stat_buffs[buff_stat_buffs.rending_multiplier] or 0
+local _get_rending_debuff_multiplier = function(buff_texts, stat_buffs)
+    local buff_name = "rending_debuff"
 
-        return value * stacks
+    if not mod:get("enable_" .. buff_name) then
+        return buff_texts
     end
 
-    if buff_texts[name_sm] or buff_texts[name_md] then
-        local total_sm = _calculate(name_sm)
-        local total_md = _calculate(name_md)
-        local total_bn = _calculate(name_bn)
+    local rending_multiplier = stat_buffs and stat_buffs["rending_multiplier"]
 
-        if not buff_texts[name_sm] and (buff_texts[name_md] or buff_texts[name_bn]) then
-            buff_texts[name_sm] = {
-                display_name = mod:localize(name_sm),
-                stacks = 0
-            }
-        end
-
-        buff_texts[name_sm].stacks = (total_sm + total_md + total_bn) * 100 .. "%"
-        buff_texts[name_md] = nil
-        buff_texts[name_bn] = nil
+    if rending_multiplier and rending_multiplier > 1 then
+        buff_texts[buff_name] = {
+            display_name = mod:localize(buff_name),
+            stacks = (rending_multiplier - 1) * 100 .. "%"
+        }
     end
 
     return buff_texts
@@ -208,6 +167,10 @@ local _merge_psyker_smite_debuff = function(buff_texts)
     return buff_texts
 end
 
+local _is_rending_debuff = function(buff_name)
+    return buff_name:match("rending") and buff_name:match("debuff")
+end
+
 local _check_merged_buff = function(buff_name)
     local parent_name = mod.merged_buffs[buff_name]
 
@@ -220,15 +183,16 @@ end
 
 local buff_texts = {}
 
-local _add_buff_and_debuff = function(buff_ext, buffs)
+local _add_buff_and_debuff = function(buff_ext, buffs, stat_buffs)
     for _, buff in ipairs(buffs) do
         local buff_name = buff:template_name()
         local can_display = false
         local is_important = table.find(mod.buff_names, buff_name)
 
-        if mod:get("enable_" .. buff_name) or
-           _check_merged_buff(buff_name) or
-           not mod:get("enable_filter") and not is_important then
+        if _is_rending_debuff(buff_name) then
+            -- do nothing
+        elseif mod:get("enable_" .. buff_name) or _check_merged_buff(buff_name) or
+               not mod:get("enable_filter") and not is_important then
             can_display = true
         end
 
@@ -243,7 +207,7 @@ local _add_buff_and_debuff = function(buff_ext, buffs)
         end
     end
 
-    buff_texts = _calculate_rending_percentage(buff_texts)
+    buff_texts = _get_rending_debuff_multiplier(buff_texts, stat_buffs)
     buff_texts = _merge_psyker_smite_debuff(buff_texts)
 end
 
@@ -335,21 +299,13 @@ function template.update_function(parent, ui_renderer, widget, marker, template,
         return
     end
 
---[[
-    -- stagger and suppression
-    local blackboard = BLACKBOARDS[unit]
-
-    if blackboard then
-        _add_stagger_and_suppression(blackboard, content)
-    end
-]]
-
     local buff_ext = ScriptUnit.extension(unit, "buff_system")
     local buffs = buff_ext and buff_ext:buffs()
+    local stat_buffs = buff_ext and buff_ext:stat_buffs()
     local keywords = buff_ext and buff_ext:keywords()
 
     if buffs then
-        _add_buff_and_debuff(buff_ext, buffs)
+        _add_buff_and_debuff(buff_ext, buffs, stat_buffs)
     end
 
     if keywords then

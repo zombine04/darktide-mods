@@ -5,8 +5,6 @@ mod.buff_names = {
     "bleed",
     "flamer_assault",
     "rending_debuff",
-    "rending_debuff_medium",
-    "rending_burn_debuff",
     "warp_fire",
     "increase_impact_received_while_staggered",
     "increase_damage_received_while_staggered",
@@ -28,7 +26,6 @@ mod.keywords = {
 
 mod.merged_buffs = {
     psyker_protectorate_spread_charged_chain_lightning_interval_improved = "psyker_protectorate_spread_chain_lightning_interval_improved",
-    rending_debuff_medium = "rending_debuff",
 }
 
 mod.display_style_names = {
