@@ -1,8 +1,8 @@
 --[[
     title: name_it
     author: Zombine
-    date: 2024/09/26
-    version: 1.2.1
+    date: 2024/09/29
+    version: 1.3.0
 ]]
 local mod = get_mod("name_it")
 
@@ -41,6 +41,29 @@ mod.on_all_mods_loaded = function()
         popup_handler:init(constant_elements, 0)
         mod._input_field = popup_handler._widgets_by_name.change_name_input
     end
+end
+
+mod.get_custom_name_list = function()
+    return mod:get("name_list") or {}
+end
+
+mod.get_custom_name = function(item, is_sub)
+    if item and item.gear_id then
+        local can_replace = mod:get("replace_pattern_name")
+        local name_list = mod.get_custom_name_list()
+
+        if not is_sub then
+            can_replace = not can_replace
+        end
+
+        if can_replace then
+            local custom_name =  name_list[item.gear_id] or nil
+
+            return custom_name
+        end
+    end
+
+    return nil
 end
 
 -- ##################################################
@@ -111,18 +134,15 @@ end)
 -- Load Custom Names
 -- ##################################################
 
-local get_name_list = function()
-    return mod:get("name_list") or {}
-end
-
 mod:hook_require("scripts/utilities/items", function(Items)
+    -- family_name
     Items.weapon_card_display_name = function(item)
-        local gear_id = item.gear_id or "n/a"
-        local name_list = get_name_list()
+        local custom_name = mod.get_custom_name(item)
 
-        return name_list[gear_id] or Items.weapon_lore_family_name(item)
+        return custom_name or Items.weapon_lore_family_name(item)
     end
 
+    -- family_name
     Items.display_name = function(item)
         if not item then
             return "n/a"
@@ -130,8 +150,7 @@ mod:hook_require("scripts/utilities/items", function(Items)
 
         local display_name = item.display_name
         local display_name_localized = display_name and Localize(display_name) or "-"
-        local gear_id = item.gear_id or "n/a"
-        local name_list = get_name_list()
+        local custom_name = mod.get_custom_name(item)
 
         if Items.is_weapon(item.item_type) then
             local lore_family_name = Items.weapon_lore_family_name(item)
@@ -141,13 +160,34 @@ mod:hook_require("scripts/utilities/items", function(Items)
             display_name_localized = string.format("%s %s %s", lore_pattern_name, lore_mark_name, lore_family_name)
         end
 
-        return name_list[gear_id] or display_name_localized
+        return custom_name or display_name_localized
+    end
+
+    -- pattern name and mark name
+    Items.weapon_card_sub_display_name = function(item)
+        local custom_name = mod.get_custom_name(item, true)
+
+        if custom_name then
+            return custom_name
+        end
+
+        local lore_pattern_name = Items.weapon_lore_pattern_name(item)
+        local lore_mark_name = Items.weapon_lore_mark_name(item)
+        local has_pattern = lore_pattern_name ~= "n/a"
+        local has_mark = lore_mark_name ~= "n/a"
+
+        if has_pattern and has_mark then
+            local sub_display_name = string.format("%s \xE2\x80\xA2 %s", lore_pattern_name, lore_mark_name)
+
+            return sub_display_name
+        end
+
+        return has_pattern and lore_pattern_name or has_mark and lore_mark_name or "n/a"
     end
 end)
 
 mod:hook_safe("InventoryView", "_draw_loadout_widgets", function(self)
     local widgets = self._loadout_widgets
-    local name_list = get_name_list()
 
     if widgets then
         for _, widget in ipairs(widgets) do
@@ -155,13 +195,9 @@ mod:hook_safe("InventoryView", "_draw_loadout_widgets", function(self)
             local item = content.item
 
             if item then
-                local gear_id = item.gear_id
+                local custom_name = mod.get_custom_name(item)
 
-                if gear_id and name_list[gear_id] then
-                    content.display_name = name_list[gear_id]
-                else
-                    content.display_name = Localize(item.display_name)
-                end
+                content.display_name = custom_name or Localize(item.display_name)
             end
         end
     end
@@ -195,7 +231,7 @@ local _set_update_display_name = function(val)
 end
 
 local _save_name = function()
-    local name_list = get_name_list()
+    local name_list = mod.get_custom_name_list()
 
     name_list[mod._gear_id] = mod._new_name
     mod:set("name_list", name_list)
@@ -212,7 +248,7 @@ mod:hook_safe("CraftingMechanicusModifyView", "update", update_display_name)
 
 local remove_custom_name = function(gear_id)
     if gear_id then
-        local name_list = get_name_list()
+        local name_list = mod.get_custom_name_list()
 
         name_list[gear_id] = nil
         mod:set("name_list", name_list)
@@ -347,6 +383,7 @@ end
 
 mod:hook_safe("ConstantElementPopupHandler", "update", function(self)
     if mod._input_field then
+        -- IME_Enable compatibility
         local ime_enable = get_mod("IME_Enable")
 
         mod._input_field.content.visible = mod._show_input_field

@@ -56,6 +56,14 @@ local loc = {
     off = {
         en = Localize("loc_setting_checkbox_off"),
     },
+    replace_pattern_name = {
+        en = "Replace Weapon Pattern Name",
+        ja = "武器のパターン名を置き換える",
+    },
+    tooltip_replace_pattern_name = {
+        en = "Replace the weapon pattern name and mark name with a custom name instead of the weapon category name.",
+        ja = "武器カテゴリ名の代わりにパターン名とマーク名をカスタム名に変更する。",
+    },
     enable_ime = {
         en = "Enable IME",
         ja = "IMEを有効にする",

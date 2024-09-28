@@ -26,6 +26,12 @@ return {
 
             },
             {
+                setting_id = "replace_pattern_name",
+                type = "checkbox",
+                default_value = false,
+                tooltip = "tooltip_replace_pattern_name"
+            },
+            {
                 setting_id = "enable_ime",
                 type = "checkbox",
                 default_value = true,
