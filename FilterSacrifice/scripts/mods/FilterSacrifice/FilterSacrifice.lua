@@ -2,7 +2,7 @@
     title: FilterSacrifice
     author: Zombine
     date: 2024/09/28
-    version: 1.0.0
+    version: 1.0.1
 ]]
 local mod = get_mod("FilterSacrifice")
 
