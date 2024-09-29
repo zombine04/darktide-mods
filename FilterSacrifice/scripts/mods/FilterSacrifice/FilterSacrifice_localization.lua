@@ -6,6 +6,7 @@ mod:add_global_localize_strings({
         en = "Toggle Filter",
         ja = "フィルターの切り替え",
         ["zh-cn"] = "切换筛选器",
+        ru = "Переключение сортировки",
     },
 })
 
@@ -13,11 +14,13 @@ local loc = {
     mod_name = {
         en = "Filter Sacrifice",
         ["zh-cn"] = "牺牲筛选器",
+        ru = "Сортировка жертвуемого",
     },
     mod_description = {
         en = "Filtering and displays only the same weapon type in the sacrifice menu.",
         ja = "捧げ物のメニューで同じ武器タイプのみを表示するようにします。",
         ["zh-cn"] = "在牺牲界面中筛选，仅显示相同类型的武器。",
+        ru = "Фильтрация и перемещение одного типа оружия в меню жертвования.",
     },
     keybind_toggle_filter = {
         en = "Keybind",
@@ -29,6 +32,7 @@ local loc = {
         en = "Enable Filter by Default",
         ja = "フィルターをデフォルトで有効化",
         ["zh-cn"] = "默认启用筛选",
+        ru = "Включить сортировку по умолчанию",
     }
 }
 
