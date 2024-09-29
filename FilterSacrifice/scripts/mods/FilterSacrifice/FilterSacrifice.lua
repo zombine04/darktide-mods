@@ -1,8 +1,8 @@
 --[[
     title: FilterSacrifice
     author: Zombine
-    date: 2024/09/28
-    version: 1.0.1
+    date: 2024/09/29
+    version: 1.0.2
 ]]
 local mod = get_mod("FilterSacrifice")
 

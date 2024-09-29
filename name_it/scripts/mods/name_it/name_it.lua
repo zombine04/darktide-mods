@@ -2,7 +2,7 @@
     title: name_it
     author: Zombine
     date: 2024/09/29
-    version: 1.3.0
+    version: 1.3.1
 ]]
 local mod = get_mod("name_it")
 
