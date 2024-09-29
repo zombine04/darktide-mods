@@ -60,11 +60,13 @@ local loc = {
         en = "Replace Weapon Pattern Name",
         ja = "武器のパターン名を置き換える",
         ["zh-cn"] = "替换武器型号名称",
+        ru = "Заменить название модели оружия",
     },
     tooltip_replace_pattern_name = {
         en = "Replace the weapon pattern name and mark name with a custom name instead of the weapon category name.",
         ja = "武器カテゴリ名の代わりにパターン名とマーク名をカスタム名に変更する。",
         ["zh-cn"] = "使用自定义名称替换武器的式样和型号名称，而非武器类别名称。",
+        ru = "Заменяет название модели оружия на пользовательское название вместо названия категории оружия.",
     },
     enable_ime = {
         en = "Enable IME",
