@@ -1,8 +1,8 @@
 --[[
     title: modular_menu_buttons
     author: Zombine
-    date: 2024/09/30
-    version: 1.2.0
+    date: 2024/10/01
+    version: 1.2.1
 ]]
 local mod = get_mod("modular_menu_buttons")
 
@@ -27,6 +27,7 @@ mod:hook_safe("UIManager", "load_view", function(self, view_name, reference_name
     end
 end)
 
+--[[
 mod:hook_safe("UIManager", "unload_view", function(self, view_name)
     local package_manager = Managers.package
 
@@ -38,6 +39,7 @@ mod:hook_safe("UIManager", "unload_view", function(self, view_name)
         mod._package_ids = {}
     end
 end)
+]]
 
 -- Load Narratives
 
