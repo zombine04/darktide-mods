@@ -2,13 +2,13 @@
     title: modular_menu_buttons
     author: Zombine
     date: 2024/10/01
-    version: 1.2.1
+    version: 1.2.2
 ]]
 local mod = get_mod("modular_menu_buttons")
 
 -- Load Assets
 
-mod._package_ids = {}
+mod._package_ids = mod:persistent_table("package_ids")
 
 mod:hook_safe("UIManager", "load_view", function(self, view_name, reference_name)
     local packages = {
@@ -27,19 +27,18 @@ mod:hook_safe("UIManager", "load_view", function(self, view_name, reference_name
     end
 end)
 
---[[
-mod:hook_safe("UIManager", "unload_view", function(self, view_name)
+mod.on_game_state_changed = function(status, state_name)
     local package_manager = Managers.package
 
-    if view_name == "system_view" and not table.is_empty(mod._package_ids) then
-        for _, id in ipairs(mod._package_ids) do
-            package_manager:release(id)
-        end
+    if state_name == "StateLoading" and status == "enter" and not table.is_empty(mod._package_ids) then
+        for i = 1, #mod._package_ids do
+            local id = mod._package_ids[i]
 
-        mod._package_ids = {}
+            package_manager:release(id)
+            mod._package_ids[i] = nil
+        end
     end
-end)
-]]
+end
 
 -- Load Narratives
 
@@ -226,7 +225,7 @@ end
 
 mod:hook("UIWorldSpawner", "create_viewport", function(func, self, camera_unit, viewport_name, viewport_type, viewport_layer, shading_environment, ...)
     local game_mode_manager = Managers.state.game_mode
-    local gamemode_name = game_mode_manager and game_mode_manager:game_mode_name()
+    local gamemode_name = game_mode_manager and game_mode_manager:game_mode_name() or "unknown"
 
     if viewport_name == "ui_crafting_view_sacrifice_viewport" and gamemode_name ~= "hub" then
         shading_environment = "content/shading_environments/ui/crafting_view"
