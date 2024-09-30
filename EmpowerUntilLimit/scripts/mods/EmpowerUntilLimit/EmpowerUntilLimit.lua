@@ -2,7 +2,7 @@
     name: EmpowerUntilLimit
     author: Zombine
     date: 2024/09/30
-    version: 1.0.0
+    version: 1.0.1
 ]]
 local mod = get_mod("EmpowerUntilLimit")
 local NotifSettings = require("scripts/ui/constant_elements/elements/notification_feed/constant_element_notification_feed_settings")
