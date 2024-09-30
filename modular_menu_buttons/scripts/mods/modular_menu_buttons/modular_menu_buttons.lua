@@ -2,7 +2,7 @@
     title: modular_menu_buttons
     author: Zombine
     date: 2024/09/30
-    version: 1.3.0
+    version: 1.2.0
 ]]
 local mod = get_mod("modular_menu_buttons")
 
