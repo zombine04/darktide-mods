@@ -1,21 +1,41 @@
 --[[
     title: modular_menu_buttons
     author: Zombine
-    date: 2024/09/25
-    version: 1.1.1
+    date: 2024/09/30
+    version: 1.3.0
 ]]
 local mod = get_mod("modular_menu_buttons")
 
--- Load Icons
+-- Load Assets
+
+mod._package_ids = {}
 
 mod:hook_safe("UIManager", "load_view", function(self, view_name, reference_name)
-    local package = "packages/ui/hud/world_markers/world_markers"
+    local packages = {
+        "packages/ui/hud/world_markers/world_markers",
+        "packages/ui/views/masteries_overview_view/masteries_overview_view"
+    }
     local package_manager = Managers.package
 
-    if view_name == "system_view" and
-       not package_manager:has_loaded(package) and
-       not package_manager:is_loading(package) then
-        package_manager:load(package, reference_name)
+    if view_name == "system_view" and table.is_empty(mod._package_ids) then
+        for _, package in ipairs(packages) do
+            if not package_manager:has_loaded(package) and
+               not package_manager:is_loading(package) then
+                mod._package_ids[#mod._package_ids + 1] = package_manager:load(package, reference_name)
+            end
+        end
+    end
+end)
+
+mod:hook_safe("UIManager", "unload_view", function(self, view_name)
+    local package_manager = Managers.package
+
+    if view_name == "system_view" and not table.is_empty(mod._package_ids) then
+        for _, id in ipairs(mod._package_ids) do
+            package_manager:release(id)
+        end
+
+        mod._package_ids = {}
     end
 end)
 
@@ -78,7 +98,8 @@ local _edit_existing_content = function(default_contnent)
         if setting.text == "loc_character_view_display_name" or
            setting.text == "loc_achievements_view_display_name" or
            setting.text == "loc_social_view_display_name" or
-           setting.text == "loc_exit_to_main_menu_display_name" then
+           setting.text == "loc_exit_to_main_menu_display_name" or
+           setting.text == "loc_group_finder_menu_title" then
             default_contnent[i].validation_function = function()
                 return mod:get(_get_setting_id_from_text(setting.text))
             end
@@ -123,10 +144,10 @@ local get_new_content = function(original_content)
             return mod:get(_format_setting_id(setting.name))
         end
 
-        table.insert(content.default, 4, setting)
+        table.insert(content.default, 5, setting)
     end
 
-    table.insert(content.default, 4, { type = "spacing_vertical"})
+    table.insert(content.default, 5, { type = "spacing_vertical"})
     content.default = _edit_existing_content(content.default)
     content.StateMainMenu = nil
 
@@ -198,3 +219,16 @@ mod:hook("StateMainMenu", "update", go_to_training_ground)
 mod.on_all_mods_loaded = function()
     mod._current_state = get_current_state()
 end
+
+-- Avoid crash in the sacrifice menu
+
+mod:hook("UIWorldSpawner", "create_viewport", function(func, self, camera_unit, viewport_name, viewport_type, viewport_layer, shading_environment, ...)
+    local game_mode_manager = Managers.state.game_mode
+    local gamemode_name = game_mode_manager and game_mode_manager:game_mode_name()
+
+    if viewport_name == "ui_crafting_view_sacrifice_viewport" and gamemode_name ~= "hub" then
+        shading_environment = "content/shading_environments/ui/crafting_view"
+    end
+
+    func(self, camera_unit, viewport_name, viewport_type, viewport_layer, shading_environment, ...)
+end)

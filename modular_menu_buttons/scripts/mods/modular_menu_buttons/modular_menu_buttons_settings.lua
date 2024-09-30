@@ -143,6 +143,15 @@ mod._content_list_default = {
             "coop_complete_objective",
         }
     },
+    {
+        name = "group_finder_view",
+        text = "loc_group_finder_menu_title",
+        group = {
+            "main_menu",
+            "hub",
+            "shooting_range",
+        }
+    },
 }
 
 mod._content_list_main_menu = {
