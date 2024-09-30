@@ -6,11 +6,13 @@ local loc = {
     mod_name = {
         en = "Modular Menu Buttons",
         ["zh-cn"] = "模块化菜单按钮",
+        ru = "Кнопки модульного меню",
     },
     mod_description = {
         en = "Allows to customize the buttons displayed in the esc menu.",
         ja = "エスケープメニューに表示されるボタンをカスタマイズできるようにします。",
         ["zh-cn"] = "允许自定义在 Esc 菜单中显示的按钮。",
+        ru = "Modular Menu Buttons - Позволяет настраивать кнопки, отображаемые в меню ESC.",
     },
     main_menu = {
         en = Localize("loc_hud_presence_main_menu")
