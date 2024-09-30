@@ -5,17 +5,41 @@
     version: 1.0.1
 ]]
 local mod = get_mod("EmpowerUntilLimit")
+local InputUtils = require("scripts/managers/input/input_utils")
 local NotifSettings = require("scripts/ui/constant_elements/elements/notification_feed/constant_element_notification_feed_settings")
 
 -- ##################################################
--- Decrease hold timer
+-- Adjust upgrade button
 -- ##################################################
 
 mod:hook_safe(CLASS.ViewElementCraftingRecipe, "init", function(self)
     local widget = self._widgets_by_name.continue_button_hold
+    local passes = widget.passes
 
     widget.content.timer = 0.01
     mod._do_upgrade = false
+
+    for i = 1, #passes do
+        local pass_info = passes[i]
+
+        if pass_info.value_id and pass_info.value_id == "text" then
+            pass_info.change_function = function(content, style)
+                local hotspot = content.hotspot
+
+                if widget.visible and not hotspot.disabled then
+                    local button_text = content.original_text or ""
+                    local gamepad_action = content.input_action
+                    local service_type = "View"
+                    local alias_key = Managers.ui:get_input_alias_key(gamepad_action, service_type)
+                    local input_text = InputUtils.input_text_for_current_input_device(service_type, alias_key)
+
+                    content.text = string.format("{#color(226,199,126)}%s{#reset()} %s", input_text, button_text)
+                end
+            end
+
+            break
+        end
+    end
 end)
 
 -- ##################################################
