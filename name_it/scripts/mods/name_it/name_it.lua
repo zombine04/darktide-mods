@@ -1,8 +1,8 @@
 --[[
     title: name_it
     author: Zombine
-    date: 2024/09/29
-    version: 1.3.1
+    date: 2024/10/02
+    version: 1.3.2
 ]]
 local mod = get_mod("name_it")
 
@@ -48,7 +48,7 @@ mod.get_custom_name_list = function()
 end
 
 mod.get_custom_name = function(item, is_sub)
-    if item and item.gear_id then
+    if item and item.gear_id and item.item_type then
         local can_replace = mod:get("replace_pattern_name")
         local name_list = mod.get_custom_name_list()
 
@@ -56,10 +56,8 @@ mod.get_custom_name = function(item, is_sub)
             can_replace = not can_replace
         end
 
-        if can_replace then
-            local custom_name =  name_list[item.gear_id] or nil
-
-            return custom_name
+        if can_replace or item.item_type == "GADGET" then
+            return name_list[item.gear_id]
         end
     end
 
