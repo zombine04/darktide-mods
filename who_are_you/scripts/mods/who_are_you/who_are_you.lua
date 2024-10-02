@@ -1,8 +1,8 @@
 --[[
     title: who_are_you
     author: Zombine
-    date: 2024/07/04
-    version: 3.4.2
+    date: 2024/10/02
+    version: 3.5.0
 ]]
 local mod = get_mod("who_are_you")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -35,6 +35,10 @@ mod.is_unknown = function(account_name)
 end
 
 mod.account_name = function(id)
+    if not id then
+        return nil
+    end
+
     local account_name = mod._account_names[id]
 
     if not account_name then
@@ -207,7 +211,7 @@ mod:hook_safe("LobbyView", "_sync_player", function(self, unique_id, player)
             local panel_widget = slot.panel_widget
             local panel_content = panel_widget.content
             local account_id = player:account_id()
-            local account_name = account_id and mod.account_name(account_id)
+            local account_name = mod.account_name(account_id)
 
             if account_name and profile and panel_content.character_name then
                 local character_name = player:name()
@@ -260,7 +264,7 @@ mod:hook_safe("HudElementWorldMarkers", "_calculate_markers", function(self, dt,
                     local profile = player:profile()
                     local content = marker.widget.content
                     local account_id = player:account_id()
-                    local account_name = account_id and mod.account_name(account_id)
+                    local account_name = mod.account_name(account_id)
 
                     if account_name and profile and content.header_text then
                         local character_name = player:name()
@@ -350,7 +354,7 @@ local modify_player_panel_name = function(self, dt, t, player)
     if not is_current_style(self.wru_style) or not self.wru_modified then
         local profile = player:profile()
         local account_id = player:account_id()
-        local account_name = account_id and mod.account_name(account_id)
+        local account_name = mod.account_name(account_id)
 
         if account_name and profile and content.text then
             local string_symbol = self._player_name_prefix or ""
@@ -384,7 +388,7 @@ mod:hook("HudElementCombatFeed", "_get_unit_presentation_name", function(func, s
 
         if player then
             local account_id = player:account_id()
-            local account_name = account_id and mod.account_name(account_id)
+            local account_name = mod.account_name(account_id)
 
             if account_name then
                 local player_slot = player:slot()
@@ -410,7 +414,7 @@ mod:hook_safe("InventoryBackgroundView", "_fetch_character_progression", functio
 
     local widget = self._widgets_by_name.character_name
     local account_id = player:account_id()
-    local account_name = account_id and mod.account_name(account_id)
+    local account_name = mod.account_name(account_id)
 
     if account_name then
         local character_name = player:name()
@@ -426,7 +430,7 @@ end)
 mod:hook("PlayerCharacterOptionsView", "_set_player_name", function(func, self, name, ...)
     if mod:get("enable_inspect_player") then
         local account_id = self._account_id
-        local account_name = account_id and mod.account_name(account_id)
+        local account_name = mod.account_name(account_id)
         local ref = "inspect_player"
 
         if account_name then
@@ -435,6 +439,127 @@ mod:hook("PlayerCharacterOptionsView", "_set_player_name", function(func, self, 
     end
 
     func(self, name, ...)
+end)
+
+-- Gourp Finder
+
+mod:hook_safe("GroupFinderView", "_update_listed_group", function(self)
+    if not mod:get("enable_group_finder") then
+        return
+    end
+
+    local own_group = self._own_group_visualization
+    local members = own_group.members
+    local widgets = self._widgets_by_name
+
+    for i = 1, #members do
+        local member = members[i]
+
+        if member then
+            local widget = widgets["team_member_" .. i]
+            local account_id = member.account_id
+            local account_name = mod.account_name(account_id)
+
+            if account_name then
+                local ref = "group_finder"
+                local character_name = widget.content.character_name
+
+                widget.content.character_name = modify_character_name(character_name, account_name, account_id, ref)
+            end
+        end
+    end
+end)
+
+local requests = {}
+
+mod:hook_safe("GroupFinderView", "update", function(self)
+    if not mod:get("enable_group_finder") then
+        return
+    end
+
+    for i = 1, #requests do
+        local request = requests[i]
+        local widget = request.widget
+        local account_id = request.account_id
+
+        if not widget.wru_modified then
+            local account_name = mod.account_name(account_id)
+
+            if account_name then
+                local ref = "group_finder"
+                local character_name = widget.content.character_name
+
+                widget.content.character_name = modify_character_name(character_name, account_name, account_id, ref)
+                widget.wru_modified = true
+            end
+        end
+    end
+end)
+
+mod:hook_safe("GroupFinderView", "_populate_player_request_grid", function(self)
+    if not mod:get("enable_group_finder") then
+        return
+    end
+
+    requests = {}
+
+    local grid = self._player_request_grid
+    local widgets = grid and grid:widgets() or {}
+
+    for i = 1, #widgets do
+        local widget = widgets[i]
+        local element = widget.content.element
+
+        if element then
+            local widget_type = element.widget_type
+
+            if widget_type == "player_request_entry" then
+                requests[#requests + 1] = {
+                    widget = widget,
+                    account_id = element.join_request.account_id
+                }
+            end
+        end
+    end
+end)
+
+mod:hook_safe("GroupFinderView", "_populate_preview_grid", function(self)
+    local grid = self._preview_grid
+    local widgets = grid and grid:widgets() or {}
+    local player_widgets = {}
+    local members = nil
+
+    for i = 1, #widgets do
+        local widget = widgets[i]
+        local element = widget.content.element
+
+        if element then
+            local widget_type = element.widget_type
+
+            if widget_type == "group" then
+                members = element.group.members
+            elseif widget_type == "player_request_entry" then
+                player_widgets[#player_widgets + 1] = widget
+            end
+        end
+    end
+
+    if members then
+        for i = 1, #members do
+            local member = members[i]
+            local account_id = member.account_id
+            local account_name = mod.account_name(account_id)
+
+            if account_name then
+                local widget = player_widgets[i]
+                local ref = "group_finder"
+                local character_name = widget.content.character_name
+
+                widget.content.character_name = modify_character_name(character_name, account_name, account_id, ref)
+                widget.wru_modified = true
+            end
+        end
+    end
 end)
 
 -- ##############################

@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 2024/07/03
-    version: 1.6.5
+    date: 2024/10/02
+    version: 1.7.0
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -294,6 +294,7 @@ mod:hook_safe(CLASS.PresenceEntryImmaterium, "_process_character_profile_convert
         local backend_progression = backend_profile_data.progression
 
         mod.cache_true_levels(cache, character_id, backend_progression)
+        mod.debug.echo(backend_profile_data.character.name .. ": " .. character_id)
     end
 end)
 

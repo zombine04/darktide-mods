@@ -10,7 +10,7 @@ end
 
 option_tables.color = {}
 
-local is_duplicated = function(a)
+local _is_duplicated = function(a)
     local join = function(t)
         return string.format("%s,%s,%s", t[2], t[3], t[4])
     end
@@ -27,7 +27,7 @@ local is_duplicated = function(a)
 end
 
 for i, name in ipairs(Color.list) do
-    if not is_duplicated(Color[name](255, true)) then
+    if not _is_duplicated(Color[name](255, true)) then
         option_tables.color[#option_tables.color + 1] = { text = name, value = name }
     end
 end

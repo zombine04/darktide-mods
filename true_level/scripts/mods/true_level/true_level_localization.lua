@@ -9,6 +9,7 @@ mod._elements = {
     "inspect_player",
     "team_panel",
     "social_menu",
+    "group_finder",
 }
 
 mod._styles = {
@@ -171,6 +172,9 @@ local loc = {
         ja = "ソーシャルメニュー",
         ["zh-cn"] = "社交菜单",
         ru = "Социальное меню",
+    },
+    group_finder = {
+        en = Localize("loc_group_finder_menu_title")
     },
     debug_mode = {
         en = "Debug",

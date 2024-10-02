@@ -8,6 +8,7 @@ mod.modified_elements = {
     "_nameplate",
     "_inspect_player",
     "_team_panel",
+    "_group_finder"
 }
 
 mod.sub_name_options = {
@@ -149,6 +150,9 @@ local loc = {
         ja = "チームHUD",
         ru = "Интерфейс команды",
         ["zh-cn"] = "团队 HUD",
+    },
+    enable_group_finder = {
+        en = Localize("loc_group_finder_menu_title")
     },
     sub_name_settings = {
         en = "Sub name settings",
