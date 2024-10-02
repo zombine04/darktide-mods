@@ -1,8 +1,8 @@
 --[[
     name: PenancesForTheMission
     author: Zombine
-    date: 2024/09/25
-    version: 1.0.4
+    date: 2024/10/03
+    version: 1.0.5
 ]]
 
 local mod = get_mod("PenancesForTheMission")

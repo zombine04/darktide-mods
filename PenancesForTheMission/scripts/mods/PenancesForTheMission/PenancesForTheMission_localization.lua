@@ -49,19 +49,24 @@ local loc = {
 }
 
 mod._available_aliases = {
-    "hotkey_item_inspect",        -- v,           right_thumb
-    "hotkey_inventory",           -- i,           back
-    "hotkey_loadout",             -- l,           y
-    "toggle_private_match",       -- p,           y
-    "hotkey_menu_special_2",      -- q,           y
-    "toggle_solo_play",           -- s,           left_thumb
-    "toggle_filter",              -- t,           y
-    "hotkey_start_game",          -- enter,       x
-    "next_hint",                  -- space,       a
-    "cycle_list_secondary",       -- tab,         right_thumb
-    "notification_option_a",      -- f9,          d_right + left_trigger,
-    "notification_option_b",      -- f10,         d_right + right_trigger,
-    "talent_unequip",             -- mouse_right, a
+    "character_create_randomize",  -- c,           right_shoulder
+    "hotkey_item_favorite",        -- f,            y
+    "hotkey_help",                 -- h,           y
+    "hotkey_inventory",            -- i,           back
+    "hotkey_loadout",              -- l,           y
+    "hotkey_menu_special_2",       -- q,           y
+    "group_finder_refresh_groups", -- r,           right_thumb
+    "toggle_solo_play",            -- s,           left_thumb
+    "toggle_filter",               -- t,           y
+    "hotkey_item_inspect",         -- v,           right_thumb
+    "hotkey_item_discard",         -- x,           right_thumb
+    "hotkey_start_game",           -- enter,       x
+    "group_finder_group_inspect",  -- shift,       left_shoulder
+    "next_hint",                   -- space,       a
+    "cycle_list_secondary",        -- tab,         right_thumb
+    "notification_option_a",       -- f9,          d_right + left_trigger,
+    "notification_option_b",       -- f10,         d_right + right_trigger,
+    "talent_unequip",              -- mouse_right, a
 }
 
 for _, gamepad_action in ipairs(mod._available_aliases) do
