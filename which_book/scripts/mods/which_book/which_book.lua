@@ -1,8 +1,8 @@
 --[[
     title: Which Book
     aouthor: Zombine
-    date: 17/05/2023
-    version: 1.2.7
+    date: 2024/10/03
+    version: 1.2.8
 ]]
 
 local mod = get_mod("which_book")
@@ -48,7 +48,7 @@ end)
 
 mod:hook_safe("MissionBoardView", "on_exit", function()
     local side_mission_objectives = MissionObjectiveTemplates.side_mission.objectives
-    local default_icon = "content/ui/materials/icons/mission_types/mission_type_08"
+    local default_icon = "content/ui/materials/icons/mission_types/mission_type_side"
 
     side_mission_objectives.side_mission_grimoire.icon = default_icon
     side_mission_objectives.side_mission_tome.icon = default_icon
