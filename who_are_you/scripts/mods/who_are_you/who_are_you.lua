@@ -1,8 +1,8 @@
 --[[
     title: who_are_you
     author: Zombine
-    date: 2024/10/02
-    version: 3.5.0
+    date: 2024/10/03
+    version: 3.5.1
 ]]
 local mod = get_mod("who_are_you")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -544,14 +544,14 @@ mod:hook_safe("GroupFinderView", "_populate_preview_grid", function(self)
         end
     end
 
-    if members then
-        for i = 1, #members do
+    if members and not table.is_empty(player_widgets) then
+        for i = 1, #player_widgets do
+            local widget = player_widgets[i]
             local member = members[i]
             local account_id = member.account_id
             local account_name = mod.account_name(account_id)
 
             if account_name then
-                local widget = player_widgets[i]
                 local ref = "group_finder"
                 local character_name = widget.content.character_name
 
