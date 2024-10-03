@@ -2,7 +2,7 @@
     title: name_it
     author: Zombine
     date: 2024/10/03
-    version: 1.3.3
+    version: 1.3.4
 ]]
 local mod = get_mod("name_it")
 
@@ -10,6 +10,7 @@ local mod = get_mod("name_it")
 -- Requires
 -- ##################################################
 
+local Items = require("scripts/utilities/items")
 local TextInputPassTemplates = require("scripts/ui/pass_templates/text_input_pass_templates")
 local UIWidget = require("scripts/managers/ui/ui_widget")
 
@@ -209,6 +210,13 @@ local _get_item_from_widget = function(widget)
     return widget.content.element.item
 end
 
+local _replace_with_custom_name = function(item, widget)
+    local is_pattern_name = mod:get("replace_pattern_name")
+    local value_id = (Items.is_weapon(item.item_type) and is_pattern_name) and "sub_display_name" or "display_name"
+
+    widget.content[value_id] = mod._current_name
+end
+
 local update_display_name = function(self)
     if mod._update_display_name then
         mod._update_display_name = false
@@ -218,14 +226,10 @@ local update_display_name = function(self)
         local item = _get_item_from_widget(widget)
 
         if widget and item then
-            widget.content.display_name = mod._current_name
+            _replace_with_custom_name(item, widget)
             self:_preview_item(item)
         end
     end
-end
-
-local _set_update_display_name = function(val)
-    mod._update_display_name = val
 end
 
 local _save_name = function()
@@ -234,7 +238,7 @@ local _save_name = function()
     name_list[mod._gear_id] = mod._new_name
     mod:set("name_list", name_list)
     mod._current_name = mod._new_name
-    _set_update_display_name(true)
+    mod._update_display_name = true
 end
 
 mod:hook_safe("InventoryWeaponsView", "update", update_display_name)
@@ -255,8 +259,8 @@ end
 
 local _reset_name = function()
     remove_custom_name(mod._gear_id)
-    mod._current_name = Localize(mod._default_name)
-    _set_update_display_name(true)
+    mod._current_name = mod._default_name
+    mod._update_display_name = true
 end
 
 mod:hook_safe("GearService", "on_gear_deleted", function(self, gear_id)
@@ -404,13 +408,54 @@ end)
 -- Get Selected Item Data
 -- ##################################################
 
+local _get_default_name = function(item)
+    local default_name = item and Localize(item.display_name) or "n/a"
+
+    if item then
+        local is_pattern_name = mod:get("replace_pattern_name")
+
+        if Items.is_weapon(item.item_type) then
+            if is_pattern_name then
+                local lore_pattern_name = Items.weapon_lore_pattern_name(item)
+                local lore_mark_name = Items.weapon_lore_mark_name(item)
+                local has_pattern = lore_pattern_name ~= "n/a"
+                local has_mark = lore_mark_name ~= "n/a"
+
+                if has_pattern and has_mark then
+                    local sub_display_name = string.format("%s \xE2\x80\xA2 %s", lore_pattern_name, lore_mark_name)
+
+                    default_name = sub_display_name
+                else
+                    default_name = has_pattern and lore_pattern_name or has_mark and lore_mark_name or "n/a"
+                end
+            else
+                return Items.weapon_lore_family_name(item)
+            end
+        end
+    end
+
+    return default_name
+end
+
+local _get_current_name = function(item, widget)
+    local current_name = widget.content.display_name
+    local is_pattern_name = mod:get("replace_pattern_name")
+
+    if Items.is_weapon(item.item_type) and is_pattern_name then
+        mod:dump(widget.content)
+        current_name = widget.content.sub_display_name
+    end
+
+    return current_name
+end
+
 local get_selected_item_data = function(self, item)
     local widget = self:selected_grid_widget()
 
     if item and widget then
         mod._gear_id = item.gear_id
-        mod._default_name = item.display_name
-        mod._current_name = widget.content.display_name
+        mod._default_name = _get_default_name(item)
+        mod._current_name = _get_current_name(item, widget)
     end
 end
 
