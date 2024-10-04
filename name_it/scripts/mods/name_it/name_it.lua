@@ -442,7 +442,6 @@ local _get_current_name = function(item, widget)
     local is_pattern_name = mod:get("replace_pattern_name")
 
     if Items.is_weapon(item.item_type) and is_pattern_name then
-        mod:dump(widget.content)
         current_name = widget.content.sub_display_name
     end
 
