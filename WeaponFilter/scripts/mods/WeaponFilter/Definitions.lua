@@ -9,7 +9,7 @@ local UISoundEvents = require("scripts/settings/ui/ui_sound_events")
 -- ############################################################
 
 local grid_width = 440
-local edge_padding = 40
+local edge_padding = 60
 local window_size = {
     grid_width + edge_padding,
     860
