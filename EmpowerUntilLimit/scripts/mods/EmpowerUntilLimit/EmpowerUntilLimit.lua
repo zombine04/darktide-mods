@@ -1,8 +1,8 @@
 --[[
     name: EmpowerUntilLimit
     author: Zombine
-    date: 2024/09/30
-    version: 1.0.1
+    date: 2024/10/05
+    version: 1.0.2
 ]]
 local mod = get_mod("EmpowerUntilLimit")
 local InputUtils = require("scripts/managers/input/input_utils")
