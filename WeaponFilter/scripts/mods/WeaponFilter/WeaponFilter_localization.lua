@@ -5,16 +5,19 @@ mod:add_global_localize_strings({
     loc_toggle_filter_panel = {
         en = "Toggle Panel",
         ja = "パネルの切り替え",
+        ["zh-cn"] = "切换面板",
     }
 })
 
 local loc = {
     mod_name = {
         en = "Weapon Filter",
+        ["zh-cn"] = "武器筛选器",
     },
     mod_description = {
         en = "Filter the item list by weapon pattern.",
-        ja = "アイテム一覧を武器パターンごとに絞り込みます。"
+        ja = "アイテム一覧を武器パターンごとに絞り込みます。",
+        ["zh-cn"] = "根据武器类别筛选物品列表。",
     },
     keybind_toggle_filter_panel = {
         en = "Keybind",
@@ -25,6 +28,7 @@ local loc = {
     enable_filter_panel_by_default = {
         en = "Display Filter Panel by Default",
         ja = "フィルターパネルをデフォルトで表示",
+        ["zh-cn"] = "默认显示筛选器面板",
     },
     enable_debug_mode = {
         en = "Enable Debug Mode",
