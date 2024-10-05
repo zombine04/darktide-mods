@@ -36,6 +36,9 @@ local loc = {
         ["zh-cn"] = "启用调试模式",
         ru = "Включить режим отладки",
     },
+    off = {
+        en = Localize("loc_setting_checkbox_off"),
+    },
 }
 
 mod._available_aliases = {

@@ -33,7 +33,10 @@ local loc = {
         ja = "フィルターをデフォルトで有効化",
         ["zh-cn"] = "默认启用筛选",
         ru = "Включить сортировку по умолчанию",
-    }
+    },
+    off = {
+        en = Localize("loc_setting_checkbox_off"),
+    },
 }
 
 mod._available_aliases = {
