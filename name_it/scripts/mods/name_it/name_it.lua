@@ -1,8 +1,8 @@
 --[[
     title: name_it
     author: Zombine
-    date: 2024/10/03
-    version: 1.3.4
+    date: 2024/10/14
+    version: 1.3.5
 ]]
 local mod = get_mod("name_it")
 
@@ -134,32 +134,11 @@ end)
 -- ##################################################
 
 mod:hook_require("scripts/utilities/items", function(Items)
-    -- family_name
+    -- family name
     Items.weapon_card_display_name = function(item)
         local custom_name = mod.get_custom_name(item)
 
         return custom_name or Items.weapon_lore_family_name(item)
-    end
-
-    -- family_name
-    Items.display_name = function(item)
-        if not item then
-            return "n/a"
-        end
-
-        local display_name = item.display_name
-        local display_name_localized = display_name and Localize(display_name) or "-"
-        local custom_name = mod.get_custom_name(item)
-
-        if Items.is_weapon(item.item_type) then
-            local lore_family_name = Items.weapon_lore_family_name(item)
-            local lore_pattern_name = Items.weapon_lore_pattern_name(item)
-            local lore_mark_name = Items.weapon_lore_mark_name(item)
-
-            display_name_localized = string.format("%s %s %s", lore_pattern_name, lore_mark_name, lore_family_name)
-        end
-
-        return custom_name or display_name_localized
     end
 
     -- pattern name and mark name
@@ -183,22 +162,28 @@ mod:hook_require("scripts/utilities/items", function(Items)
 
         return has_pattern and lore_pattern_name or has_mark and lore_mark_name or "n/a"
     end
-end)
 
-mod:hook_safe("InventoryView", "_draw_loadout_widgets", function(self)
-    local widgets = self._loadout_widgets
-
-    if widgets then
-        for _, widget in ipairs(widgets) do
-            local content = widget.content
-            local item = content.item
-
-            if item then
-                local custom_name = mod.get_custom_name(item)
-
-                content.display_name = custom_name or Localize(item.display_name)
-            end
+    -- curios
+    Items.display_name = function(item)
+        if not item then
+            return "n/a"
         end
+
+        local display_name = item.display_name
+        local display_name_localized = display_name and Localize(display_name) or "-"
+        local custom_name
+
+        if Items.is_weapon(item.item_type) then
+            local lore_family_name = Items.weapon_lore_family_name(item)
+            local lore_pattern_name = Items.weapon_lore_pattern_name(item)
+            local lore_mark_name = Items.weapon_lore_mark_name(item)
+
+            display_name_localized = string.format("%s %s %s", lore_family_name, lore_pattern_name, lore_mark_name)
+        else
+            custom_name = mod.get_custom_name(item)
+        end
+
+        return custom_name or display_name_localized
     end
 end)
 
