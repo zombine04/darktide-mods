@@ -2,7 +2,7 @@
     title: who_are_you
     author: Zombine
     date: 2024/10/23
-    version: 3.5.3
+    version: 3.5.4
 ]]
 local mod = get_mod("who_are_you")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -77,10 +77,6 @@ mod.update = function(dt, t)
         end
     end
 end
-
-mod:hook_safe(CLASS.PresenceManager, "get_presence", function(self, account_id)
-    mod.account_name(account_id)
-end)
 
 -- change cross platform icon to acutual platform icons (experimental)
 
@@ -232,8 +228,6 @@ end)
 
 -- Nameplate
 
-local _update_nameplate = false
-
 mod:hook_safe(CLASS.EventManager, "trigger", function(self, event_name, synced_peer_id, _, _, force_update)
     if event_name == "event_player_profile_updated" then
         local events = self._events[event_name]
@@ -245,7 +239,7 @@ mod:hook_safe(CLASS.EventManager, "trigger", function(self, event_name, synced_p
                     local valid = force_update or peer_id and peer_id == synced_peer_id
 
                     if valid then
-                        _update_nameplate = true
+                        marker.wru_modified = false
                     end
                 end
             end
@@ -260,7 +254,7 @@ mod:hook_safe(CLASS.EventManager, "trigger", function(self, event_name, synced_p
                     local is_player_valid = Managers.player:player_from_unique_id(marker.player_unique_id) ~= nil
 
                     if player and is_player_valid then
-                        _update_nameplate = true
+                        marker.wru_modified = false
                     end
                 end
             end
@@ -282,7 +276,7 @@ mod:hook_safe(CLASS.HudElementWorldMarkers, "_calculate_markers", function(self,
                 local marker = markers[i]
                 local is_combat = marker_type == "nameplate_party"
 
-                if not is_current_style(marker.wru_style) or not marker.wru_modified or _update_nameplate then
+                if not is_current_style(marker.wru_style) or not marker.wru_modified then
                     local player = marker.data
                     local profile = player:profile()
                     local content = marker.widget.content
@@ -348,7 +342,6 @@ mod:hook_safe(CLASS.HudElementWorldMarkers, "_calculate_markers", function(self,
                             content.header_text = header_text
                         end
 
-                        _update_nameplate = false
                         marker.wru_modified = true
                         marker.wru_style = mod.current_style
                         marker.tl_modified = false
