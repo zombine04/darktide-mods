@@ -2,7 +2,7 @@
     title: who_are_you
     author: Zombine
     date: 2024/10/23
-    version: 3.5.2
+    version: 3.5.3
 ]]
 local mod = get_mod("who_are_you")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -175,7 +175,7 @@ end
 
 -- Chat
 
-mod:hook_safe(CLASS.ConstantElementChat, "_participant_displayname", function(func, self, participant)
+mod:hook(CLASS.ConstantElementChat, "_participant_displayname", function(func, self, participant)
     local character_name = func(self, participant)
 
     if mod:get("enable_chat") and character_name and character_name ~= "" then
@@ -405,7 +405,7 @@ mod:hook_require("scripts/ui/constant_elements/elements/notification_feed/consta
     settings.header_size[1] = 800
 end)
 
-mod:hook_safe(CLASS.HudElementCombatFeed, "_get_unit_presentation_name", function(func, self, unit)
+mod:hook(CLASS.HudElementCombatFeed, "_get_unit_presentation_name", function(func, self, unit)
     if mod:get("enable_combat_feed") then
         local player_unit_spawn_manager = Managers.state.player_unit_spawn
         local player = unit and player_unit_spawn_manager:owner(unit)
@@ -451,7 +451,7 @@ end)
 
 -- Inspect Player
 
-mod:hook_safe(CLASS.PlayerCharacterOptionsView, "_set_player_name", function(func, self, name, ...)
+mod:hook(CLASS.PlayerCharacterOptionsView, "_set_player_name", function(func, self, name, ...)
     if mod:get("enable_inspect_player") then
         local account_id = self._account_id
         local account_name = mod.account_name(account_id)
