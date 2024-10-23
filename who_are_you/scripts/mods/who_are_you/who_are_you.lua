@@ -1,8 +1,8 @@
 --[[
     title: who_are_you
     author: Zombine
-    date: 2024/10/03
-    version: 3.5.1
+    date: 2024/10/23
+    version: 3.5.2
 ]]
 local mod = get_mod("who_are_you")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -11,6 +11,7 @@ local UISettings = require("scripts/settings/ui/ui_settings")
 local ICONS = {
     steam = "\xEE\x81\xAB",
     xbox = "\xEE\x81\xAC",
+    psn = "\xEE\x81\xB1",
     unknown = "\xEE\x81\xAF"
 }
 
@@ -77,7 +78,7 @@ mod.update = function(dt, t)
     end
 end
 
-mod:hook_safe("PresenceManager", "get_presence", function(self, account_id)
+mod:hook_safe(CLASS.PresenceManager, "get_presence", function(self, account_id)
     mod.account_name(account_id)
 end)
 
@@ -86,13 +87,11 @@ end)
 mod:hook_origin("PresenceEntryImmaterium", "platform_icon", function(self)
     local platform = self._immaterium_entry.platform
 
-    if platform == "steam" then
-        return ""
-    elseif platform == "xbox" then
-        return ""
+    if ICONS[platform] then
+        return ICONS[platform]
     end
 
-    return "" -- unknown
+    return ICONS.unknown -- unknown
 end)
 
 -- ##############################
@@ -176,7 +175,7 @@ end
 
 -- Chat
 
-mod:hook("ConstantElementChat", "_participant_displayname", function(func, self, participant)
+mod:hook_safe(CLASS.ConstantElementChat, "_participant_displayname", function(func, self, participant)
     local character_name = func(self, participant)
 
     if mod:get("enable_chat") and character_name and character_name ~= "" then
@@ -193,7 +192,7 @@ end)
 
 -- Lobby
 
-mod:hook_safe("LobbyView", "_sync_player", function(self, unique_id, player)
+mod:hook_safe(CLASS.LobbyView, "_sync_player", function(self, unique_id, player)
     if not mod:get("enable_lobby") then
         return
     end
@@ -227,13 +226,49 @@ mod:hook_safe("LobbyView", "_sync_player", function(self, unique_id, player)
     end
 end)
 
-mod:hook_safe("LobbyView", "_reset_spawn_slot", function(self, slot)
+mod:hook_safe(CLASS.LobbyView, "_reset_spawn_slot", function(self, slot)
     slot.wru_modified = false
 end)
 
 -- Nameplate
 
-mod:hook_safe("HudElementWorldMarkers", "_calculate_markers", function(self, dt, t)
+local _update_nameplate = false
+
+mod:hook_safe(CLASS.EventManager, "trigger", function(self, event_name, synced_peer_id, _, _, force_update)
+    if event_name == "event_player_profile_updated" then
+        local events = self._events[event_name]
+
+        if events then
+            for marker, callback_name in pairs(events) do
+                if callback_name == "cb_event_player_profile_updated" then
+                    local peer_id = marker.peer_id
+                    local valid = force_update or peer_id and peer_id == synced_peer_id
+
+                    if valid then
+                        _update_nameplate = true
+                    end
+                end
+            end
+        end
+    elseif event_name == "event_update_player_name" then
+        local events = self._events[event_name]
+
+        if events then
+            for marker, callback_name in pairs(events) do
+                if callback_name == "_event_update_player_name" then
+                    local player = marker.data
+                    local is_player_valid = Managers.player:player_from_unique_id(marker.player_unique_id) ~= nil
+
+                    if player and is_player_valid then
+                        _update_nameplate = true
+                    end
+                end
+            end
+        end
+    end
+end)
+
+mod:hook_safe(CLASS.HudElementWorldMarkers, "_calculate_markers", function(self, dt, t)
     if not mod:get("enable_nameplate") then
         return
     end
@@ -247,19 +282,7 @@ mod:hook_safe("HudElementWorldMarkers", "_calculate_markers", function(self, dt,
                 local marker = markers[i]
                 local is_combat = marker_type == "nameplate_party"
 
-                if not is_current_style(marker.wru_style) or not marker.wru_modified then
-                    -- update nameplate after exiting inventory
-                    marker.cb_event_player_profile_updated = function(self, synced_peer_id, synced_local_player_id, new_profile, force_update)
-                        local valid = force_update or self.peer_id and self.peer_id == synced_peer_id
-
-                        if not valid then
-                            return
-                        end
-
-                        marker.wru_modified = false
-                        marker.tl_modified = false
-                    end
-
+                if not is_current_style(marker.wru_style) or not marker.wru_modified or _update_nameplate then
                     local player = marker.data
                     local profile = player:profile()
                     local content = marker.widget.content
@@ -325,6 +348,7 @@ mod:hook_safe("HudElementWorldMarkers", "_calculate_markers", function(self, dt,
                             content.header_text = header_text
                         end
 
+                        _update_nameplate = false
                         marker.wru_modified = true
                         marker.wru_style = mod.current_style
                         marker.tl_modified = false
@@ -370,10 +394,10 @@ local modify_player_panel_name = function(self, dt, t, player)
     end
 end
 
-mod:hook_safe("HudElementPersonalPlayerPanel", "_update_player_features", modify_player_panel_name)
-mod:hook_safe("HudElementPersonalPlayerPanelHub", "_update_player_features", modify_player_panel_name)
-mod:hook_safe("HudElementTeamPlayerPanel", "_update_player_features", modify_player_panel_name)
-mod:hook_safe("HudElementTeamPlayerPanelHub", "_update_player_features", modify_player_panel_name)
+mod:hook_safe(CLASS.HudElementPersonalPlayerPanel, "_update_player_features", modify_player_panel_name)
+mod:hook_safe(CLASS.HudElementPersonalPlayerPanelHub, "_update_player_features", modify_player_panel_name)
+mod:hook_safe(CLASS.HudElementTeamPlayerPanel, "_update_player_features", modify_player_panel_name)
+mod:hook_safe(CLASS.HudElementTeamPlayerPanelHub, "_update_player_features", modify_player_panel_name)
 
 -- Combat Feed
 
@@ -381,7 +405,7 @@ mod:hook_require("scripts/ui/constant_elements/elements/notification_feed/consta
     settings.header_size[1] = 800
 end)
 
-mod:hook("HudElementCombatFeed", "_get_unit_presentation_name", function(func, self, unit)
+mod:hook_safe(CLASS.HudElementCombatFeed, "_get_unit_presentation_name", function(func, self, unit)
     if mod:get("enable_combat_feed") then
         local player_unit_spawn_manager = Managers.state.player_unit_spawn
         local player = unit and player_unit_spawn_manager:owner(unit)
@@ -407,7 +431,7 @@ end)
 
 -- Inventory
 
-mod:hook_safe("InventoryBackgroundView", "_fetch_character_progression", function(self, player)
+mod:hook_safe(CLASS.InventoryBackgroundView, "_fetch_character_progression", function(self, player)
     if not mod:get("enable_inventory") then
         return
     end
@@ -427,7 +451,7 @@ end)
 
 -- Inspect Player
 
-mod:hook("PlayerCharacterOptionsView", "_set_player_name", function(func, self, name, ...)
+mod:hook_safe(CLASS.PlayerCharacterOptionsView, "_set_player_name", function(func, self, name, ...)
     if mod:get("enable_inspect_player") then
         local account_id = self._account_id
         local account_name = mod.account_name(account_id)
@@ -443,7 +467,7 @@ end)
 
 -- Gourp Finder
 
-mod:hook_safe("GroupFinderView", "_update_listed_group", function(self)
+mod:hook_safe(CLASS.GroupFinderView, "_update_listed_group", function(self)
     if not mod:get("enable_group_finder") then
         return
     end
@@ -472,7 +496,7 @@ end)
 
 local requests = {}
 
-mod:hook_safe("GroupFinderView", "update", function(self)
+mod:hook_safe(CLASS.GroupFinderView, "update", function(self)
     if not mod:get("enable_group_finder") then
         return
     end
@@ -496,7 +520,7 @@ mod:hook_safe("GroupFinderView", "update", function(self)
     end
 end)
 
-mod:hook_safe("GroupFinderView", "_populate_player_request_grid", function(self)
+mod:hook_safe(CLASS.GroupFinderView, "_populate_player_request_grid", function(self)
     if not mod:get("enable_group_finder") then
         return
     end
@@ -523,7 +547,7 @@ mod:hook_safe("GroupFinderView", "_populate_player_request_grid", function(self)
     end
 end)
 
-mod:hook_safe("GroupFinderView", "_populate_preview_grid", function(self)
+mod:hook_safe(CLASS.GroupFinderView, "_populate_preview_grid", function(self)
     local grid = self._preview_grid
     local widgets = grid and grid:widgets() or {}
     local player_widgets = {}
@@ -602,7 +626,7 @@ end
 -- Utilities
 -- ##############################
 
-mod:hook_safe("UIHud", "init", function()
+mod:hook_safe(CLASS.UIHud, "init", function()
     local game_mode_name = Managers.state.game_mode:game_mode_name()
 
     mod.is_in_hub = game_mode_name == "hub"
