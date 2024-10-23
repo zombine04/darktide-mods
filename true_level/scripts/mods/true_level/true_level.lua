@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 2024/10/02
-    version: 1.7.0
+    date: 2024/10/23
+    version: 1.7.1
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -236,15 +236,15 @@ end
 
 mod.is_ready = function(target, key)
     local wru = get_mod("who_are_you")
-    local can_replace = false
+    local is_waiting = false
 
     if wru and wru:is_enabled() and wru:get("enable_" .. key) then
-        can_replace = target.wru_modified and not target.tl_modified
+        is_waiting = target.wru_modified and not target.tl_modified
     else
-        can_replace = not target.tl_modified
+        is_waiting = not target.tl_modified
     end
 
-    return can_replace
+    return is_waiting
 end
 
 mod.clear_cache = function ()
@@ -283,7 +283,7 @@ mod:io_dofile("true_level/scripts/mods/true_level/true_level_debug")
 -- Get Character Progression
 -- ############################################################
 
-mod:hook_safe(CLASS.PresenceEntryImmaterium, "_process_character_profile_convert", function(self, new_entry)
+mod:hook_safe(CLASS.PresenceEntryImmaterium, "update_with", function(self, new_entry)
     local key_values = new_entry.key_values
     local character_profile = key_values and key_values.character_profile
     local character_id = key_values and key_values.character_id and key_values.character_id.value

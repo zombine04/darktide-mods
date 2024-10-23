@@ -64,9 +64,9 @@ mod:hook_safe(CLASS.HudElementTeamPanelHandler, "update", function(self, dt, t, 
 
     for _, data in ipairs(player_panels_array) do
         local panel = data.panel
-        local can_replace = mod.is_ready(panel, ref)
+        local is_waiting = mod.is_ready(panel, ref)
 
-        if can_replace then
+        if is_waiting then
             local player = data.player
             local player_deleted = player.__deleted
 

@@ -11,7 +11,6 @@ local _get_markers_by_id = function()
 end
 
 local _events = {
- -- event_player_profile_updated = true,
     event_titles_in_mission_setting_changed = true,
     event_in_mission_title_color_type_changed = true
 }
@@ -31,6 +30,22 @@ mod:hook_safe(CLASS.EventManager, "trigger", function(self, event_name, synced_p
                     local valid = force_update or peer_id and peer_id == synced_peer_id
 
                     if valid then
+                        marker.wru_modified = false
+                        marker.tl_modified = false
+                    end
+                end
+            end
+        end
+    elseif event_name == "event_update_player_name" then
+        local events = self._events[event_name]
+
+        if events then
+            for marker, callback_name in pairs(events) do
+                if callback_name == "_event_update_player_name" then
+                    local player = marker.data
+                    local is_player_valid = Managers.player:player_from_unique_id(marker.player_unique_id) ~= nil
+
+                    if player and is_player_valid then
                         marker.wru_modified = false
                         marker.tl_modified = false
                     end
@@ -79,9 +94,9 @@ mod:hook_safe(CLASS.HudElementNameplates, "update", function(self)
                 if not player_deleted then
                     local type = marker.type
                     local is_combat = type == "nameplate_party"
-                    local can_replace = mod.is_ready(marker, ref)
+                    local is_waiting = mod.is_ready(marker, ref)
 
-                    if can_replace then
+                    if is_waiting then
                         local profile = player:profile()
                         local character_id = profile and profile.character_id
                         local true_levels = mod.get_true_levels(character_id)
