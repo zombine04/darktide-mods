@@ -69,8 +69,9 @@ local _add_level = function(widget, profile)
 
     if true_levels then
         local character_archetype = ProfileUtils.character_archetype_title(profile)
+        local add_havoc = true_levels.havoc_rank ~= nil and true_levels.true_level ~= nil
 
-        content.character_archetype_title = mod.replace_level(character_archetype, true_levels, ref, true)
+        content.character_archetype_title = mod.replace_level(character_archetype, true_levels, ref, true, add_havoc)
         widget.tl_modified = true
     end
 end

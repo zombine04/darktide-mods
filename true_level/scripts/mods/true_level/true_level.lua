@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 2024/10/23
-    version: 1.7.1
+    date: 2024/12/04
+    version: 1.7.2
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -10,6 +10,7 @@ local ProfileUtils = require("scripts/utilities/profile_utils")
 mod._symbols = {
 --  damage = "\xEE\x80\xA6",
 --  exp = "\xEE\x80\xB2",
+    havoc = "\xEE\x81\x8F",
     level = "\xEE\x80\x86",
 --  penance = "\xEE\x81\x81",
 --  rating = "\xEE\x80\x9F",
@@ -58,7 +59,7 @@ mod._fetch_xp_settings = function()
     end
 end
 
-local _populate_data = function(base_data)
+local _populate_data = function(base_data, havoc_rank_all_time_high)
     local xp_settings = mod._xp_settings
     local level_array = xp_settings.level_array
     local total_xp = xp_settings.total_xp
@@ -89,12 +90,13 @@ local _populate_data = function(base_data)
         true_levels.additional_level = additional_level
         true_levels.true_level = true_level
         true_levels.prestige = math.floor(current_xp / total_xp)
+        true_levels.havoc_rank = havoc_rank_all_time_high
     end
 
     return true_levels
 end
 
-mod.cache_true_levels = function(self_or_others, character_id, base_data)
+mod.cache_true_levels = function(self_or_others, character_id, base_data, havoc_rank_all_time_high)
     if table.is_empty(mod._xp_settings) then
         mod._fetch_xp_settings()
 
@@ -104,14 +106,15 @@ mod.cache_true_levels = function(self_or_others, character_id, base_data)
             queue[character_id] = {
                 self_or_others,
                 character_id,
-                base_data
+                base_data,
+                havoc_rank_all_time_high
             }
         end
 
         return
     end
 
-    local true_levels = _populate_data(base_data)
+    local true_levels = _populate_data(base_data, havoc_rank_all_time_high)
 
     self_or_others[character_id] = true_levels
     mod.debug.dump(true_levels, character_id)
@@ -140,7 +143,7 @@ local _has_title = function(text)
     return #t > 1, t[1], t[2]
 end
 
-mod.replace_level = function(text, true_levels, reference, need_adding)
+mod.replace_level = function(text, true_levels, reference, need_adding, add_havoc)
     local display_style = _get_best_setting("display_style", reference)
     local show_prestige = _get_best_setting("enable_prestige_level", reference)
     local show_prestige_only = _get_best_setting("enable_prestige_only", reference)
@@ -149,6 +152,7 @@ mod.replace_level = function(text, true_levels, reference, need_adding)
     local additional_level = true_levels.additional_level
     local true_level = true_levels.true_level
     local prestige = true_levels.prestige
+    local havoc_rank = true_levels.havoc_rank
     local suffix = " " .. mod.get_symbol()
 
     if need_adding then
@@ -199,6 +203,11 @@ mod.replace_level = function(text, true_levels, reference, need_adding)
         else
             text = text:gsub(suffix, suffix_with_prestige)
         end
+    end
+
+    if add_havoc and havoc_rank then
+        havoc_rank = string.format("%s %s", havoc_rank, mod.get_symbol("havoc"))
+        text = string.format("%s - %s", text, havoc_rank)
     end
 
     return text
@@ -292,8 +301,9 @@ mod:hook_safe(CLASS.PresenceEntryImmaterium, "update_with", function(self, new_e
     if character_profile and character_id and not cache[character_id] then
         local backend_profile_data = ProfileUtils.process_backend_body(cjson.decode(character_profile.value))
         local backend_progression = backend_profile_data.progression
+        local havoc_rank_all_time_high = self:havoc_rank_all_time_high()
 
-        mod.cache_true_levels(cache, character_id, backend_progression)
+        mod.cache_true_levels(cache, character_id, backend_progression, havoc_rank_all_time_high)
         mod.debug.echo(backend_profile_data.character.name .. ": " .. character_id)
     end
 end)

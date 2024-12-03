@@ -116,6 +116,14 @@ local loc = {
         ["zh-cn"] = "声望等级颜色",
         ru = "Цвет уровня престижа",
     },
+    enable_havoc_rank = {
+        en = "Show Havoc Rank",
+        ja = "ハヴォックランクを表示する",
+    },
+    havoc_rank_color = {
+        en = "Havoc Rank Color",
+        ja = "ハヴォックランクの色",
+    },
     level_up = {
         en = "Level Up!",
         ja = "レベルアップ！",
