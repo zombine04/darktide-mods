@@ -108,6 +108,17 @@ mod._content_list = {
             "coop_complete_objective",
         }
     },
+    {
+        name = "havoc_background_view",
+        text = "loc_havoc_name",
+        type = "button",
+        icon = "content/ui/materials/hud/interactions/icons/havoc",
+        group = {
+            "main_menu",
+            "hub",
+            "shooting_range",
+        }
+    }
 }
 
 mod._content_list_default = {
