@@ -119,10 +119,12 @@ local loc = {
     enable_havoc_rank = {
         en = "Show Havoc Rank",
         ja = "ハヴォックランクを表示する",
+        ["zh-cn"] = "显示浩劫等级",
     },
     havoc_rank_color = {
         en = "Havoc Rank Color",
         ja = "ハヴォックランクの色",
+        ["zh-cn"] = "浩劫等级颜色",
     },
     level_up = {
         en = "Level Up!",
