@@ -73,43 +73,11 @@ function HudElementRangeFinder:update(dt, t, ui_renderer, render_settings, input
         return
     end
 
-    local player_unit = self._player_unit
-    local player_pos = nil
-    local aim_pos = nil
-    local distance = 0
-
-    if not player_unit then
-        return
-    end
-
-    player_pos = Unit.world_position(player_unit, 1)
-
-    local raycast_data = self:_find_raycast_targets(player_unit)
-
-    if raycast_data.distance then
-        distance = raycast_data.distance
-    elseif raycast_data.static_hit_position then
-        aim_pos = Vector3Box.unbox(raycast_data.static_hit_position)
-        if aim_pos and player_pos then
-            distance = Vector3.distance(aim_pos, player_pos)
-        end
-    end
-
-    if distance then
-        self:_update_distance(distance)
+    if mod._distance ~= nil then
+        self:_update_distance(mod._distance)
     end
 
     self._update_timer = 0
-end
-
-function HudElementRangeFinder:_find_raycast_targets(player_unit)
-    local smart_targeting_extension = ScriptUnit.extension(player_unit, "smart_targeting_system")
-
-    smart_targeting_extension:force_update_smart_tag_targets()
-
-    local targeting_data = smart_targeting_extension:smart_tag_targeting_data()
-
-    return targeting_data
 end
 
 function HudElementRangeFinder:_update_distance(distance)
