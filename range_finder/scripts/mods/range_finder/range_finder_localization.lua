@@ -88,9 +88,9 @@ local locres = {
 
 mod.color_table = function(opacity)
     local color_table = {
-        distance_mid = Color.ui_hud_overcharge_low(opacity, true),
-        distance_close = Color.ui_hud_overcharge_medium(opacity, true),
-        distance_very_close = Color.ui_hud_overcharge_high(opacity, true),
+        distance_mid = Color.ui_hud_warp_charge_low(opacity, true),
+        distance_close = Color.ui_hud_warp_charge_medium(opacity, true),
+        distance_very_close = Color.ui_hud_warp_charge_high(opacity, true),
     }
 
     return color_table
