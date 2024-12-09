@@ -132,6 +132,7 @@ local loc = {
     prestige_level_icon = {
         en = "Prestige Icon",
         ja = "プレステージアイコン",
+        ["zh-cn"] = "声望图标",
     },
     prestige_level_color = {
         en = "Prestige Level Color",
