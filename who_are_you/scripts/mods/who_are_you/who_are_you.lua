@@ -1,8 +1,8 @@
 --[[
     title: who_are_you
     author: Zombine
-    date: 2024/10/23
-    version: 3.5.4
+    date: 2024/12/08
+    version: 3.6.0
 ]]
 local mod = get_mod("who_are_you")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -42,7 +42,11 @@ mod.account_name = function(id)
 
     local account_name = mod._account_names[id]
 
-    if not account_name then
+    if account_name then
+        if mod:get("hide_identifier_tag") then
+            account_name = account_name:gsub("#%d+$", "")
+        end
+    else
         mod._queue[id] = id
     end
 
@@ -210,7 +214,7 @@ mod:hook_safe(CLASS.LobbyView, "_sync_player", function(self, unique_id, player)
 
             if account_name and profile and panel_content.character_name then
                 local character_name = player:name()
-                local character_level = profile.current_level .. " "
+                local character_level = profile.current_level .. " \xEE\x80\x86"
                 local modified_name = modify_character_name(character_name, account_name, account_id, ref)
 
                 panel_content.character_name = string.format("%s %s", character_level, modified_name)
@@ -228,33 +232,68 @@ end)
 
 -- Nameplate
 
-mod:hook_safe(CLASS.EventManager, "trigger", function(self, event_name, synced_peer_id, _, _, force_update)
-    if event_name == "event_player_profile_updated" then
-        local events = self._events[event_name]
+local function _create_character_text(marker)
+    local player = marker.data
+    local player_manager = Managers.player
+    local is_player_valid = player_manager:player_from_unique_id(marker.player_unique_id) ~= nil
 
-        if events then
-            for marker, callback_name in pairs(events) do
-                if callback_name == "cb_event_player_profile_updated" then
-                    local peer_id = marker.peer_id
-                    local valid = force_update or peer_id and peer_id == synced_peer_id
+    if not is_player_valid or not player then
+        return
+    end
 
-                    if valid then
-                        marker.wru_modified = false
-                    end
+    local profile = player:profile()
+    local peer_id = player:peer_id()
+
+    marker.peer_id = peer_id
+
+    local character_level = profile and profile.current_level or 1
+    local title = ProfileUtils.character_title(profile)
+    local archetype = profile and profile.archetype
+    local string_symbol = archetype and archetype.string_symbol or ""
+    local text = string_symbol .. " " .. player:name() .. " - " .. tostring(character_level) .. " \xEE\x80\x86"
+
+    if title then
+        text = text .. " \n " .. title
+    end
+
+    marker.widget.content.header_text = text
+    marker.wru_modified = false
+    marker.tl_modified = false
+end
+
+mod:hook_safe(CLASS.HudElementWorldMarkers, "event_add_world_marker_unit", function(self, marker_type, unit, callback, data)
+    if marker_type:match("nameplate") then
+        local markers = self._markers_by_type[marker_type]
+        local len = #markers
+
+        for i = 1, len do
+            local marker = markers[i]
+
+            if marker.unit == unit then
+                marker._event_update_player_name = function(self)
+                    _create_character_text(self)
                 end
-            end
-        end
-    elseif event_name == "event_update_player_name" then
-        local events = self._events[event_name]
 
-        if events then
-            for marker, callback_name in pairs(events) do
-                if callback_name == "_event_update_player_name" then
+                marker.cb_event_player_profile_updated = function(self, synced_peer_id, synced_local_player_id, new_profile, force_update)
+                    local valid = force_update or self.peer_id and self.peer_id == synced_peer_id
+
+                    if not valid then
+                        return
+                    end
+
+                    local updated_title = new_profile and ProfileUtils.character_title(new_profile)
+
+                    if not updated_title then
+                        return
+                    end
+
+                    local player_manager = Managers.player
                     local player = marker.data
-                    local is_player_valid = Managers.player:player_from_unique_id(marker.player_unique_id) ~= nil
+                    local is_player_valid = player_manager:player_from_unique_id(marker.player_unique_id) ~= nil
 
-                    if player and is_player_valid then
-                        marker.wru_modified = false
+                    if is_player_valid and player then
+                        player:set_profile(new_profile)
+                        _create_character_text(marker)
                     end
                 end
             end
@@ -275,6 +314,10 @@ mod:hook_safe(CLASS.HudElementWorldMarkers, "_calculate_markers", function(self,
             for i = 1, #markers do
                 local marker = markers[i]
                 local is_combat = marker_type == "nameplate_party"
+
+                if marker.rank_promise then
+                    return
+                end
 
                 if not is_current_style(marker.wru_style) or not marker.wru_modified then
                     local player = marker.data
@@ -332,7 +375,7 @@ mod:hook_safe(CLASS.HudElementWorldMarkers, "_calculate_markers", function(self,
                             content.header_text = header_text
                             content.icon_text = icon_text
                         else
-                            local header_text = string_symbol .. " " .. modified_name .. " - " .. character_level .. " "
+                            local header_text = string_symbol .. " " .. modified_name .. " - " .. character_level .. " \xEE\x80\x86"
                             local title = ProfileUtils.character_title(profile)
 
                             if title then
@@ -342,9 +385,32 @@ mod:hook_safe(CLASS.HudElementWorldMarkers, "_calculate_markers", function(self,
                             content.header_text = header_text
                         end
 
-                        marker.wru_modified = true
-                        marker.wru_style = mod.current_style
-                        marker.tl_modified = false
+                        local TrueLevel = get_mod("true_level")
+                        local true_level_enabled = TrueLevel and TrueLevel:is_enabled() and TrueLevel.is_enabled_feature("nameplate")
+
+                        if not true_level_enabled and not is_combat then
+                            if character_level >= 30 then
+                                local rank_promise = Managers.data_service.havoc:havoc_rank_all_time_high(player:account_id())
+
+                                rank_promise:next(function (rank)
+                                    marker.rank_promise = nil
+
+                                    if rank then
+                                        content.header_text = content.header_text:gsub("%d+ \xEE\x80\x86", tostring(rank) .. " \xEE\x81\x8F")
+                                    end
+
+                                    marker.wru_modified = true
+                                    marker.wru_style = mod.current_style
+                                    marker.tl_modified = false
+                                end)
+
+                                marker.rank_promise = rank_promise
+                            end
+                        else
+                            marker.wru_modified = true
+                            marker.wru_style = mod.current_style
+                            marker.tl_modified = false
+                        end
                     end
                 end
             end
@@ -391,6 +457,11 @@ mod:hook_safe(CLASS.HudElementPersonalPlayerPanel, "_update_player_features", mo
 mod:hook_safe(CLASS.HudElementPersonalPlayerPanelHub, "_update_player_features", modify_player_panel_name)
 mod:hook_safe(CLASS.HudElementTeamPlayerPanel, "_update_player_features", modify_player_panel_name)
 mod:hook_safe(CLASS.HudElementTeamPlayerPanelHub, "_update_player_features", modify_player_panel_name)
+
+mod:hook_safe(CLASS.HudElementTeamPlayerPanelHub, "_set_rich_presence",  function(self)
+    self.wru_modified = false
+    self.tl_modified = false
+end)
 
 -- Combat Feed
 

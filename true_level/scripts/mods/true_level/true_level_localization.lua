@@ -16,6 +16,20 @@ mod._styles = {
     "separate",
     "total",
     "default",
+    "none",
+}
+
+mod._symbols = {
+    aquila = "\xEE\x80\xAE",
+    damage = "\xEE\x80\xA6",
+    exp = "\xEE\x80\xB2",
+    havoc_rank = "\xEE\x81\x8F",
+    level = "\xEE\x80\x86",
+    penance = "\xEE\x81\x81",
+    rating = "\xEE\x80\x9F",
+    shock = "\xEE\x80\xA7",
+    skull = "\xEE\x80\x9E",
+    star = "\xEE\x80\xAA"
 }
 
 local loc = {
@@ -92,6 +106,11 @@ local loc = {
         ["zh-cn"] = "默认",
         ru = "По умолчанию",
     },
+    none = {
+        en = "None",
+        ja = "なし",
+        ["zh-cn"] = "无",
+    },
     enable_prestige_level = {
         en = "Show Prestige Level",
         ja = "プレステージレベルを表示する",
@@ -109,6 +128,10 @@ local loc = {
         ja = "プレステージレベルのみを表示する",
         ["zh-cn"] = "仅显示声望等级",
         ru = "Показывать только уровень престижа",
+    },
+    prestige_level_icon = {
+        en = "Prestige Icon",
+        ja = "プレステージアイコン",
     },
     prestige_level_color = {
         en = "Prestige Level Color",
@@ -215,6 +238,7 @@ local loc = {
 local _add_child_loc = function(parent, ele)
     local child = parent .. "_" .. ele
     loc[child] = {}
+
     for lang, text in pairs(loc[parent]) do
         loc[child][lang] = text
     end
@@ -230,16 +254,21 @@ for i, ele in pairs(mod._elements) do
 
     _add_child_loc("display_style", ele)
     _add_child_loc("enable_prestige_level", ele)
-    _add_child_loc("enable_prestige_only", ele)
+    _add_child_loc("prestige_level_icon", ele)
     _add_child_loc("prestige_level_color", ele)
+    _add_child_loc("enable_havoc_rank", ele)
+    _add_child_loc("havoc_rank_color", ele)
 end
 
 for i, name in ipairs(Color.list) do
     local c = Color[name](255, true)
     local text = string.format("{#color(%s,%s,%s)}%s{#reset()}", c[2], c[3], c[4], string.gsub(name, "_", " "))
 
-    loc[name] = {}
-    loc[name].en = text
+    loc[name] = { en = text }
+end
+
+for name, symbol in pairs(mod._symbols) do
+    loc["symbol_" .. name] = { en = symbol }
 end
 
 return loc

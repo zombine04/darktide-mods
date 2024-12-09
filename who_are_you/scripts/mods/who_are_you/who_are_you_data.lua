@@ -60,6 +60,11 @@ local data = {
                 default_value = true,
             },
             {
+                setting_id = "hide_identifier_tag",
+                type = "checkbox",
+                default_value = false,
+            },
+            {
                 setting_id = "cycle_style",
                 type = "group",
                 sub_widgets = {

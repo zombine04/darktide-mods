@@ -1,29 +1,21 @@
 --[[
     title: true_level
     author: Zombine
-    date: 2024/12/04
-    version: 1.7.2
+    date: 2024/12/07
+    version: 1.8.0
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
 
-mod._symbols = {
---  damage = "\xEE\x80\xA6",
---  exp = "\xEE\x80\xB2",
-    havoc = "\xEE\x81\x8F",
-    level = "\xEE\x80\x86",
---  penance = "\xEE\x81\x81",
---  rating = "\xEE\x80\x9F",
---  skull = "\xEE\x80\x9E",
-}
+mod._symbols.prestige_level = mod:get("prestige_level_icon")
 mod._self = mod:persistent_table("self")
 mod._others = mod:persistent_table("others")
 mod._queue = mod:persistent_table("queue")
+mod._havoc_promises = mod:persistent_table("havoc")
 mod._xp_settings = mod:persistent_table("xp_settings")
 mod._xp_promise = nil
 mod._synced = {}
 mod._is_in_hub = false
-
 mod._fetch_xp_settings = function()
     local xp_settings = mod._xp_settings
 
@@ -45,8 +37,8 @@ mod._fetch_xp_settings = function()
             local queue = mod._queue
 
             if not table.is_empty(queue) then
-                for char_id, arg in pairs(queue) do
-                    mod.cache_true_levels(arg[1], arg[2], arg[3])
+                for char_id, args in pairs(queue) do
+                    mod.cache_true_levels(unpack(args))
                     queue[char_id] = nil
                 end
             end
@@ -96,7 +88,7 @@ local _populate_data = function(base_data, havoc_rank_all_time_high)
     return true_levels
 end
 
-mod.cache_true_levels = function(self_or_others, character_id, base_data, havoc_rank_all_time_high)
+mod.cache_true_levels = function(self_or_others, character_id, base_data, havoc_rank_all_time_high, account_id)
     if table.is_empty(mod._xp_settings) then
         mod._fetch_xp_settings()
 
@@ -107,7 +99,8 @@ mod.cache_true_levels = function(self_or_others, character_id, base_data, havoc_
                 self_or_others,
                 character_id,
                 base_data,
-                havoc_rank_all_time_high
+                havoc_rank_all_time_high,
+                account_id
             }
         end
 
@@ -116,6 +109,7 @@ mod.cache_true_levels = function(self_or_others, character_id, base_data, havoc_
 
     local true_levels = _populate_data(base_data, havoc_rank_all_time_high)
 
+    true_levels.account_id = account_id
     self_or_others[character_id] = true_levels
     mod.debug.dump(true_levels, character_id)
 end
@@ -133,8 +127,10 @@ local _get_best_setting = function(base_id, reference)
     return setting
 end
 
+local t = {}
+
 local _has_title = function(text)
-    local t = {}
+    t = {}
 
     for s in text:gmatch("[^\n]+") do
         t[#t + 1] = s
@@ -143,71 +139,127 @@ local _has_title = function(text)
     return #t > 1, t[1], t[2]
 end
 
-mod.replace_level = function(text, true_levels, reference, need_adding, add_havoc)
+local _apply_color_to_text = function(color_code, text)
+    local c = Color[color_code](255, true)
+    local color_prefix = string.format("{#color(%s,%s,%s)}", c[2], c[3], c[4])
+
+    return color_prefix .. text .. "{#reset()}"
+end
+
+local levels = {
+    {
+        key = "level",
+        val = ""
+    },
+    {
+        key = "prestige_level",
+        val = ""
+    },
+    {
+        key = "havoc_rank",
+        val = ""
+    }
+}
+
+local _init_levels = function()
+    for i = 1, #levels do
+        local level = levels[i]
+
+        level.val = ""
+    end
+end
+
+local _concat_levels = function(ref)
+    local result = ""
+    local len = #levels
+
+    for i = 1, len do
+        local level = levels[i]
+        if level.val ~= "" then
+            local level_text = level.val .. " " .. mod.get_symbol(level.key)
+            local color_code =  _get_best_setting(level.key .. "_color", ref)
+
+            if color_code and color_code ~= "default" and Color[color_code]then
+                level_text = _apply_color_to_text(color_code, level_text)
+            end
+
+            if result ~= "" then
+                result = result .. " "
+            end
+
+            result = result .. level_text
+        end
+    end
+
+    return result
+end
+
+mod.replace_level = function(text, true_levels, reference, need_adding)
+    _init_levels()
+
     local display_style = _get_best_setting("display_style", reference)
     local show_prestige = _get_best_setting("enable_prestige_level", reference)
-    local show_prestige_only = _get_best_setting("enable_prestige_only", reference)
-    local prestige_color = _get_best_setting("prestige_level_color", reference)
+    local show_havoc_rank = _get_best_setting("enable_havoc_rank", reference)
     local current_level = true_levels.current_level
     local additional_level = true_levels.additional_level
     local true_level = true_levels.true_level
     local prestige = true_levels.prestige
     local havoc_rank = true_levels.havoc_rank
-    local suffix = " " .. mod.get_symbol()
+    local level_icon = mod.get_symbol()
+    local suffix = " " .. level_icon
+    local has_title, player_name, title = _has_title(text)
+
+    if has_title then
+        text = player_name
+    else
+        text = text:gsub("\n", "")
+    end
 
     if need_adding then
-        local has_title, player_name, title = _has_title(text)
+        text = text:gsub("%s+%-%s+%d.+", "")
+    end
 
-        if has_title then
-            text = player_name
-        end
-
-        text = text:gsub("\n", "") .. " - "
-
+    if display_style ~= "none" then
         if display_style == "total" and true_level then
-            text = text .. true_level
+            levels[1].val = true_level
         elseif display_style == "separate" and additional_level then
-            text = text .. current_level .. " (+" .. additional_level .. ")"
+            levels[1].val = current_level .. " (+" .. additional_level .. ")"
         else -- default
-            text = text .. current_level
-        end
-
-        text = text .. suffix
-
-        if title then
-            text = text .. "\n" .. title
-        end
-    else
-        if display_style == "total" and true_level then
-            text = text:gsub("%d+" .. suffix, true_level .. suffix)
-        elseif display_style == "separate" and additional_level then
-            text = text:gsub(suffix, " (+" .. additional_level .. ")" .. suffix)
+            levels[1].val = current_level
         end
     end
 
     if show_prestige and prestige then
-        local suffix_with_prestige = suffix .. prestige
+        levels[2].val = prestige
+    end
 
-        text = text:gsub(suffix .. "[^\n%s]*", suffix)
+    if show_havoc_rank then
+        local account_id = true_levels.account_id
 
-        if prestige_color ~= "default" then
-            local c = Color[prestige_color](255, true)
-            local color_prefix = string.format("{#color(%s,%s,%s)}", c[2], c[3], c[4])
+        if havoc_rank then
+            levels[3].val = havoc_rank
+        elseif account_id and true_level and not mod._havoc_promises[account_id] then
+            local promise = Managers.data_service.havoc:havoc_rank_all_time_high(account_id)
 
-            suffix_with_prestige = color_prefix .. suffix_with_prestige .. "{#reset()}"
-        end
+            promise:next(function(rank)
+                mod._havoc_promises[account_id] = nil
+                true_levels.havoc_rank = rank
+            end)
 
-        if show_prestige_only then
-            text = text:gsub("%s?%d+" .. suffix, suffix_with_prestige) -- total
-            text = text:gsub("%s?%d+ %(%+%d+%)" .. suffix, suffix_with_prestige) -- separate
-        else
-            text = text:gsub(suffix, suffix_with_prestige)
+            mod._havoc_promises[account_id] = true
         end
     end
 
-    if add_havoc and havoc_rank then
-        havoc_rank = string.format("%s %s", havoc_rank, mod.get_symbol("havoc"))
-        text = string.format("%s - %s", text, havoc_rank)
+    local levels_text = _concat_levels(reference)
+
+    if need_adding and levels_text ~= "" then
+        text = text .. " - " ..  _concat_levels(reference)
+    else
+        text = text:gsub("%d+" .. suffix, levels_text)
+    end
+
+    if title then
+        text = text .. "\n" .. title
     end
 
     return text
@@ -303,7 +355,7 @@ mod:hook_safe(CLASS.PresenceEntryImmaterium, "update_with", function(self, new_e
         local backend_progression = backend_profile_data.progression
         local havoc_rank_all_time_high = self:havoc_rank_all_time_high()
 
-        mod.cache_true_levels(cache, character_id, backend_progression, havoc_rank_all_time_high)
+        mod.cache_true_levels(cache, character_id, backend_progression, havoc_rank_all_time_high, new_entry.account_id)
         mod.debug.echo(backend_profile_data.character.name .. ": " .. character_id)
     end
 end)
@@ -332,6 +384,7 @@ mod.on_game_state_changed = function(status, state_name)
 end
 
 mod.on_setting_changed = function(id)
+    mod._symbols.prestige_level = mod:get("prestige_level_icon")
     mod._debug_mode = mod:get("enable_debug_mode")
     mod._is_in_hub = _is_in_hub()
     mod.desync_all()

@@ -4,18 +4,38 @@ local ProfileUtils = require("scripts/utilities/profile_utils")
 local ref = "main_menu"
 local cache = mod._self
 
+local _get_havoc_rank = function(self)
+    local player = Managers.player:local_player_safe(1)
+
+    if player then
+        local account_id = player:account_id()
+
+        mod._havoc_promises[account_id] = true
+
+        return Managers.data_service.havoc:havoc_rank_all_time_high(account_id)
+    end
+
+    return Promise.resolved()
+end
+
 local _get_all_progression = function(self)
     local backend_interface = Managers.backend.interfaces
-    local promise = backend_interface.progression:get_entity_type_progression("character")
+    local progression_promise = backend_interface.progression:get_entity_type_progression("character")
+    local havoc_promise = _get_havoc_rank(self)
 
-    self._tl_promise = promise
+    self._tl_promise = true
 
-    promise:next(function(characters_progression)
+    Promise.all(progression_promise, havoc_promise):next(function(result)
+        local characters_progression, havoc_rank_all_time_high = unpack(result)
+        local account_id = Managers.player:local_player_safe(1):account_id()
+
+        mod._havoc_promises[account_id] = nil
+        self._tl_promise = nil
+
         for _, data in ipairs(characters_progression) do
-            mod.cache_true_levels(cache, data.id, data)
+            mod.cache_true_levels(cache, data.id, data, havoc_rank_all_time_high, account_id)
         end
 
-        self._tl_promise = nil
         mod.desync(ref)
         mod.debug.dump(mod._self, "backend_progression")
     end)
@@ -23,13 +43,19 @@ end
 
 local _get_character_progression = function(self, character_id)
     local backend_interface = Managers.backend.interfaces
-    local promise = backend_interface.progression:get_progression("character", character_id)
+    local progression_promise = backend_interface.progression:get_progression("character", character_id)
+    local havoc_promise = _get_havoc_rank(self)
 
-    self._tl_promise = promise
+    self._tl_promise = true
 
-    promise:next(function(data)
-        mod.cache_true_levels(mod._self, character_id, data)
+    Promise.all(progression_promise, havoc_promise):next(function(result)
+        local data, havoc_rank_all_time_high = unpack(result)
+        local account_id = Managers.player:local_player_safe(1):account_id()
+
+        mod._havoc_promises[account_id] = nil
         self._tl_promise = nil
+
+        mod.cache_true_levels(mod._self, character_id, data, havoc_rank_all_time_high, account_id)
     end)
 end
 
@@ -51,7 +77,7 @@ local _get_account_level = function(widgets)
 end
 
 local _get_title = function(profile)
-    return string.format("%s %s", ProfileUtils.character_archetype_title(profile), tostring(profile.current_level) .. " " .. mod.get_symbol("level"))
+    return string.format("%s - %s", ProfileUtils.character_archetype_title(profile), tostring(profile.current_level) .. " " .. mod.get_symbol("level"))
 end
 
 mod:hook_safe(CLASS.MainMenuView, "init", function(self)
@@ -85,7 +111,7 @@ mod:hook_safe(CLASS.MainMenuView, "update", function(self)
             if true_levels then
                 local title = _get_title(profile)
 
-                content.character_archetype_title = mod.replace_level(title, true_levels, "main_menu")
+                content.character_archetype_title = mod.replace_level(title, true_levels, ref, true)
             else
                 _get_character_progression(self, character_id)
                 return
@@ -129,6 +155,6 @@ mod:hook_safe(CLASS.MainMenuView, "_set_selected_character_list_index", function
         local content = self._widgets_by_name.character_info.content
         local title = _get_title(selected_profile)
 
-        content.character_archetype_title = mod.replace_level(title, true_levels, "main_menu")
+        content.character_archetype_title = mod.replace_level(title, true_levels, ref, true)
     end
 end)

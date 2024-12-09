@@ -21,7 +21,7 @@ mod:hook_safe(CLASS.PlayerCharacterOptionsView, "update", function(self)
         local current_level = true_levels.current_level
 
         self:_set_player_name(player_name, current_level)
-        content.text = mod.replace_level(content.text, true_levels, ref)
+        content.text = mod.replace_level(content.text, true_levels, ref, true)
         mod.synced(ref)
     end
 end)

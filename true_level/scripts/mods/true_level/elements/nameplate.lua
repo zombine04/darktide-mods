@@ -1,4 +1,5 @@
 local mod = get_mod("true_level")
+local ProfileUtils = require("scripts/utilities/profile_utils")
 local ref = "nameplate"
 
 local _get_markers_by_id = function()
@@ -10,44 +11,68 @@ local _get_markers_by_id = function()
     return markers_by_id
 end
 
-local _events = {
-    event_titles_in_mission_setting_changed = true,
-    event_in_mission_title_color_type_changed = true
-}
+local function _create_character_text(marker)
+    local player = marker.data
+    local player_manager = Managers.player
+    local is_player_valid = player_manager:player_from_unique_id(marker.player_unique_id) ~= nil
 
-mod:hook_safe(CLASS.EventManager, "trigger", function(self, event_name, synced_peer_id, _, _, force_update)
-    if mod.is_enabled_feature(ref) and _events[event_name] then
-        mod.desynced(ref)
+    if not is_player_valid or not player then
+        return
     end
 
-    if event_name == "event_player_profile_updated" then
-        local events = self._events[event_name]
+    local profile = player:profile()
+    local peer_id = player:peer_id()
 
-        if events then
-            for marker, callback_name in pairs(events) do
-                if callback_name == "cb_event_player_profile_updated" then
-                    local peer_id = marker.peer_id
-                    local valid = force_update or peer_id and peer_id == synced_peer_id
+    marker.peer_id = peer_id
 
-                    if valid then
-                        marker.wru_modified = false
-                        marker.tl_modified = false
-                    end
+    local character_level = profile and profile.current_level or 1
+    local title = ProfileUtils.character_title(profile)
+    local archetype = profile and profile.archetype
+    local string_symbol = archetype and archetype.string_symbol or ""
+    local text = string_symbol .. " " .. player:name() .. " - " .. tostring(character_level) .. " \xEE\x80\x86"
+
+    if title then
+        text = text .. " \n " .. title
+    end
+
+    marker.widget.content.header_text = text
+    marker.wru_modified = false
+    marker.tl_modified = false
+end
+
+mod:hook_safe(CLASS.HudElementWorldMarkers, "event_add_world_marker_unit", function(self, marker_type, unit, callback, data)
+    if marker_type:match("nameplate") then
+        local markers = self._markers_by_type[marker_type]
+        local len = #markers
+
+        for i = 1, len do
+            local marker = markers[i]
+
+            if marker.unit == unit then
+                marker._event_update_player_name = function(self)
+                    _create_character_text(self)
                 end
-            end
-        end
-    elseif event_name == "event_update_player_name" then
-        local events = self._events[event_name]
 
-        if events then
-            for marker, callback_name in pairs(events) do
-                if callback_name == "_event_update_player_name" then
+                marker.cb_event_player_profile_updated = function(self, synced_peer_id, synced_local_player_id, new_profile, force_update)
+                    local valid = force_update or self.peer_id and self.peer_id == synced_peer_id
+
+                    if not valid then
+                        return
+                    end
+
+                    local updated_title = new_profile and ProfileUtils.character_title(new_profile)
+
+                    if not updated_title then
+                        return
+                    end
+
+                    local player_manager = Managers.player
                     local player = marker.data
-                    local is_player_valid = Managers.player:player_from_unique_id(marker.player_unique_id) ~= nil
+                    local is_player_valid = player_manager:player_from_unique_id(marker.player_unique_id) ~= nil
 
-                    if player and is_player_valid then
-                        marker.wru_modified = false
-                        marker.tl_modified = false
+                    if is_player_valid and player then
+                        player:set_profile(new_profile)
+                        _create_character_text(marker)
                     end
                 end
             end
@@ -73,7 +98,6 @@ mod:hook_safe(CLASS.HudElementNameplates, "update", function(self)
             end
         end
 
-        self:_nameplate_extension_scan()
         mod.synced(ref)
 
         return
@@ -87,7 +111,7 @@ mod:hook_safe(CLASS.HudElementNameplates, "update", function(self)
             local id = data.marker_id
             local marker = markers_by_id[id]
 
-            if marker then
+            if marker and not marker.rank_promise then
                 local player = marker.data
                 local player_deleted = player.__deleted
 
@@ -104,9 +128,8 @@ mod:hook_safe(CLASS.HudElementNameplates, "update", function(self)
                         if true_levels then
                             local content = marker.widget.content
                             local header_text = content.header_text
-                            local need_adding = is_combat and not header_text:match(mod.get_symbol())
 
-                            content.header_text = mod.replace_level(header_text, true_levels, ref, need_adding)
+                            content.header_text = mod.replace_level(header_text, true_levels, ref, true)
                             marker.tl_modified = true
                             mod.debug.echo(content.header_text)
                         end

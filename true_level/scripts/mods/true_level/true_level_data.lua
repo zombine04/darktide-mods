@@ -1,14 +1,22 @@
 local mod = get_mod("true_level")
 
-local option_tables = {}
+local option_tables = {
+    style = {},
+    color = {},
+    symbol = {},
+    toggle = {
+        { text = "on", value = "on" },
+        { text = "off", value = "off" },
+    }
+}
 
-option_tables.style = {}
+-- style
 
 for i, style in ipairs(mod._styles) do
     option_tables.style[#option_tables.style + 1] = { text = style, value = style }
 end
 
-option_tables.color = {}
+-- color
 
 local _is_duplicated = function(a)
     local join = function(t)
@@ -37,6 +45,12 @@ table.sort(option_tables.color, function(a, b)
 end)
 
 table.insert(option_tables.color, 1, { text = "default", value = "default" })
+
+-- symbol
+
+for name, symbol in pairs(mod._symbols) do
+    option_tables.symbol[#option_tables.symbol + 1] = { text = "symbol_" .. name, value = symbol }
+end
 
 local data = {
     name = mod:localize("mod_name"),
@@ -67,15 +81,29 @@ local data = {
                         tooltip = "prestige_level_desc",
                         sub_widgets = {
                             {
-                                setting_id = "enable_prestige_only",
-                                type = "checkbox",
-                                default_value = false,
+                                setting_id = "prestige_level_icon",
+                                type = "dropdown",
+                                default_value = "\xEE\x80\xAE",
+                                options = option_tables.symbol,
                             },
                             {
                                 setting_id = "prestige_level_color",
                                 type = "dropdown",
                                 default_value = "pale_golden_rod",
-                                options = option_tables.color,
+                                options = table.clone(option_tables.color),
+                            },
+                        },
+                    },
+                    {
+                        setting_id = "enable_havoc_rank",
+                        type = "checkbox",
+                        default_value = true,
+                        sub_widgets = {
+                            {
+                                setting_id = "havoc_rank_color",
+                                type = "dropdown",
+                                default_value = "default",
+                                options = table.clone(option_tables.color),
                             },
                         },
                     },
@@ -86,11 +114,6 @@ local data = {
 }
 
 local widgets = data.options.widgets
-
-option_tables.toggle = {
-    { text = "on", value = "on" },
-    { text = "off", value = "off" },
-}
 
 local get_child_options = function(key)
     local child_options = table.clone(option_tables[key])
@@ -122,13 +145,27 @@ for i, ele in ipairs(mod._elements) do
                 options = get_child_options("toggle"),
                 sub_widgets = {
                     {
-                        setting_id = "enable_prestige_only_" .. ele,
+                        setting_id = "prestige_level_icon_" .. ele,
                         type = "dropdown",
                         default_value = "use_global",
-                        options = get_child_options("toggle"),
+                        options = get_child_options("symbol"),
                     },
                     {
                         setting_id = "prestige_level_color_" .. ele,
+                        type = "dropdown",
+                        default_value = "use_global",
+                        options = get_child_options("color"),
+                    },
+                },
+            },
+            {
+                setting_id = "enable_havoc_rank_" .. ele,
+                type = "dropdown",
+                default_value = "use_global",
+                options = get_child_options("toggle"),
+                sub_widgets = {
+                    {
+                        setting_id = "havoc_rank_color_" .. ele,
                         type = "dropdown",
                         default_value = "use_global",
                         options = get_child_options("color"),

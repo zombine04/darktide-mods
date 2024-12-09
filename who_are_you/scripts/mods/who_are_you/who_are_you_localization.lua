@@ -70,6 +70,10 @@ local loc = {
     off = {
         en = Localize("loc_setting_checkbox_off"),
     },
+    hide_identifier_tag = {
+        en = "Hide Four-digits Identifier Tag",
+        ja = "4桁の識別タグを非表示にする",
+    },
     cycle_style = {
         en = "Cycle Style",
         ja = "スタイルの切り替え",
