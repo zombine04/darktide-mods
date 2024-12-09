@@ -73,6 +73,7 @@ local loc = {
     hide_identifier_tag = {
         en = "Hide Four-digits Identifier Tag",
         ja = "4桁の識別タグを非表示にする",
+        ["zh-cn"] = "隐藏 4 位数 ID 标签",
     },
     cycle_style = {
         en = "Cycle Style",
