@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 2024/12/07
-    version: 1.8.0
+    date: 2024/12/10
+    version: 1.8.1
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")

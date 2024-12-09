@@ -1,8 +1,8 @@
 --[[
     title: who_are_you
     author: Zombine
-    date: 2024/12/08
-    version: 3.6.0
+    date: 2024/12/10
+    version: 3.6.1
 ]]
 local mod = get_mod("who_are_you")
 local ProfileUtils = require("scripts/utilities/profile_utils")
