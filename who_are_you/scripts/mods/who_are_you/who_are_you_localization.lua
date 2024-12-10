@@ -73,7 +73,7 @@ local loc = {
         ja = "プラットフォームアイコン",
         ["zh-cn"] = "平台图标",
         ru = "Иконка платформы",
-        fr = "Logo de la platforme", 
+        fr = "Logo de la platforme",
     },
     off = {
         en = Localize("loc_setting_checkbox_off"),
