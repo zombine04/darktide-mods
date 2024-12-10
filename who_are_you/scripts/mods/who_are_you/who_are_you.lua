@@ -1,8 +1,8 @@
 --[[
     title: who_are_you
     author: Zombine
-    date: 2024/12/10
-    version: 3.6.1
+    date: 2024/12/11
+    version: 3.6.2
 ]]
 local mod = get_mod("who_are_you")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -12,6 +12,7 @@ local ICONS = {
     steam = "\xEE\x81\xAB",
     xbox = "\xEE\x81\xAC",
     psn = "\xEE\x81\xB1",
+    ps5 = "\xEE\x81\xB1",
     unknown = "\xEE\x81\xAF"
 }
 

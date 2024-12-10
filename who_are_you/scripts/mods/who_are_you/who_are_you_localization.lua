@@ -24,7 +24,6 @@ local loc = {
         en = "Who Are You",
         ru = "Кто ты",
         ["zh-cn"] = "到底是谁",
-        fr = "Qui es tu ?",
     },
     mod_description = {
         en = "Display players' account name next to their character name.",
