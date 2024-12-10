@@ -29,7 +29,8 @@ mod._symbols = {
     rating = "\xEE\x80\x9F",
     shock = "\xEE\x80\xA7",
     skull = "\xEE\x80\x9E",
-    star = "\xEE\x80\xAA"
+    star = "\xEE\x80\xAA",
+    none = ""
 }
 
 local loc = {
@@ -75,6 +76,17 @@ local loc = {
         ru = "Раздельно: 30 (+100) \n" ..
              "Вместе: 130 \n" ..
              "По умолчанию: 30 ",
+    },
+    level_icon = {
+        en = "Level Icon",
+        ja = "レベルアイコン",
+        ['zh-cn'] = "等级图标",
+    },
+    level_color = {
+        en = "Level Color",
+        ja = "レベルの色",
+        ["zh-cn"] = "等级颜色",
+        ru = "Цвет уровня",
     },
     use_global = {
         en = "Use Global Setting",
@@ -144,6 +156,11 @@ local loc = {
         en = "Show Havoc Rank",
         ja = "ハヴォックランクを表示する",
         ["zh-cn"] = "显示浩劫等级",
+    },
+    havoc_rank_icon = {
+        en = "Havoc Rank Icon",
+        ja = "ハヴォックランクアイコン",
+        ["zh-cn"] = "浩劫等级图标",
     },
     havoc_rank_color = {
         en = "Havoc Rank Color",
@@ -254,10 +271,13 @@ for i, ele in pairs(mod._elements) do
     end
 
     _add_child_loc("display_style", ele)
+    _add_child_loc("level_icon", ele)
+    _add_child_loc("level_color", ele)
     _add_child_loc("enable_prestige_level", ele)
     _add_child_loc("prestige_level_icon", ele)
     _add_child_loc("prestige_level_color", ele)
     _add_child_loc("enable_havoc_rank", ele)
+    _add_child_loc("havoc_rank_icon", ele)
     _add_child_loc("havoc_rank_color", ele)
 end
 

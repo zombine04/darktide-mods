@@ -7,7 +7,6 @@
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
 
-mod._symbols.prestige_level = mod:get("prestige_level_icon")
 mod._self = mod:persistent_table("self")
 mod._others = mod:persistent_table("others")
 mod._queue = mod:persistent_table("queue")
@@ -176,7 +175,7 @@ local _concat_levels = function(ref)
     for i = 1, len do
         local level = levels[i]
         if level.val ~= "" then
-            local level_text = level.val .. " " .. mod.get_symbol(level.key)
+            local level_text = level.val .. " " .. mod.get_symbol(level.key .. "_custom")
             local color_code =  _get_best_setting(level.key .. "_color", ref)
 
             if color_code and color_code ~= "default" and Color[color_code]then
@@ -196,6 +195,10 @@ end
 
 mod.replace_level = function(text, true_levels, reference, need_adding)
     _init_levels()
+
+    mod._symbols.level_custom = _get_best_setting("level_icon", reference)
+    mod._symbols.prestige_level_custom = _get_best_setting("prestige_level_icon", reference)
+    mod._symbols.havoc_rank_custom = _get_best_setting("havoc_rank_icon", reference)
 
     local display_style = _get_best_setting("display_style", reference)
     local show_prestige = _get_best_setting("enable_prestige_level", reference)
@@ -384,7 +387,6 @@ mod.on_game_state_changed = function(status, state_name)
 end
 
 mod.on_setting_changed = function(id)
-    mod._symbols.prestige_level = mod:get("prestige_level_icon")
     mod._debug_mode = mod:get("enable_debug_mode")
     mod._is_in_hub = _is_in_hub()
     mod.desync_all()
