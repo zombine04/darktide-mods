@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 2024/12/10
-    version: 1.8.1
+    date: 2024/12/11
+    version: 1.8.2
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -203,6 +203,7 @@ mod.replace_level = function(text, true_levels, reference, need_adding)
     local display_style = _get_best_setting("display_style", reference)
     local show_prestige = _get_best_setting("enable_prestige_level", reference)
     local show_havoc_rank = _get_best_setting("enable_havoc_rank", reference)
+    local disable_normal_level = _get_best_setting("prioritize_other_levels", reference)
     local current_level = true_levels.current_level
     local additional_level = true_levels.additional_level
     local true_level = true_levels.true_level
@@ -251,6 +252,10 @@ mod.replace_level = function(text, true_levels, reference, need_adding)
 
             mod._havoc_promises[account_id] = true
         end
+    end
+
+    if (levels[2].val ~= "" or levels[3].val ~= "") and disable_normal_level then
+        levels[1].val = ""
     end
 
     local levels_text = _concat_levels(reference)

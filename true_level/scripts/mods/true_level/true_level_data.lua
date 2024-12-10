@@ -75,6 +75,12 @@ local data = {
                         options = option_tables.style,
                         sub_widgets = {
                             {
+                                setting_id = "prioritize_other_levels",
+                                type = "checkbox",
+                                default_value = false,
+                                tooltip = "prioritize_other_levels_desc"
+                            },
+                            {
                                 setting_id = "level_icon",
                                 type = "dropdown",
                                 default_value = mod._symbols.level,
@@ -158,6 +164,13 @@ for i, ele in ipairs(mod._elements) do
                 default_value = "use_global",
                 options = get_child_options("style"),
                 sub_widgets = {
+                    {
+                        setting_id = "prioritize_other_levels_" .. ele,
+                        type = "dropdown",
+                        default_value = "use_global",
+                        tooltip = "prioritize_other_levels_desc",
+                        options = get_child_options("toggle"),
+                    },
                     {
                         setting_id = "level_icon_" .. ele,
                         type = "dropdown",

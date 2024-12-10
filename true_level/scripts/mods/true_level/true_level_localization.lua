@@ -77,6 +77,14 @@ local loc = {
              "Вместе: 130 \n" ..
              "По умолчанию: 30 ",
     },
+    prioritize_other_levels = {
+        en = "Prioritize Other Levels",
+        ja = "他のレベル表示を優先する",
+    },
+    prioritize_other_levels_desc = {
+        en = "Hide normal level if prestige level or havoc rank is available.",
+        ja = "プレステージレベルやハヴォックランクが有効な場合は、通常のレベルを非表示にします。"
+    },
     level_icon = {
         en = "Level Icon",
         ja = "レベルアイコン",
@@ -271,6 +279,7 @@ for i, ele in pairs(mod._elements) do
     end
 
     _add_child_loc("display_style", ele)
+    _add_child_loc("prioritize_other_levels", ele)
     _add_child_loc("level_icon", ele)
     _add_child_loc("level_color", ele)
     _add_child_loc("enable_prestige_level", ele)
