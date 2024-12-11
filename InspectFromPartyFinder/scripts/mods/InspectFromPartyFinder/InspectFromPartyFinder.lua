@@ -2,7 +2,7 @@
     title: InspectFromPartyFinder
     author: Zombine
     date: 2024/12/11
-    version: 0.9.0
+    version: 1.0.0
 ]]
 local mod = get_mod("InspectFromPartyFinder")
 local ButtonPassTemplates = require("scripts/ui/pass_templates/button_pass_templates")
@@ -216,14 +216,14 @@ local _open_inventory = function(parent, player)
 end
 
 local _add_pressed_callback = function(self, hotspot, account_id)
-    if hotspot and account_id then
+    if hotspot then
         hotspot.pressed_callback = callback(self, "cb_on_player_grid_pressed", account_id)
     end
 end
 
 mod:hook_safe(CLASS.GroupFinderView, "init", function(self)
     self.cb_on_player_grid_pressed = function(self, account_id)
-        local player_info = _get_player_info(account_id)
+        local player_info = account_id and _get_player_info(account_id)
 
         if player_info then
             local unique_id = player_info._player_unique_id
@@ -266,6 +266,23 @@ mod:hook_safe(CLASS.GroupFinderView, "_update_listed_group", function(self)
             local content = widget.content
             local hotspot = content.hotspot
             local account_id = member.account_id
+
+            _add_pressed_callback(self, hotspot, account_id)
+        end
+    end
+end)
+
+mod:hook_safe(CLASS.GroupFinderView, "_populate_preview_grid", function(self)
+    local grid = self._preview_grid
+    local widgets = grid and grid:widgets()
+
+    if widgets then
+        for i = 1, #widgets do
+            local widget = widgets[i]
+            local content = widget.content
+            local element = content.element
+            local hotspot = content.hotspot
+            local account_id = element and element.account_id
 
             _add_pressed_callback(self, hotspot, account_id)
         end
