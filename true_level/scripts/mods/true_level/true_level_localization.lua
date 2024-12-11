@@ -80,15 +80,17 @@ local loc = {
     prioritize_other_levels = {
         en = "Prioritize Other Levels",
         ja = "他のレベル表示を優先する",
+        ["zh-cn"] = "优先显示其他等级",
     },
     prioritize_other_levels_desc = {
         en = "Hide normal level if prestige level or havoc rank is available.",
-        ja = "プレステージレベルやハヴォックランクが有効な場合は、通常のレベルを非表示にします。"
+        ja = "プレステージレベルやハヴォックランクが有効な場合は、通常のレベルを非表示にします。",
+        ["zh-cn"] = "如果能显示声望等级或者浩劫等级，则隐藏常规等级。",
     },
     level_icon = {
         en = "Level Icon",
         ja = "レベルアイコン",
-        ['zh-cn'] = "等级图标",
+        ["zh-cn"] = "等级图标",
     },
     level_color = {
         en = "Level Color",
