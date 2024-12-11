@@ -1,7 +1,7 @@
 --[[
     title: InspectFromPartyFinder
     author: Zombine
-    date: 2024/12/10
+    date: 2024/12/11
     version: 0.9.0
 ]]
 local mod = get_mod("InspectFromPartyFinder")
@@ -215,13 +215,7 @@ local _open_inventory = function(parent, player)
     })
 end
 
-local _add_pressed_callback = function(self, widget, account_id)
-    local content = widget.content
-    local hotspot = content.hotspot
-    local element = content.element
-
-    account_id = account_id or element and element.account_id
-
+local _add_pressed_callback = function(self, hotspot, account_id)
     if hotspot and account_id then
         hotspot.pressed_callback = callback(self, "cb_on_player_grid_pressed", account_id)
     end
@@ -269,9 +263,11 @@ mod:hook_safe(CLASS.GroupFinderView, "_update_listed_group", function(self)
 
         if member then
             local widget = widgets["team_member_" .. i]
+            local content = widget.content
+            local hotspot = content.hotspot
             local account_id = member.account_id
 
-            _add_pressed_callback(self, widget, account_id)
+            _add_pressed_callback(self, hotspot, account_id)
         end
     end
 end)
@@ -285,12 +281,10 @@ mod:hook_safe(CLASS.GroupFinderView, "_populate_player_request_grid", function(s
             local widget = widgets[i]
             local content = widget.content
             local element = content.element
-            local inspect_hotspot = content.inspect_hotspot
+            local hotspot = content.inspect_hotspot
             local account_id = element and element.account_id
 
-            if inspect_hotspot and account_id then
-                inspect_hotspot.pressed_callback = callback(self, "cb_on_player_grid_pressed", account_id)
-            end
+            _add_pressed_callback(self, hotspot, account_id)
         end
     end
 end)
