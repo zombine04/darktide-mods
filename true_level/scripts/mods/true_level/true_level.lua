@@ -2,7 +2,7 @@
     title: true_level
     author: Zombine
     date: 2024/12/11
-    version: 1.8.2
+    version: 1.8.3
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -116,10 +116,11 @@ end
 local _get_best_setting = function(base_id, reference)
     local setting_id = base_id .. "_" .. reference
     local setting = mod:get(setting_id)
+    local global_setting = mod:get(base_id)
 
     if setting == "use_global" then
-        setting = mod:get(base_id)
-    elseif base_id:match("enable_prestige") then
+        setting = global_setting
+    elseif type(global_setting) == "boolean" then
         setting = setting == "on" and true or false
     end
 
