@@ -1,8 +1,8 @@
 --[[
     title: InspectFromPartyFinder
     author: Zombine
-    date: 2024/12/11
-    version: 1.0.0
+    date: 2024/12/12
+    version: 1.0.1
 ]]
 local mod = get_mod("InspectFromPartyFinder")
 local ButtonPassTemplates = require("scripts/ui/pass_templates/button_pass_templates")
@@ -216,13 +216,13 @@ local _open_inventory = function(parent, player)
 end
 
 local _add_pressed_callback = function(self, hotspot, account_id)
-    if hotspot then
-        hotspot.pressed_callback = callback(self, "cb_on_player_grid_pressed", account_id)
+    if hotspot and not hotspot.pressed_callback then
+        hotspot.pressed_callback = callback(self, "cb_on_player_inspect_pressed", account_id)
     end
 end
 
 mod:hook_safe(CLASS.GroupFinderView, "init", function(self)
-    self.cb_on_player_grid_pressed = function(self, account_id)
+    self.cb_on_player_inspect_pressed = function(self, account_id)
         local player_info = account_id and _get_player_info(account_id)
 
         if player_info then
@@ -253,6 +253,8 @@ mod:hook_safe(CLASS.GroupFinderView, "init", function(self)
     end
 end)
 
+-- listed_group
+
 mod:hook_safe(CLASS.GroupFinderView, "_update_listed_group", function(self)
     local own_group = self._own_group_visualization
     local members = own_group.members
@@ -272,6 +274,8 @@ mod:hook_safe(CLASS.GroupFinderView, "_update_listed_group", function(self)
     end
 end)
 
+-- preview_grid
+
 mod:hook_safe(CLASS.GroupFinderView, "_populate_preview_grid", function(self)
     local grid = self._preview_grid
     local widgets = grid and grid:widgets()
@@ -282,23 +286,6 @@ mod:hook_safe(CLASS.GroupFinderView, "_populate_preview_grid", function(self)
             local content = widget.content
             local element = content.element
             local hotspot = content.hotspot
-            local account_id = element and element.account_id
-
-            _add_pressed_callback(self, hotspot, account_id)
-        end
-    end
-end)
-
-mod:hook_safe(CLASS.GroupFinderView, "_populate_player_request_grid", function(self)
-    local grid = self._player_request_grid
-    local widgets = grid and grid:widgets()
-
-    if widgets then
-        for i = 1, #widgets do
-            local widget = widgets[i]
-            local content = widget.content
-            local element = content.element
-            local hotspot = content.inspect_hotspot
             local account_id = element and element.account_id
 
             _add_pressed_callback(self, hotspot, account_id)
@@ -320,6 +307,23 @@ mod:hook_safe(CLASS.GroupFinderView, "update", function(self)
         if profile then
             _open_inventory(self, player)
             self._ifpf_queue = nil
+        end
+    end
+
+    -- player_request_grid
+
+    local grid = self._player_request_grid
+    local widgets = grid and grid:widgets()
+
+    if widgets then
+        for i = 1, #widgets do
+            local widget = widgets[i]
+            local content = widget.content
+            local element = content.element
+            local hotspot = content.inspect_hotspot
+            local account_id = element and element.account_id
+
+            _add_pressed_callback(self, hotspot, account_id)
         end
     end
 end)
