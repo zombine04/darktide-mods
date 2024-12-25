@@ -70,8 +70,8 @@ local loc = {
     platform_icon = {
         en = "Platform Icon",
         ja = "プラットフォームアイコン",
-        ["zh-cn"] = "平台图标",
         ru = "Иконка платформы",
+        ["zh-cn"] = "平台图标",
         fr = "Logo de la platforme",
     },
     off = {
@@ -80,6 +80,7 @@ local loc = {
     hide_identifier_tag = {
         en = "Hide Four-digits Identifier Tag",
         ja = "4桁の識別タグを非表示にする",
+        ru = "Скрыть тег игрока (4 цифры)",
         ["zh-cn"] = "隐藏 4 位数 ID 标签",
         fr = "Cacher le tag à 4 chiffres",
     },
@@ -142,8 +143,8 @@ local loc = {
     enable_combat_feed = {
         en = "Combat Feed",
         ja = "戦闘フィード",
-        ["zh-cn"] = "击杀通知栏",
         ru = "Лента убийств",
+        ["zh-cn"] = "击杀通知栏",
         fr = "Diffusion de combat",
     },
     enable_inventory = {
@@ -225,8 +226,8 @@ local loc = {
     custom_color = {
         en = "Custom color",
         ja = "カスタムカラー",
-        ["zh-cn"] = "自定义颜色",
         ru = "Пользовательские цвета",
+        ["zh-cn"] = "自定义颜色",
         fr = "Couleur personnalisée",
     },
     color_r = {
