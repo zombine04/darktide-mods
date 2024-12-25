@@ -1,8 +1,8 @@
 --[[
     title: InspectFromPartyFinder
     author: Zombine
-    date: 2024/12/12
-    version: 1.0.1
+    date: 2024/12/16
+    version: 1.0.2
 ]]
 local mod = get_mod("InspectFromPartyFinder")
 local ButtonPassTemplates = require("scripts/ui/pass_templates/button_pass_templates")
