@@ -1,8 +1,8 @@
 --[[
     name: WeaponFilter
     author: Zombine
-    date: 2024/10/05
-    version: 1.0.1
+    date: 2025/01/28
+    version: 1.0.2
 ]]
 local mod = get_mod("WeaponFilter")
 local Definitions = mod:io_dofile("WeaponFilter/scripts/mods/WeaponFilter/Definitions")
@@ -20,7 +20,7 @@ local oob_position = {
 -- ############################################################
 
 local _present_filtered_layout = function(self, weapon_pattern)
-    local original_layout = table.clone_instance(self._filtered_offer_items_layout_origin)
+    local original_layout = table.clone_instance(self._offer_items_layout_origin)
 
     if weapon_pattern then
         local filtered_layout = {}
@@ -33,15 +33,12 @@ local _present_filtered_layout = function(self, weapon_pattern)
             end
         end
 
-        self._current_layout = self._current_layout and filtered_layout
-        self._discard_layout = self._discard_layout and filtered_layout
-        self._filtered_offer_items_layout = filtered_layout
+        self._offer_items_layout = filtered_layout
     else
-        self._current_layout = self._current_layout and original_layout
-        self._discard_layout = self._discard_layout and original_layout
-        self._filtered_offer_items_layout = original_layout
+        self._offer_items_layout = original_layout
     end
 
+    local new_layout = self._offer_items_layout
     local sort_options = self._sort_options
 
     if sort_options then
@@ -49,10 +46,12 @@ local _present_filtered_layout = function(self, weapon_pattern)
         local selected_sort_option = sort_options[sort_index]
         local selected_sort_function = selected_sort_option.sort_function
 
-        self:_sort_grid_layout(selected_sort_function)
-    else
-        self:_sort_grid_layout()
+        table.sort(new_layout, selected_sort_function)
     end
+
+    self:present_grid_layout(new_layout, function ()
+        self:_stop_previewing()
+    end)
 end
 
 mod:hook_safe(CLASS.InventoryWeaponsView, "init", function(self)
@@ -160,26 +159,29 @@ mod:hook_safe(CLASS.InventoryWeaponsView, "_present_layout_by_slot_filter", func
         return
     end
 
-    self._filtered_offer_items_layout_origin = table.clone_instance(self._filtered_offer_items_layout)
+    self._offer_items_layout_origin = table.clone_instance(self._offer_items_layout)
 
-    local items_layout = self._filtered_offer_items_layout
+    local items_layout = self._offer_items_layout
     local layout = {}
     local patterns = {}
 
     for i = 1, #items_layout do
         local entry = items_layout[i]
-        local item = entry.item
-        local parent_pattern = item.parent_pattern
 
-        if not patterns[parent_pattern] then
-            patterns[parent_pattern] = true
-            layout[#layout + 1] = {
-                widget_type = "weapon_pattern",
-                icon = item.hud_icon,
-                pattern = parent_pattern,
-                item = item,
-                display_name = Items.weapon_lore_family_name(item)
-            }
+        if entry.widget_type == 'item' then
+            local item = entry.item
+            local parent_pattern = item.parent_pattern
+
+            if not patterns[parent_pattern] then
+                patterns[parent_pattern] = true
+                layout[#layout + 1] = {
+                    widget_type = "weapon_pattern",
+                    icon = item.hud_icon,
+                    pattern = parent_pattern,
+                    item = item,
+                    display_name = Items.weapon_lore_family_name(item)
+                }
+            end
         end
     end
 
@@ -200,11 +202,11 @@ mod:hook_safe(CLASS.InventoryWeaponsView, "_present_layout_by_slot_filter", func
     self._filter_panel_element:present_grid_layout(layout, blueprints, left_click_callback)
 
     -- Debug
-    mod.mtd(self._filtered_offer_items_layout_origin, "InventoryWeaponsView")
+    mod.mtd(self._offer_items_layout_origin, "InventoryWeaponsView")
 end)
 
 mod:hook_safe(CLASS.InventoryWeaponsView, "event_discard_items", function(self, items)
-    local filtered_offer_items_layout = self._filtered_offer_items_layout_origin
+    local filtered_offer_items_layout = self._offer_items_layout_origin
 
     if filtered_offer_items_layout then
         for i = 1, #items do
@@ -213,7 +215,7 @@ mod:hook_safe(CLASS.InventoryWeaponsView, "event_discard_items", function(self, 
 
             for j = 1, #filtered_offer_items_layout do
                 if filtered_offer_items_layout[j].item.gear_id == gear_id then
-                    table.remove(self._filtered_offer_items_layout_origin, j)
+                    table.remove(self._offer_items_layout_origin, j)
 
                     break
                 end
@@ -227,7 +229,7 @@ end)
 -- ############################################################
 
 mod:hook_safe(CLASS.CreditsGoodsVendorView, "_present_layout_by_slot_filter", function(self)
-    mod.mtd(self._filtered_offer_items_layout, "CreditsGoodsVendorView")
+    mod.mtd(self._offer_items_layout, "CreditsGoodsVendorView")
 end)
 
 mod:hook_safe(CLASS.MasteriesOverviewView, "_present_layout_by_slot_filter", function(self)
