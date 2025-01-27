@@ -2,7 +2,7 @@
     name: WeaponFilter
     author: Zombine
     date: 2025/01/28
-    version: 1.0.2
+    version: 1.0.3
 ]]
 local mod = get_mod("WeaponFilter")
 local Definitions = mod:io_dofile("WeaponFilter/scripts/mods/WeaponFilter/Definitions")
@@ -214,10 +214,13 @@ mod:hook_safe(CLASS.InventoryWeaponsView, "event_discard_items", function(self, 
             local gear_id = item.gear_id
 
             for j = 1, #filtered_offer_items_layout do
-                if filtered_offer_items_layout[j].item.gear_id == gear_id then
-                    table.remove(self._offer_items_layout_origin, j)
+                local entry = filtered_offer_items_layout[j]
 
-                    break
+                if entry.widget_type == 'item' then
+                    if entry.item.gear_id == gear_id then
+                        table.remove(self._offer_items_layout_origin, j)
+                        break
+                    end
                 end
             end
         end
