@@ -1,7 +1,7 @@
 --[[
     title: buy_until_rating
     author: Zombine
-    date: 2024/12/03
+    date: 2025/01/28
     version: 2.3.1
 ]]
 
@@ -145,7 +145,7 @@ local _make_garbage_list = function()
 
     for i, item_data in ipairs(items) do
         if item_data.is_garbage then
-            garbages[#garbages + 1] = items[i].item
+            garbages[#garbages + 1] = items[i].gear_id
         end
     end
 end
