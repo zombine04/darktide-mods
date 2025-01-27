@@ -1,8 +1,8 @@
 --[[
     title: FilterSacrifice
     author: Zombine
-    date: 2024/10/03
-    version: 1.0.3
+    date: 2025/01/28
+    version: 1.0.4
 ]]
 local mod = get_mod("FilterSacrifice")
 
@@ -57,7 +57,6 @@ mod:hook(CLASS.CraftingView, "_setup_tab_bar", function(func, self, tab_data, ..
             end
 
             _add_input_legend(legend_inputs, visibility_function)
-
             break
         end
     end
@@ -67,17 +66,6 @@ end)
 
 mod:hook_safe(CLASS.CraftingMechanicusBarterItemsView, "init", function(self)
     mod._filter_items = mod:get("enable_filter_by_default")
-    mod._grid_height = nil
-end)
-
--- ##################################################
--- Get grid settings
--- ##################################################
-
-mod:hook_safe(CLASS.CraftingMechanicusBarterItemsView, "_add_element", function(self, _, reference_name, _, grid_settings)
-    if reference_name == "item_grid" and grid_settings then
-        mod._grid_height = grid_settings.grid_size[2]
-    end
 end)
 
 -- ##################################################
@@ -101,7 +89,9 @@ mod:hook(CLASS.CraftingMechanicusBarterItemsView, "_present_items_layout", funct
             end
         end
 
-        self._filtered_offer_items_layout = new_layout
+        if #new_layout == 0 then
+            self:_add_external_layout(new_layout)
+        end
 
         func(self, new_layout, ...)
         return
