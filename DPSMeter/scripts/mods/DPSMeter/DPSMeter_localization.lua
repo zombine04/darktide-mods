@@ -67,7 +67,7 @@ return {
         ja = "ダメージが残りのヘルスよりも高かった場合、ヘルスの値をダメージとしてカウントします。",
     },
     decimals = {
-        en = "Number of Decimals",
+        en = "Decimal Places",
         ja = "少数点以下の桁数",
         ["zh-cn"] = "小数位数",
         ru = "Количество десятичных знаков",
@@ -83,12 +83,12 @@ return {
         ["zh-cn"] = "仅在灵能室内显示",
     },
     enable_auto_hide = {
-        en = "Auto Fade-out",
-        ja = "自動フェードアウト",
+        en = "Auto-hide",
+        ja = "自動非表示",
     },
     hide_timer = {
-        en = "Fade-out Timer",
-        ja = "フェードアウトタイマー",
+        en = "Auto-hide Timer",
+        ja = "自動非表示タイマー",
     },
     font_size = {
         en = "Size",
