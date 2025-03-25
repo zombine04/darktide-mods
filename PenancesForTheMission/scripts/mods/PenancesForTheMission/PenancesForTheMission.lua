@@ -1,8 +1,8 @@
 --[[
     name: PenancesForTheMission
     author: Zombine
-    date: 2024/10/03
-    version: 1.0.5
+    date: 2025/03/25
+    version: 1.0.6
 ]]
 
 local mod = get_mod("PenancesForTheMission")
@@ -12,7 +12,7 @@ local AchievementCategories = require("scripts/settings/achievements/achievement
 local AchievementTypes = require("scripts/managers/achievements/achievement_types")
 local AchievementUIHelper = require("scripts/managers/achievements/utility/achievement_ui_helper")
 local CircumstanceTemplates = require("scripts/settings/circumstance/circumstance_templates")
-local DangerSettings = require("scripts/settings/difficulty/danger_settings")
+local Danger = require("scripts/utilities/danger")
 local MissionTemplates = require("scripts/settings/mission/mission_templates")
 local MissionTypes = require("scripts/settings/mission/mission_types")
 local ViewElementGrid = require("scripts/ui/view_elements/view_element_grid/view_element_grid")
@@ -110,7 +110,7 @@ local _is_for_the_mission = function(category, achievement_id, mission)
         local player_id = player.remote and player.stat_id or player:local_player_id()
         local mission_map = mission.map
         local mission_template = MissionTemplates[mission_map]
-        local mission_difficulty = DangerSettings.calculate_danger(mission.challenge, mission.resistance)
+        local mission_difficulty = Danger.calculate_danger(mission.challenge, mission.resistance)
         local mission_zone = mission_template.zone_id
         local mission_type = MissionTypes[mission_template.mission_type].index or "operation"
         local mission_circumstance = mission.circumstance and CircumstanceTemplates[mission.circumstance]
