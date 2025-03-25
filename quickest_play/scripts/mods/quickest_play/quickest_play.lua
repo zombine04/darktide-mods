@@ -1,13 +1,13 @@
 --[[
     title: quickest_play
     author: Zombine
-    date: 2024/02/22
-    version: 1.4.2
+    date: 2025/03/25
+    version: 1.4.3
 ]]
 
 local mod = get_mod("quickest_play")
 local BackendUtilities = require("scripts/foundation/managers/backend/utilities/backend_utilities")
-local DangerSettings = require("scripts/settings/difficulty/danger_settings")
+local Danger = require("scripts/utilities/danger")
 local RESTART_DELAY = 15
 
 mod:set("_was_auric", mod:get("_was_auric") or false)
@@ -77,7 +77,7 @@ local start_quickplay = function(is_auric)
             danger = 4
         end
 
-        local required_level = DangerSettings.required_level_by_mission_type(danger, type)
+        local required_level = Danger.required_level_by_mission_type(danger, type)
         local is_private = save_data.mission_board.private_matchmaking or false
 
         if _is_unlocked(required_level) then
