@@ -1,10 +1,14 @@
 --[[
     title: modular_menu_buttons
     author: Zombine
-    date: 2024/12/03
-    version: 1.2.3
+    date: 2025/03/27
+    version: 1.2.4
 ]]
 local mod = get_mod("modular_menu_buttons")
+local COOP_MISSIONS = {
+    coop_complete_objective = true,
+    survival = true
+}
 
 -- Load Assets
 
@@ -62,6 +66,10 @@ end)
 
 -- Setup Menu Buttons
 
+local _is_mission = function(gamemode_name)
+    return COOP_MISSIONS[gamemode_name]
+end
+
 local get_current_state = function()
     local current_state_name = Managers.ui:get_current_state_name()
 
@@ -69,16 +77,20 @@ local get_current_state = function()
         return "main_menu"
     elseif Managers.ui:view_active("lobby_view") then
         return "lobby"
-    else
-        local game_mode_manager = Managers.state.game_mode
-        local gamemode_name = game_mode_manager and game_mode_manager:game_mode_name() or "unknown"
-
-        if gamemode_name == "training_grounds" then
-            gamemode_name = "shooting_range"
-        end
-
-        return gamemode_name
     end
+
+    local game_mode_manager = Managers.state.game_mode
+    local gamemode_name = game_mode_manager and game_mode_manager:game_mode_name() or "unknown"
+
+    if _is_mission(gamemode_name) then
+        -- objective mode / survival
+        gamemode_name = "mission"
+    elseif gamemode_name == "training_grounds" then
+        -- tutorial / shooting range
+        gamemode_name = "shooting_range"
+    end
+
+    return gamemode_name
 end
 
 local _format_setting_id = function(name)
@@ -191,10 +203,22 @@ mod:hook_safe("SystemView", "on_enter", function(self)
     end
 end)
 
+-- Allow matchmaking outside of the hub
+
+mod:hook(CLASS.PresenceEntryMyself, "activity_id", function(func, self)
+    local activity_id = func(self)
+
+    if mod._current_state == "shooting_range" or mod._current_state == "main_menu" then
+        activity_id = "hub"
+    end
+
+    return activity_id
+end)
+
 -- For Psykanium in Lobby and Main Menu
 
 mod:hook_safe("TrainingGroundsOptionsView", "_start_training_grounds", function()
-    if mod._current_state == "coop_complete_objective" then
+    if mod._current_state == "mission" then
         Managers.party_immaterium:leave_party()
     elseif mod._current_state == "main_menu" or mod._current_state == "lobby" then
         mod._start_training_grounds = true

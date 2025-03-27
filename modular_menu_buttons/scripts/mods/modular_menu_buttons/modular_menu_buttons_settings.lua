@@ -5,7 +5,7 @@ mod._state = {
     "hub",
     "shooting_range",
     "lobby",
-    "coop_complete_objective",
+    "mission",
 }
 
 mod._content_list = {
@@ -19,7 +19,7 @@ mod._content_list = {
             "hub",
             "shooting_range",
             "lobby",
-            "coop_complete_objective",
+            "mission",
         }
     },
     {
@@ -32,7 +32,7 @@ mod._content_list = {
             "hub",
             "shooting_range",
             "lobby",
-            "coop_complete_objective",
+            "mission",
         }
     },
     {
@@ -45,7 +45,7 @@ mod._content_list = {
             "hub",
             "shooting_range",
             "lobby",
-            "coop_complete_objective",
+            "mission",
         }
     },
     {
@@ -81,7 +81,7 @@ mod._content_list = {
             "hub",
             "shooting_range",
             "lobby",
-            "coop_complete_objective",
+            "mission",
         }
     },
     {
@@ -105,7 +105,7 @@ mod._content_list = {
             "hub",
             "shooting_range",
             "lobby",
-            "coop_complete_objective",
+            "mission",
         }
     },
     {
@@ -114,7 +114,7 @@ mod._content_list = {
         type = "button",
         icon = "content/ui/materials/hud/interactions/icons/havoc",
         group = {
-            "main_menu",
+            -- "main_menu",
             "hub",
             "shooting_range",
         }
@@ -140,7 +140,7 @@ mod._content_list_default = {
             "hub",
             "shooting_range",
             "lobby",
-            "coop_complete_objective",
+            "mission",
         }
     },
     {
@@ -151,7 +151,7 @@ mod._content_list_default = {
             "hub",
             "shooting_range",
             "lobby",
-            "coop_complete_objective",
+            "mission",
         }
     },
     {
@@ -180,7 +180,7 @@ mod._content_list_main_menu = {
             "hub",
             "shooting_range",
             "lobby",
-            "coop_complete_objective",
+            "mission",
         }
     },
 }
