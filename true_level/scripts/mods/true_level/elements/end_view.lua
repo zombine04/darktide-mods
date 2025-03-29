@@ -43,10 +43,10 @@ mod:hook_safe(CLASS.EndView, "_set_character_names", function(self)
                     if mod.should_replace(ref) then
                         -- update levels
                         local cache = is_myself and mod._self or mod._others
-                        local rank_promise = Managers.data_service.havoc:havoc_rank_all_time_high(account_id)
+                        local rank_promise = Managers.data_service.havoc:havoc_rank_cadence_high(account_id)
                         local previous_levels = nil
 
-                        rank_promise:next(function(havoc_rank_all_time_high)
+                        rank_promise:next(function(havoc_rank_cadence_high)
                             mod._havoc_promises[account_id] = nil
 
 
@@ -54,7 +54,7 @@ mod:hook_safe(CLASS.EndView, "_set_character_names", function(self)
                                 previous_levels = table.clone(true_levels)
                             end
 
-                            mod.cache_true_levels(cache, character_id, report, havoc_rank_all_time_high, account_id)
+                            mod.cache_true_levels(cache, character_id, report, havoc_rank_cadence_high, account_id)
 
                             if is_myself and previous_levels then
                                 true_levels = mod.get_true_levels(character_id)

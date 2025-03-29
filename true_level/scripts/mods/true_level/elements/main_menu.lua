@@ -12,7 +12,7 @@ local _get_havoc_rank = function(self)
 
         mod._havoc_promises[account_id] = true
 
-        return Managers.data_service.havoc:havoc_rank_all_time_high(account_id)
+        return Managers.data_service.havoc:havoc_rank_cadence_high(account_id)
     end
 
     return Promise.resolved()
@@ -26,14 +26,14 @@ local _get_all_progression = function(self)
     self._tl_promise = true
 
     Promise.all(progression_promise, havoc_promise):next(function(result)
-        local characters_progression, havoc_rank_all_time_high = unpack(result)
+        local characters_progression, havoc_rank_cadence_high = unpack(result)
         local account_id = Managers.player:local_player_safe(1):account_id()
 
         mod._havoc_promises[account_id] = nil
         self._tl_promise = nil
 
         for _, data in ipairs(characters_progression) do
-            mod.cache_true_levels(cache, data.id, data, havoc_rank_all_time_high, account_id)
+            mod.cache_true_levels(cache, data.id, data, havoc_rank_cadence_high, account_id)
         end
 
         mod.desync(ref)
@@ -49,13 +49,13 @@ local _get_character_progression = function(self, character_id)
     self._tl_promise = true
 
     Promise.all(progression_promise, havoc_promise):next(function(result)
-        local data, havoc_rank_all_time_high = unpack(result)
+        local data, havoc_rank_cadence_high = unpack(result)
         local account_id = Managers.player:local_player_safe(1):account_id()
 
         mod._havoc_promises[account_id] = nil
         self._tl_promise = nil
 
-        mod.cache_true_levels(mod._self, character_id, data, havoc_rank_all_time_high, account_id)
+        mod.cache_true_levels(mod._self, character_id, data, havoc_rank_cadence_high, account_id)
     end)
 end
 

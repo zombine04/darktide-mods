@@ -1,8 +1,8 @@
 --[[
     title: true_level
     author: Zombine
-    date: 2024/12/26
-    version: 1.8.4
+    date: 2025/03/29
+    version: 1.9.0
 ]]
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
@@ -50,7 +50,7 @@ mod._fetch_xp_settings = function()
     end
 end
 
-local _populate_data = function(base_data, havoc_rank_all_time_high)
+local _populate_data = function(base_data, havoc_rank_cadence_high)
     local xp_settings = mod._xp_settings
     local level_array = xp_settings.level_array
     local total_xp = xp_settings.total_xp
@@ -81,13 +81,13 @@ local _populate_data = function(base_data, havoc_rank_all_time_high)
         true_levels.additional_level = additional_level
         true_levels.true_level = true_level
         true_levels.prestige = math.floor(current_xp / total_xp)
-        true_levels.havoc_rank = havoc_rank_all_time_high
+        true_levels.havoc_rank = havoc_rank_cadence_high
     end
 
     return true_levels
 end
 
-mod.cache_true_levels = function(self_or_others, character_id, base_data, havoc_rank_all_time_high, account_id)
+mod.cache_true_levels = function(self_or_others, character_id, base_data, havoc_rank_cadence_high, account_id)
     if table.is_empty(mod._xp_settings) then
         mod._fetch_xp_settings()
 
@@ -98,7 +98,7 @@ mod.cache_true_levels = function(self_or_others, character_id, base_data, havoc_
                 self_or_others,
                 character_id,
                 base_data,
-                havoc_rank_all_time_high,
+                havoc_rank_cadence_high,
                 account_id
             }
         end
@@ -106,7 +106,7 @@ mod.cache_true_levels = function(self_or_others, character_id, base_data, havoc_
         return
     end
 
-    local true_levels = _populate_data(base_data, havoc_rank_all_time_high)
+    local true_levels = _populate_data(base_data, havoc_rank_cadence_high)
 
     true_levels.account_id = account_id
     self_or_others[character_id] = true_levels
@@ -244,7 +244,7 @@ mod.replace_level = function(text, true_levels, reference, need_adding)
         if havoc_rank then
             levels[3].val = havoc_rank
         elseif account_id and true_level and not mod._havoc_promises[account_id] then
-            local promise = Managers.data_service.havoc:havoc_rank_all_time_high(account_id)
+            local promise = Managers.data_service.havoc:havoc_rank_cadence_high(account_id)
 
             promise:next(function(rank)
                 mod._havoc_promises[account_id] = nil
@@ -362,9 +362,9 @@ mod:hook_safe(CLASS.PresenceEntryImmaterium, "update_with", function(self, new_e
     if character_profile and character_id and not cache[character_id] then
         local backend_profile_data = ProfileUtils.process_backend_body(cjson.decode(character_profile.value))
         local backend_progression = backend_profile_data.progression
-        local havoc_rank_all_time_high = self:havoc_rank_all_time_high()
+        local havoc_rank_cadence_high = self:havoc_rank_cadence_high()
 
-        mod.cache_true_levels(cache, character_id, backend_progression, havoc_rank_all_time_high, new_entry.account_id)
+        mod.cache_true_levels(cache, character_id, backend_progression, havoc_rank_cadence_high, new_entry.account_id)
         mod.debug.echo(backend_profile_data.character.name .. ": " .. character_id)
     end
 end)

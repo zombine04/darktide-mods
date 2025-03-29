@@ -1,5 +1,6 @@
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
+local UISettings = require("scripts/settings/ui/ui_settings")
 local ref = "nameplate"
 
 local _get_markers_by_id = function()
@@ -28,7 +29,8 @@ local function _create_character_text(marker)
     local character_level = profile and profile.current_level or 1
     local title = ProfileUtils.character_title(profile)
     local archetype = profile and profile.archetype
-    local string_symbol = archetype and archetype.string_symbol or ""
+    local archetype_name = archetype and archetype.name
+    local string_symbol = archetype_name and UISettings.archetype_font_icon[archetype_name] or ""
     local text = string_symbol .. " " .. player:name() .. " - " .. tostring(character_level) .. " \xEE\x80\x86"
 
     if title then

@@ -28,13 +28,13 @@ local _update_team_player_entry = function(self)
 
         if not true_levels and not mod._havoc_promises[account_id] then
             local progression_promise = Managers.backend.interfaces.progression:get_progression("character", character_id)
-            local rank_promise = Managers.data_service.havoc:havoc_rank_all_time_high(account_id)
+            local rank_promise = Managers.data_service.havoc:havoc_rank_cadence_high(account_id)
 
             Promise.all(progression_promise, rank_promise):next(function(data)
-                local character_progression, havoc_rank_all_time_high = unpack(data)
+                local character_progression, havoc_rank_cadence_high = unpack(data)
 
                 mod._havoc_promises[account_id] = nil
-                mod.cache_true_levels(mod._others, character_id, character_progression, havoc_rank_all_time_high, account_id)
+                mod.cache_true_levels(mod._others, character_id, character_progression, havoc_rank_cadence_high, account_id)
                 mod.desynced(ref)
             end)
 
@@ -54,13 +54,13 @@ mod:hook_safe(CLASS.HudElementTeamPanelHandler, "init", function(self)
         local account_id = local_player:account_id()
         local character_id = local_player:character_id()
         local progression_promise = Managers.backend.interfaces.progression:get_progression("character", character_id)
-        local rank_promise = Managers.data_service.havoc:havoc_rank_all_time_high(account_id)
+        local rank_promise = Managers.data_service.havoc:havoc_rank_cadence_high(account_id)
 
         Promise.all(progression_promise, rank_promise):next(function(data)
-            local character_progression, havoc_rank_all_time_high = unpack(data)
+            local character_progression, havoc_rank_cadence_high = unpack(data)
 
             self._tl_promise = nil
-            mod.cache_true_levels(mod._self, character_id, character_progression, havoc_rank_all_time_high, account_id)
+            mod.cache_true_levels(mod._self, character_id, character_progression, havoc_rank_cadence_high, account_id)
             mod.desynced(ref)
         end)
     end
