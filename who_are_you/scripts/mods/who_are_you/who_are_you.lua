@@ -1,10 +1,11 @@
 --[[
     title: who_are_you
     author: Zombine
-    date: 2024/12/26
-    version: 3.6.3
+    date: 2025/03/29
+    version: 3.7.0
 ]]
 local mod = get_mod("who_are_you")
+local NumericUI = get_mod("NumericUI")
 local ProfileUtils = require("scripts/utilities/profile_utils")
 local TextUtils = require("scripts/utilities/ui/text")
 local UISettings = require("scripts/settings/ui/ui_settings")
@@ -250,7 +251,8 @@ local function _create_character_text(marker)
     local character_level = profile and profile.current_level or 1
     local title = ProfileUtils.character_title(profile)
     local archetype = profile and profile.archetype
-    local string_symbol = archetype and archetype.string_symbol or ""
+    local archetype_name = archetype and archetype.name
+    local string_symbol = archetype_name and UISettings.archetype_font_icon[archetype_name] or ""
     local text = string_symbol .. " " .. player:name() .. " - " .. tostring(character_level) .. " \xEE\x80\x86"
 
     if title then
@@ -332,17 +334,18 @@ mod:hook_safe(CLASS.HudElementWorldMarkers, "_calculate_markers", function(self,
                         local modified_name = modify_character_name(character_name, account_name, account_id, "nameplate")
                         local character_level = profile.current_level or 1
                         local archetype = profile.archetype
-                        local string_symbol = archetype and archetype.string_symbol or ""
+                        local archetype_name = archetype and archetype.name
+                        local string_symbol = archetype_name and UISettings.archetype_font_icon[archetype_name] or ""
 
                         if is_combat then
-                            string_symbol = "\xEE\x80\x85"
+                            local string_symbol_general = "\xEE\x80\x85"
 
                             local slot = player.slot and player:slot()
                             local slot_color = UISettings.player_slot_colors[slot] or Color.ui_hud_green_light(255, true)
                             local color = slot_color[2] .. "," .. slot_color[3] .. "," .. slot_color[4]
                             local color_code = _format_inline_code("color", color)
-                            local header_text = color_code .. string_symbol .. "{#reset()} " .. modified_name
-                            local icon_text = color_code .. string_symbol .. "{#reset()}"
+                            local header_text = color_code .. string_symbol_general .. "{#reset()} " .. modified_name
+                            local icon_text = color_code .. string_symbol_general .. "{#reset()}"
 
                             local save_data = Managers.save:account_data()
                             local interface_settings = save_data.interface_settings
@@ -361,13 +364,10 @@ mod:hook_safe(CLASS.HudElementWorldMarkers, "_calculate_markers", function(self,
                             end
 
                             -- reflects Numeric UI settings
-                            local NumericUI = get_mod("NumericUI")
-
                             if NumericUI and NumericUI:is_enabled() then
                                 if NumericUI:get("archetype_icons_in_nameplates") then
-                                    local search = NumericUI:get("color_nameplate") and "\xEE\x80\x85{#reset%(%)}" or "\xEE\x80\x85"
+                                    local search = NumericUI:get("color_nameplate") and string_symbol_general .. "{#reset%(%)}" or string_symbol_general
 
-                                    string_symbol = archetype and archetype.string_symbol or "\xEE\x80\x85"
                                     header_text = header_text:gsub(search, string_symbol)
                                     icon_text = icon_text:gsub(search, string_symbol)
                                 end
@@ -391,7 +391,7 @@ mod:hook_safe(CLASS.HudElementWorldMarkers, "_calculate_markers", function(self,
 
                         if not true_level_enabled and not is_combat then
                             if character_level >= 30 then
-                                local rank_promise = Managers.data_service.havoc:havoc_rank_all_time_high(player:account_id())
+                                local rank_promise = Managers.data_service.havoc:havoc_rank_cadence_high(player:account_id())
 
                                 rank_promise:next(function (rank)
                                     marker.rank_promise = nil
