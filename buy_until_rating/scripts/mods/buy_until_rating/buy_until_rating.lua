@@ -1,8 +1,8 @@
 --[[
     title: buy_until_rating
     author: Zombine
-    date: 2025/01/28
-    version: 2.3.1
+    date: 2025/03/31
+    version: 2.3.2
 ]]
 
 local mod = get_mod("buy_until_rating")
