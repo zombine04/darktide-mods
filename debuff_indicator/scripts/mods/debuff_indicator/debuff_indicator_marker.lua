@@ -1,5 +1,4 @@
 local mod = get_mod("debuff_indicator")
-
 local BuffSettings = require("scripts/settings/buff/buff_settings")
 local BuffTemplates = require("scripts/settings/buff/buff_templates")
 local UIFontSettings = require("scripts/managers/ui/ui_font_settings")

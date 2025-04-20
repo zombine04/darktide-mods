@@ -148,30 +148,58 @@ widgets[#widgets + 1] = {
 }
 
 local widgets_breed = {
-    minion = {},
-    elite = {},
-    specialist = {},
-    monster = {},
+    {
+        type = "minion",
+        sub_widgets = {}
+    },
+    {
+        type = "elite",
+        sub_widgets = {}
+    },
+    {
+        type = "specialist",
+        sub_widgets = {}
+    },
+    {
+        type = "monster",
+        sub_widgets = {}
+    },
+    {
+        type = "captain",
+        sub_widgets = {}
+    },
 }
+
+local _is_special_enemy = function(smart_tag_target_type)
+    return smart_tag_target_type == "breed"
+end
+
+local _type_by_tags = function(tags)
+    local type = "minion"
+
+    if tags.elite then
+        type = "elite"
+    elseif tags.special then
+        type = "specialist"
+    elseif tags.monster then
+        type = "monster"
+    elseif tags.captain or tags.cultist_captain then
+        type = "captain"
+    end
+
+    return type
+end
 
 for breed_name, breed in pairs(Breeds) do
     if breed_name ~= "chaos_plague_ogryn_sprayer" and
-       breed.display_name ~= "loc_breed_display_name_undefined" then
-        local default_value = false
-        local type = "minion"
+       breed.display_name ~= "loc_breed_display_name_undefined" and
+       not mod.mutators[breed.name] then
+        local default_value = _is_special_enemy(breed.smart_tag_target_type)
+        local type = _type_by_tags(breed.tags)
+        local index = table.find_by_key(widgets_breed, "type", type)
+        local sub_widgets = widgets_breed[index].sub_widgets
 
-        if breed.tags.elite or breed.tags.special or breed.tags.monster or breed.tags.captain then
-            default_value = true
-            if breed.tags.elite then
-                type = "elite"
-            elseif breed.tags.special then
-                type = "specialist"
-            elseif breed.tags.monster or breed.tags.captain then
-                type = "monster"
-            end
-        end
-
-        widgets_breed[type][#widgets_breed[type] + 1] = {
+        sub_widgets[#sub_widgets + 1] = {
             setting_id = breed_name,
             type = "checkbox",
             default_value = default_value,
@@ -179,13 +207,16 @@ for breed_name, breed in pairs(Breeds) do
     end
 end
 
-for _type, sub_widgets in pairs(widgets_breed) do
+for i, type_table in ipairs(widgets_breed) do
+    local type = type_table.type
+    local sub_widgets = type_table.sub_widgets
+
     table.sort(sub_widgets, function(a, b)
         return a.setting_id < b.setting_id
     end)
 
     widgets[#widgets + 1] = {
-        setting_id = "breed_" .. _type,
+        setting_id = "breed_" .. type,
         type = "group",
         sub_widgets = sub_widgets
     }

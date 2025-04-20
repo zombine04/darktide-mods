@@ -13,6 +13,7 @@ mod.buff_names = {
     "psyker_force_staff_quick_attack_debuff",
     "ogryn_recieve_damage_taken_increase_debuff",
     "ogryn_taunt_increased_damage_taken_buff",
+    "ogryn_staggering_damage_taken_increase",
     "veteran_improved_tag_debuff",
     "power_maul_sticky_tick",
     "increase_damage_taken"
@@ -34,11 +35,14 @@ mod.display_style_names = {
     "count",
 }
 
-mod.display_group_names = {
-    "debuff",
-    "dot",
-    "stagger",
-    "suppression",
+mod.mutators = {
+    chaos_armored_infected = "chaos_newly_infected",
+    chaos_hound_mutator = "chaos_hound",
+    chaos_lesser_mutated_poxwalker = "chaos_poxwalker",
+    chaos_mutated_poxwalker = "chaos_poxwalker",
+    chaos_mutator_daemonhost = "chaos_daemonhost",
+    chaos_mutator_ritualist = "cultist_ritualist",
+    cultist_mutant_mutator = "cultist_mutant",
 }
 
 local loc = {
@@ -226,6 +230,10 @@ local loc = {
         ["zh-cn"] = "怪物",
         ru = "Монстры",
     },
+    breed_captain = {
+        en = "Captains",
+        ja = "キャプテン",
+    },
     bleed = {
         en = "Bleeding",
         ja = "出血",
@@ -288,6 +296,9 @@ local loc = {
     },
     ogryn_taunt_increased_damage_taken_buff = {
         en = Localize("loc_talent_ogryn_taunt_damage_taken_increase")
+    },
+    ogryn_staggering_damage_taken_increase = {
+        en = Localize("loc_talent_ogryn_big_bully_heavy_hits")
     },
     veteran_improved_tag_debuff = {
         en = Localize("loc_talent_veteran_improved_tag")

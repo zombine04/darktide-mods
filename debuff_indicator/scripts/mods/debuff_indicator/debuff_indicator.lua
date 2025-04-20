@@ -1,33 +1,40 @@
 --[[
     title: debuff_indicator
     author: Zombine
-    date: 2024/09/26
-    version: 1.5.3
+    date: 2025/04/20
+    version: 1.6.0
 ]]
 local mod = get_mod("debuff_indicator")
 local DebuffIndicatorMarker = mod:io_dofile("debuff_indicator/scripts/mods/debuff_indicator/debuff_indicator_marker")
+
+-- ############################################################
+-- Inject Marker Template
+-- ############################################################
 
 mod:hook_safe("HudElementWorldMarkers", "init", function(self)
     self._marker_templates[DebuffIndicatorMarker.name] = DebuffIndicatorMarker
 end)
 
-mod:hook_safe("HealthExtension", "init", function(self, _, unit, ...)
+-- ############################################################
+-- Add World Marker on Spawn
+-- ############################################################
+
+local _add_marker = function(self, _, unit, ...)
     local unit_data_ext = ScriptUnit.extension(unit, "unit_data_system")
     local breed = unit_data_ext:breed()
+    local breed_name = mod.mutators[breed.name] or breed.name
 
-    if mod:get(breed.name) then
+    if mod:get(breed_name) then
         Managers.event:trigger("add_world_marker_unit", DebuffIndicatorMarker.name, unit)
     end
-end)
+end
 
-mod:hook_safe("HuskHealthExtension", "init", function(self, _, unit, ...)
-    local unit_data_ext = ScriptUnit.extension(unit, "unit_data_system")
-    local breed = unit_data_ext:breed()
+mod:hook_safe("HealthExtension", "init", _add_marker)
+mod:hook_safe("HuskHealthExtension", "init", _add_marker)
 
-    if mod:get(breed.name) then
-        Managers.event:trigger("add_world_marker_unit", DebuffIndicatorMarker.name, unit)
-    end
-end)
+-- ############################################################
+-- Detect Setting Changes
+-- ############################################################
 
 mod.on_setting_changed = function()
     mod._setting_changed = true
