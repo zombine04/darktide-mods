@@ -1,5 +1,12 @@
 local mod = get_mod("SpawnFeed")
 local Breeds = require("scripts/settings/breed/breeds")
+local UISoundEvents = require("scripts/settings/ui/ui_sound_events")
+
+mod.mutators = {
+    chaos_hound_mutator = "chaos_hound",
+    chaos_mutator_daemonhost = "chaos_daemonhost",
+    cultist_mutant_mutator = "cultist_mutant",
+}
 
 local loc = {
     mod_name = {
@@ -61,6 +68,34 @@ local loc = {
         ["zh-cn"] = "怪物",
         ru = "Монстры",
     },
+    breed_captain = {
+        en = "Captains",
+        ja = "キャプテン",
+    },
+    default = {
+        en = "Default",
+        ja = "デフォルト",
+        ["zh-cn"] = "默认",
+        ["zh-tw"] = "預設",
+        ru = "По умолчанию",
+    },
+    none = {
+        en = "None",
+        ja = "なし",
+        ["zh-cn"] = "无",
+        ["zh-tw"] = "無",
+        ru = "Не показывать",
+    },
+    color = {
+        en = "Color",
+        ja = "色",
+        ["zh-cn"] = "颜色",
+        ru = "цвета",
+    },
+    sound = {
+        en = "Sound Effect",
+        ja = "効果音",
+    },
     debug = {
         en = "Debug",
         ja = "デバッグ",
@@ -75,12 +110,56 @@ local loc = {
     }
 }
 
+local c = Color.terminal_text_key_value(255, true)
+
+local _add_child = function(breed_name, key)
+    for lang, text in pairs(loc[key]) do
+        local key_child = key .. "_" .. breed_name
+
+        loc[key_child] = loc[key_child] or {}
+        loc[key_child][lang] = text
+    end
+end
+
+local _add_breed_localization = function(breed_name, localized_display_name)
+    loc[breed_name] = {
+        en = string.format("{#color(%s,%s,%s)}", c[2], c[3], c[4]) .. localized_display_name .. "{#reset()}"
+    }
+
+    _add_child(breed_name, "color")
+    _add_child(breed_name, "sound")
+end
+
 for breed_name, breed in pairs(Breeds) do
     if breed_name ~= "human" and breed_name ~= "ogryn" and breed.display_name then
-        loc[breed_name] = {
-            en = Localize(breed.display_name)
-        }
+        local localized_display_name = Localize(breed.display_name)
+
+        if breed_name == "chaos_mutator_daemonhost" then
+            localized_display_name = Localize("loc_mutator_daemonhost_name")
+        end
+
+        _add_breed_localization(breed_name, localized_display_name)
+
+        if breed.tags.monster and not breed.tags.witch then
+            breed_name = breed_name .. "_weakened"
+            localized_display_name = Localize("loc_weakened_monster_prefix", true, {
+                breed = localized_display_name
+            })
+
+            _add_breed_localization(breed_name, localized_display_name)
+        end
     end
+end
+
+for i, name in ipairs(Color.list) do
+    local c = Color[name](255, true)
+    local text = string.format("{#color(%s,%s,%s)}%s{#reset()}", c[2], c[3], c[4], name:gsub("_", " "))
+
+    loc[name] = { en = text }
+end
+
+for event, _ in pairs(UISoundEvents) do
+    loc[event] = { en = event:gsub("_", " ") }
 end
 
 return loc
