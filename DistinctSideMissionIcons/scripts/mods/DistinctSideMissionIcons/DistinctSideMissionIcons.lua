@@ -1,7 +1,7 @@
 --[[
     title: DistinctSideMissionIcons
     aouthor: Zombine
-    date: 2025/04/025
+    date: 2025/04/25
     version: 1.0.0
 ]]
 local mod = get_mod("DistinctSideMissionIcons")
