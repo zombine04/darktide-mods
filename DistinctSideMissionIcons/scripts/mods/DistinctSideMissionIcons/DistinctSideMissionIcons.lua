@@ -2,7 +2,7 @@
     title: DistinctSideMissionIcons
     aouthor: Zombine
     date: 2025/04/25
-    version: 1.0.0
+    version: 1.0.0 (2.0.0)
 ]]
 local mod = get_mod("DistinctSideMissionIcons")
 local MissionObjectiveTemplates = require("scripts/settings/mission_objective/mission_objective_templates")

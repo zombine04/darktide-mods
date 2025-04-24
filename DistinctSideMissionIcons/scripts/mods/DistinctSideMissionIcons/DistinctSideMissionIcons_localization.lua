@@ -6,8 +6,8 @@ local loc = {
         en = "Distinct Side Mission Icons",
     },
     mod_description = {
-        en = "Change the side mission icons in the mission terminal to be more distinguishable.",
-        ja = "ミッションターミナルでサイドミッションのアイコンをより見分けやすく変更します。",
+        en = "Change the side mission icons in the mission terminal to be distinguishable.",
+        ja = "ミッションターミナルでサイドミッションのアイコンを見分けられるよう変更します。",
     },
     color = {
         en = "Color",
