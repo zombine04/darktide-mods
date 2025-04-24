@@ -1,5 +1,5 @@
 --[[
-    title: Which Book
+    title: DistinctSideMissionIcons
     aouthor: Zombine
     date: 2025/04/025
     version: 1.0.0
