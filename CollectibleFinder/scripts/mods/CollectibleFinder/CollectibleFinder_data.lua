@@ -35,7 +35,7 @@ local _get_notif_action = function(name, loc)
         }
     end
 
-    if string.match(loc, "pocketable") then
+    if string.match(loc, "side_mission") then
         actions[#actions + 1] = {
             setting_id = "enable_drop_notif_" .. name,
             type = "checkbox",

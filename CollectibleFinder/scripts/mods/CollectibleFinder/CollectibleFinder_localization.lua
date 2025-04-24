@@ -10,6 +10,10 @@ mod._collectibles = {
         loc = "loc_pickup_side_mission_pocketable_02"
     },
     {
+        name = "communications_hack_device",
+        loc = "loc_pickup_side_mission_communications_hack_device"
+    },
+    {
         name = "collectible_01_pickup", -- Martyr's Skull
         loc = "loc_pickup_collectible"
     },

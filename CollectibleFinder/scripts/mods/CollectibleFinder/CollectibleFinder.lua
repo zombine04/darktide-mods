@@ -1,8 +1,8 @@
 --[[
     title: CollectibleFinder
     author: Zombine
-    date: 2024/06/27
-    version: 1.1.5
+    date: 2025/04/25
+    version: 1.2.0
 ]]
 local mod = get_mod("CollectibleFinder")
 local CollectibleFinderMarker = mod:io_dofile("CollectibleFinder/scripts/mods/CollectibleFinder/CollectibleFinder_marker")
@@ -38,10 +38,10 @@ local _get_slot_item_name = function(player_unit)
 end
 
 local _item_name_to_pickup_name = function(item_name)
-    if string.match(item_name, "tome_pocketable") then
-        return "tome"
-    elseif string.match(item_name, "grimoire_pocketable") then
-        return "grimoire"
+    local pickup_name = item_name:gsub("_pocketable$", "")
+
+    if table.find_by_key(mod._collectibles, "name", pickup_name) then
+        return pickup_name
     end
 
     return "unknown"
@@ -249,6 +249,7 @@ mod:hook_safe(CLASS.DestructibleExtension, "set_collectible_data", function(self
     end
 end)
 
+--[[
 -- Books
 
 mod:hook_safe(CLASS.SideMissionPickupExtension, "_register_to_mission_objective", function(self, unit)
@@ -261,14 +262,15 @@ mod:hook_safe(CLASS.SideMissionPickupExtension, "_register_to_mission_objective"
         mod.debug.echo("tracker added: " .. pickup_name)
     end
 end)
+]]
 
--- Martyr's Skull
+-- Martyr's Skull / Books / Communication Device
 
 mod:hook_safe(CLASS.HudElementWorldMarkers, "event_add_world_marker_unit", function(self, marker_type, unit, callback, data)
-    if marker_type == "interaction" then
+    if marker_type == "interaction" or marker_type == "objective" then
         local pickup_name = Unit.get_data(unit, "pickup_type")
 
-        if _is_penance(pickup_name) and _is_enabled(pickup_name) then
+        if _is_collectible(pickup_name) and _is_enabled(pickup_name) then
             _set_tracking(unit, true)
             _add_marker(unit)
             mod._tracked_unit = unit
@@ -341,7 +343,7 @@ end)
 -- Scan Pocketable Slot
 -- ##############################
 
-local _get_vars = function(player)
+local _get_player_and_slot_info = function(player)
     local player_unit = player.player_unit
     local player_name = player:name()
     local item_name = _get_slot_item_name(player_unit)
@@ -360,7 +362,7 @@ mod.update = function()
 
         for _, player in pairs(players) do
             if player and player:is_human_controlled() then
-                local player_unit, player_name, item_name, is_collectible, pickup_name = _get_vars(player)
+                local player_unit, player_name, item_name, is_collectible, pickup_name = _get_player_and_slot_info(player)
 
                 if is_collectible and not pickup_name then
                     pickup_name = _item_name_to_pickup_name(item_name)
@@ -369,7 +371,7 @@ mod.update = function()
                         local owner = Managers.player:player_by_unit(owner_unit)
 
                         if owner then
-                            local _, owner_name, _, has_book = _get_vars(owner)
+                            local _, owner_name, _, has_book = _get_player_and_slot_info(owner)
 
                             if not has_book and pickup_name == owned_pickup_name then
                                 if mod:get("enable_give_notif_" .. pickup_name) then
@@ -392,14 +394,15 @@ mod.update = function()
             end
         end
 
-        if mod._tracked_unit then
-            local unit = mod._tracked_unit
-            local unit_is_alive = Unit.alive(unit)
-            local tracked_pickup_name = unit_is_alive and "tome" or "grimoire"
+        local tracked_unit = mod._tracked_unit
+
+        if tracked_unit then
+            local unit_is_alive = Unit.alive(tracked_unit)
+            local tracked_pickup_name = _get_pickup_name(tracked_unit)
 
             for _, player in pairs(players) do
                 if player and player:is_human_controlled() then
-                    local player_unit, player_name, _, is_collectible, pickup_name = _get_vars(player)
+                    local player_unit, player_name, _, is_collectible, pickup_name = _get_player_and_slot_info(player)
 
                     if not is_collectible and pickup_name == tracked_pickup_name then
                         if mod:get("enable_drop_notif_" .. pickup_name) then
@@ -407,7 +410,7 @@ mod.update = function()
                         end
 
                         if unit_is_alive then
-                            _set_tracking(unit, nil)
+                            _set_tracking(tracked_unit, nil)
                         end
 
                         mod.debug.echo("tracker removed: " .. pickup_name)

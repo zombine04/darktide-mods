@@ -6,6 +6,7 @@ local hud_icons = {
     default = "content/ui/materials/hud/interactions/icons/objective_side",
     tome = "content/ui/materials/icons/pocketables/hud/scripture",
     grimoire = "content/ui/materials/icons/pocketables/hud/grimoire",
+    communications_hack_device = "content/ui/materials/icons/pocketables/hud/corrupted_auspex_scanner",
     idol = "content/ui/materials/icons/achievements/categories/category_heretics",
     collectible_01_pickup = "content/ui/materials/icons/achievements/categories/category_endeavour"
 }
