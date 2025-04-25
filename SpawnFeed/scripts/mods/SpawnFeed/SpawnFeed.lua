@@ -1,8 +1,8 @@
 --[[
     title: SpawnFeed
     author: Zombine
-    date: 2025/04/21
-    version: 1.2.0
+    date: 2025/04/25
+    version: 1.2.1
 ]]
 local mod = get_mod("SpawnFeed")
 local FeedSettings = require("scripts/ui/hud/elements/combat_feed/hud_element_combat_feed_settings")

@@ -211,15 +211,17 @@ for i, type_table in ipairs(widgets_breed) do
     local type = type_table.type
     local sub_widgets = type_table.sub_widgets
 
-    table.sort(sub_widgets, function(a, b)
-        return a.setting_id < b.setting_id
-    end)
+    if not table.is_empty(sub_widgets) then
+        table.sort(sub_widgets, function(a, b)
+            return a.setting_id < b.setting_id
+        end)
 
-    widgets[#widgets + 1] = {
-        setting_id = "breed_" .. type,
-        type = "group",
-        sub_widgets = sub_widgets
-    }
+        widgets[#widgets + 1] = {
+            setting_id = "breed_" .. type,
+            type = "group",
+            sub_widgets = sub_widgets
+        }
+    end
 end
 
 return {

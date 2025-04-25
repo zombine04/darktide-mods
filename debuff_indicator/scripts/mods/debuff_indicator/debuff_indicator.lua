@@ -1,8 +1,8 @@
 --[[
     title: debuff_indicator
     author: Zombine
-    date: 2025/04/20
-    version: 1.6.0
+    date: 2025/04/25
+    version: 1.6.1
 ]]
 local mod = get_mod("debuff_indicator")
 local DebuffIndicatorMarker = mod:io_dofile("debuff_indicator/scripts/mods/debuff_indicator/debuff_indicator_marker")
