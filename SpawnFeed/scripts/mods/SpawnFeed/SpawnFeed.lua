@@ -2,12 +2,41 @@
     title: SpawnFeed
     author: Zombine
     date: 2025/04/25
-    version: 1.2.1
+    version: 1.2.2
 ]]
 local mod = get_mod("SpawnFeed")
 local FeedSettings = require("scripts/ui/hud/elements/combat_feed/hud_element_combat_feed_settings")
 local TextUtils = require("scripts/utilities/ui/text")
 local weakened_suffix = "_weakened"
+
+local _is_weakened = function(unit, breed)
+    local is_weakened = false
+
+    if not breed.is_boss or breed.ignore_weakened_boss_name then
+        return is_weakened
+    end
+
+    local health_extension = ScriptUnit.extension(unit, "health_system")
+    local max_health = health_extension:max_health()
+    local initial_max_health = math.floor(Managers.state.difficulty:get_minion_max_health(breed.name))
+
+    if max_health < initial_max_health then
+        is_weakened = true
+    else
+        local havoc_mananger = Managers.state.havoc
+
+        if havoc_mananger:is_havoc() then
+            local havoc_health_override_value = havoc_mananger:get_modifier_value("modify_monster_health")
+            local multiplied_max_health = initial_max_health + initial_max_health * havoc_health_override_value
+
+            if max_health < multiplied_max_health then
+                is_weakened = true
+            end
+        end
+    end
+
+    return is_weakened
+end
 
 local _color_by_enemy_tags = function(tags, breed_name)
     local color = nil
@@ -56,7 +85,7 @@ end
 
 local _on_enemy_spawned = function(unit, breed, breed_name)
     local boss_extension = ScriptUnit.extension(unit, "boss_system")
-    local is_weakened = breed.is_boss and not breed.ignore_weakened_boss_name and boss_extension and boss_extension:is_weakened()
+    local is_weakened = _is_weakened(unit, breed)
 
     if is_weakened then
         breed_name = breed_name .. weakened_suffix
