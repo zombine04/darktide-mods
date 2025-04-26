@@ -1,8 +1,8 @@
 --[[
     title: CollectibleFinder
     author: Zombine
-    date: 2025/04/25
-    version: 1.2.0
+    date: 2025/04/26
+    version: 1.2.1
 ]]
 local mod = get_mod("CollectibleFinder")
 local CollectibleFinderMarker = mod:io_dofile("CollectibleFinder/scripts/mods/CollectibleFinder/CollectibleFinder_marker")
@@ -65,8 +65,21 @@ local _is_collectible = function(name)
     return false
 end
 
+local _is_hack_device = function(pickup_name)
+    return pickup_name == "communications_hack_device"
+end
+
 local _is_penance = function(pickup_name)
     return pickup_name == "collectible_01_pickup"
+end
+
+local trackable_unit = {
+    collectible_01_pickup = true,
+    communications_hack_device = true
+}
+
+local _is_trackable_unit = function(pickup_name)
+    return trackable_unit[pickup_name]
 end
 
 local _is_enabled = function(name)
@@ -249,7 +262,6 @@ mod:hook_safe(CLASS.DestructibleExtension, "set_collectible_data", function(self
     end
 end)
 
---[[
 -- Books
 
 mod:hook_safe(CLASS.SideMissionPickupExtension, "_register_to_mission_objective", function(self, unit)
@@ -262,20 +274,17 @@ mod:hook_safe(CLASS.SideMissionPickupExtension, "_register_to_mission_objective"
         mod.debug.echo("tracker added: " .. pickup_name)
     end
 end)
-]]
 
--- Martyr's Skull / Books / Communication Device
+-- Martyr's Skull / Communication Device
 
-mod:hook_safe(CLASS.HudElementWorldMarkers, "event_add_world_marker_unit", function(self, marker_type, unit, callback, data)
-    if marker_type == "interaction" or marker_type == "objective" then
-        local pickup_name = Unit.get_data(unit, "pickup_type")
+mod:hook_safe(CLASS.HudElementInteraction, "_on_interaction_marker_spawned", function(self, unit)
+    local pickup_name = Unit.get_data(unit, "pickup_type")
 
-        if _is_collectible(pickup_name) and _is_enabled(pickup_name) then
-            _set_tracking(unit, true)
-            _add_marker(unit)
-            mod._tracked_unit = unit
-            mod.debug.echo("tracker added: " .. pickup_name)
-        end
+    if _is_trackable_unit(pickup_name) and _is_enabled(pickup_name) then
+        _set_tracking(unit, true)
+        _add_marker(unit)
+        mod._tracked_unit = unit
+        mod.debug.echo("tracker added: " .. pickup_name)
     end
 end)
 
