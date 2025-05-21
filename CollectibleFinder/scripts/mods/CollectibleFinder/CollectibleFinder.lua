@@ -1,11 +1,15 @@
---[[
-    title: CollectibleFinder
-    author: Zombine
-    date: 2025/04/26
-    version: 1.2.1
-]]
 local mod = get_mod("CollectibleFinder")
+
+mod._info = {
+    title = "Collectible Finder",
+    author = "Zombine",
+    date = "2025/05/21",
+    version = "1.2.2"
+}
+mod:info("Version " .. mod._info.version)
+
 local CollectibleFinderMarker = mod:io_dofile("CollectibleFinder/scripts/mods/CollectibleFinder/CollectibleFinder_marker")
+local Component = require("scripts/utilities/component")
 local TextUtils = require("scripts/utilities/ui/text")
 local UISettings = require("scripts/settings/ui/ui_settings")
 local REPEAT_DELAY = 1
@@ -92,6 +96,10 @@ end
 
 local _is_collected = function(unit)
     return Unit.get_data(unit, "cf_collected")
+end
+
+local _has_indicator_id = function(unit)
+    return Unit.has_data(unit, "cf_indicator_id")
 end
 
 local _set_notified = function(unit, val)
@@ -335,12 +343,12 @@ mod:hook_safe(CollectibleFinderMarker, "update_function", function(_, _, widget,
 
                     mod.debug.notify_sensed(unit, distance)
                 end
-            else
-                if is_repeatable and not _is_collected(unit) and _is_notified(unit) and _can_repeat(unit, t) then
+            elseif _is_notified(unit) then
+                if is_repeatable and not _is_collected(unit)  and _can_repeat(unit, t) then
                     _set_notified(unit, false)
                 end
 
-                if use_icon_indicator then
+                if use_icon_indicator and _has_indicator_id(unit) then
                     Managers.event:trigger("event_cf_remove_icon_indicator", unit)
                 end
             end
@@ -464,6 +472,57 @@ mod:hook(CLASS.InteracteeExtension, "stopped", function(func, self, result)
 end)
 
 -- Remove tracker when destructed
+
+mod:hook_origin(CLASS.CollectiblesManager, "on_gameplay_post_init", function(self, level_seed)
+    -- Restored self._destructibles removed in Hotfix 1.7.5
+    self._seed = level_seed
+
+	local destructibles = {} -- restored
+
+    self._num_destructibles = 0
+
+    for section_id = 1, #self._destructible_data do
+        local section = self._destructible_data[section_id]
+        local num_collectible = #section
+        local random_id = self:_random(1, num_collectible)
+
+        if not destructibles[section_id] then
+            destructibles[section_id] = {} -- restored
+        end
+
+        if num_collectible < 4 then
+            Log.error("CollectiblesManager", "There are only %s destructible collectibles in section %s", num_collectible, section_id)
+        end
+
+        local new_entry = table.clone(self._destructible_data[section_id][random_id])
+
+        new_entry.id = 1
+        destructibles[section_id][#destructibles[section_id] + 1] = new_entry -- restored
+
+        local destructible_extension = ScriptUnit.has_extension(new_entry.unit, "destructible_system")
+
+        destructible_extension:set_collectible_data(new_entry)
+        Unit.flow_event(new_entry.unit, "destructible_enabled")
+        table.remove(self._destructible_data[section_id], random_id)
+
+        self._num_destructibles = self._num_destructibles + 1
+    end
+
+    for section_id = 1, #self._destructible_data do
+        local section_data = self._destructible_data[section_id]
+
+        for id = 1, #section_data do
+            local data = section_data[id]
+            local unit = data.unit
+
+            Component.event(unit, "disable_visibility")
+            Component.event(unit, "destructible_disable")
+            Unit.set_unit_visibility(unit, false)
+        end
+    end
+
+	self._destructibles = destructibles -- restored
+end)
 
 mod:hook_safe(CLASS.CollectiblesManager, "_show_destructible_notification", function(self, peer_id, section_id, id)
     local collectible_data = self._destructibles

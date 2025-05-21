@@ -154,11 +154,15 @@ end
 
 HudElementCollectibleFinder.event_cf_remove_icon_indicator = function(self, unit)
     local id = self:_get_id_from_unit(unit)
-    local index = id and table.find_by_key(self._indicators, "id", id)
+    local index = nil
+
+    if id then
+        index = table.find_by_key(self._indicators, "id", id)
+        self:_set_indicator_id(unit, nil)
+    end
 
     if index then
         table.remove(self._indicators, index)
-        self:_set_indicator_id(unit, nil)
         self._widgets_by_name["collectible_" .. id] = nil
         mod.debug.echo("Indicator Removed: " .. id)
     end
