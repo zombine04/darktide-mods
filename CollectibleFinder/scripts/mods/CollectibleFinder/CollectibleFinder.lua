@@ -3,8 +3,8 @@ local mod = get_mod("CollectibleFinder")
 mod._info = {
     title = "Collectible Finder",
     author = "Zombine",
-    date = "2025/05/21",
-    version = "1.2.2"
+    date = "2025/05/22",
+    version = "1.3.0"
 }
 mod:info("Version " .. mod._info.version)
 
@@ -77,13 +77,26 @@ local _is_penance = function(pickup_name)
     return pickup_name == "collectible_01_pickup"
 end
 
-local trackable_unit = {
-    collectible_01_pickup = true,
-    communications_hack_device = true
-}
+local _is_special_pickup = function(pickup_name)
+    local is_special_pickup = false
+    local index = table.find_by_key(mod._collectibles, "name", pickup_name)
 
-local _is_trackable_unit = function(pickup_name)
-    return trackable_unit[pickup_name]
+    if index then
+        is_special_pickup = not mod._collectibles[index].is_counted_at_pickup
+    end
+
+    return is_special_pickup
+end
+
+local _is_destructible = function(pickup_name)
+    local is_destructible = false
+    local index = table.find_by_key(mod._collectibles, "name", pickup_name)
+
+    if index then
+        is_destructible = mod._collectibles[index].is_destructible
+    end
+
+    return is_destructible
 end
 
 local _is_enabled = function(name)
@@ -288,7 +301,7 @@ end)
 mod:hook_safe(CLASS.HudElementInteraction, "_on_interaction_marker_spawned", function(self, unit)
     local pickup_name = Unit.get_data(unit, "pickup_type")
 
-    if _is_trackable_unit(pickup_name) and _is_enabled(pickup_name) then
+    if _is_special_pickup(pickup_name) and _is_enabled(pickup_name) then
         _set_tracking(unit, true)
         _add_marker(unit)
         mod._tracked_unit = unit
@@ -454,8 +467,17 @@ mod:hook(CLASS.InteracteeExtension, "stopped", function(func, self, result)
         local pickup_name = _get_pickup_name(unit)
 
         if _is_collectible(pickup_name) then
-            if mod:get("enable_pickup_notif_" .. pickup_name) and (_is_tracking(unit) or mod:get("enable_drop_notif_" .. pickup_name)) then
-                _show_notification("collectible_picked_up", false, player, player_name, pickup_name)
+            if _is_tracking(unit) or mod:get("enable_drop_notif_" .. pickup_name) then
+                if _is_destructible(pickup_name) then
+                    -- pickup but is destructed when interact
+                    if mod:get("enable_destruct_notif_" .. pickup_name) then
+                        _show_notification("collectible_destructed", false, player, player_name, pickup_name)
+                    end
+                else
+                    if mod:get("enable_pickup_notif_" .. pickup_name) then
+                        _show_notification("collectible_picked_up", false, player, player_name, pickup_name)
+                    end
+                end
             end
 
             if Unit.alive(unit) then

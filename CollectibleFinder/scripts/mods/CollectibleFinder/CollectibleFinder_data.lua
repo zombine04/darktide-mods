@@ -5,23 +5,24 @@ local UISoundEvents = require("scripts/settings/ui/ui_sound_events")
 local _get_targets = function()
     local targets = {}
 
-    for _, collectibles in ipairs(mod._collectibles) do
-        local name = collectibles.name
+    for _, collectible_data in ipairs(mod._collectibles) do
+        local name = collectible_data.name
 
         targets[#targets + 1] = {
             setting_id = "enable_" .. name,
             type = "checkbox",
-            default_value = true
+            default_value = not collectible_data.disable_by_default,
         }
     end
 
     return targets
 end
 
-local _get_notif_action = function(name, loc)
+local _get_notif_action = function(collectible_data, loc)
     local actions = {}
+    local name = collectible_data.name
 
-    if name == "idol" then
+    if collectible_data.is_destructible then
         actions[#actions + 1] = {
             setting_id = "enable_destruct_notif_" .. name,
             type = "checkbox",
@@ -35,7 +36,7 @@ local _get_notif_action = function(name, loc)
         }
     end
 
-    if string.match(loc, "side_mission") then
+    if collectible_data.is_side_objective then
         actions[#actions + 1] = {
             setting_id = "enable_drop_notif_" .. name,
             type = "checkbox",
@@ -108,9 +109,9 @@ end
 local _get_detail_settings = function()
     local settings = {}
 
-    for _, collectibles in ipairs(mod._collectibles) do
-        local name = collectibles.name
-        local loc = collectibles.loc
+    for _, collectible_data in ipairs(mod._collectibles) do
+        local name = collectible_data.name
+        local loc = collectible_data.loc
 
         settings[#settings + 1] = {
             setting_id = name,
@@ -150,7 +151,7 @@ local _get_detail_settings = function()
                         { text = "type_notif", value = "type_notif" },
                         { text = "type_both", value = "type_both" },
                     },
-                    sub_widgets = _get_notif_action(name, loc)
+                    sub_widgets = _get_notif_action(collectible_data, loc)
 
                 },
                 {

@@ -1,15 +1,7 @@
 local mod = get_mod("CollectibleFinder")
 local UIWorkspaceSettings = require("scripts/settings/ui/ui_workspace_settings")
 local UIWidget = require("scripts/managers/ui/ui_widget")
-
-local hud_icons = {
-    default = "content/ui/materials/hud/interactions/icons/objective_side",
-    tome = "content/ui/materials/icons/pocketables/hud/scripture",
-    grimoire = "content/ui/materials/icons/pocketables/hud/grimoire",
-    communications_hack_device = "content/ui/materials/icons/pocketables/hud/corrupted_auspex_scanner",
-    idol = "content/ui/materials/icons/achievements/categories/category_heretics",
-    collectible_01_pickup = "content/ui/materials/icons/achievements/categories/category_endeavour"
-}
+local DEFAULT_ICON = "content/ui/materials/hud/interactions/icons/objective_side"
 
 -- ##############################
 -- Definition
@@ -243,7 +235,14 @@ HudElementCollectibleFinder._get_custom_color = function(self, collectible_name,
 end
 
 HudElementCollectibleFinder._get_collectible_icon = function(self, collectible_name)
-    return hud_icons[collectible_name] or hud_icons["default"]
+    local icon = DEFAULT_ICON
+    local index = table.find_by_key(mod._collectibles, "name", collectible_name)
+
+    if index then
+        icon = mod._collectibles[index].hud_icon or icon
+    end
+
+    return icon
 end
 
 HudElementCollectibleFinder._align_indicator_widgets = function(self, dt)
