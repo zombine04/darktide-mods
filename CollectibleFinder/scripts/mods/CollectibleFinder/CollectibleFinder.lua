@@ -3,8 +3,8 @@ local mod = get_mod("CollectibleFinder")
 mod._info = {
     title = "Collectible Finder",
     author = "Zombine",
-    date = "2025/05/22",
-    version = "1.3.0"
+    date = "2025/05/24",
+    version = "1.3.1"
 }
 mod:info("Version " .. mod._info.version)
 
@@ -378,9 +378,9 @@ local _get_player_and_slot_info = function(player)
     local player_name = player:name()
     local item_name = _get_slot_item_name(player_unit)
     local is_collectible = _is_collectible(item_name)
-    local pickup_name = mod._owners[player_unit]
+    local logged_pickup_name = mod._owners[player_unit]
 
-    return player_unit, player_name, item_name, is_collectible, pickup_name
+    return player_unit, player_name, item_name, is_collectible, logged_pickup_name
 end
 
 mod.update = function()
@@ -392,10 +392,10 @@ mod.update = function()
 
         for _, player in pairs(players) do
             if player and player:is_human_controlled() then
-                local player_unit, player_name, item_name, is_collectible, pickup_name = _get_player_and_slot_info(player)
+                local player_unit, player_name, item_name, is_collectible, logged_pickup_name = _get_player_and_slot_info(player)
 
-                if is_collectible and not pickup_name then
-                    pickup_name = _item_name_to_pickup_name(item_name)
+                if is_collectible and not logged_pickup_name then
+                    local current_pickup_name = _item_name_to_pickup_name(item_name)
 
                     for owner_unit, owned_pickup_name in pairs(mod._owners) do
                         local owner = Managers.player:player_by_unit(owner_unit)
@@ -403,9 +403,9 @@ mod.update = function()
                         if owner then
                             local _, owner_name, _, has_book = _get_player_and_slot_info(owner)
 
-                            if not has_book and pickup_name == owned_pickup_name then
-                                if mod:get("enable_give_notif_" .. pickup_name) then
-                                    _show_notification("collectible_given", false, owner, owner_name, pickup_name, player, player_name)
+                            if not has_book and current_pickup_name == owned_pickup_name then
+                                if mod:get("enable_give_notif_" .. current_pickup_name) then
+                                    _show_notification("collectible_given", false, owner, owner_name, current_pickup_name, player, player_name)
                                 end
 
                                 mod._owners[owner_unit] = nil
@@ -418,7 +418,7 @@ mod.update = function()
                         end
                     end
 
-                    mod._owners[player_unit] = pickup_name
+                    mod._owners[player_unit] = current_pickup_name
                     mod.debug.char_name(player, true)
                 end
             end
@@ -427,24 +427,22 @@ mod.update = function()
         local tracked_unit = mod._tracked_unit
 
         if tracked_unit then
-            local unit_is_alive = Unit.alive(tracked_unit)
-            local tracked_pickup_name = _get_pickup_name(tracked_unit)
+            if Unit.alive(tracked_unit) then
+                local tracked_pickup_name = _get_pickup_name(tracked_unit)
 
-            for _, player in pairs(players) do
-                if player and player:is_human_controlled() then
-                    local player_unit, player_name, _, is_collectible, pickup_name = _get_player_and_slot_info(player)
+                for _, player in pairs(players) do
+                    if player and player:is_human_controlled() then
+                        local player_unit, player_name, _, is_collectible, logged_pickup_name = _get_player_and_slot_info(player)
 
-                    if not is_collectible and pickup_name == tracked_pickup_name then
-                        if mod:get("enable_drop_notif_" .. pickup_name) then
-                            _show_notification("collectible_dropped", false, player, player_name, pickup_name)
-                        end
+                        if not is_collectible and logged_pickup_name == tracked_pickup_name then
+                            if mod:get("enable_drop_notif_" .. logged_pickup_name) then
+                                _show_notification("collectible_dropped", false, player, player_name, logged_pickup_name)
+                            end
 
-                        if unit_is_alive then
                             _set_tracking(tracked_unit, nil)
+                            mod.debug.echo("tracker removed: " .. logged_pickup_name)
+                            mod._owners[player_unit] = nil
                         end
-
-                        mod.debug.echo("tracker removed: " .. pickup_name)
-                        mod._owners[player_unit] = nil
                     end
                 end
             end
