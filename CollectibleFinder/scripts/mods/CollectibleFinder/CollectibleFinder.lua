@@ -3,7 +3,7 @@ local mod = get_mod("CollectibleFinder")
 mod._info = {
     title = "Collectible Finder",
     author = "Zombine",
-    date = "2025/06/25",
+    date = "2025/06/23",
     version = "1.3.2"
 }
 mod:info("Version " .. mod._info.version)
