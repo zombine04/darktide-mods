@@ -1,10 +1,12 @@
---[[
-    name: QuickKick
-    author: Zombine
-    date: 2024/06/27
-    version: 1.0.0
-]]
 local mod = get_mod("QuickKick")
+
+mod._info = {
+    title = "Quick Kick",
+    author = "Zombine",
+    date = "2025/06/24",
+    version = "1.0.1"
+}
+mod:info("Version " .. mod._info.version)
 
 mod._debug = mod:get("enable_debug_mode")
 mod._is_visible = false

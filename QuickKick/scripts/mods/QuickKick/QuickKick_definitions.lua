@@ -17,7 +17,7 @@ local scenegraph_definition = {
         position = {
             10,
             0,
-            99
+            310
         }
     },
     qk_panel_area_content = {
@@ -28,7 +28,7 @@ local scenegraph_definition = {
         position = {
             0,
             0,
-            100
+            311
         }
     }
 }
