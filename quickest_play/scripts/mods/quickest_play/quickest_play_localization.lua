@@ -40,6 +40,10 @@ local loc = {
         ["zh-cn"] = "你没有达到所需的等级。\n需要等级：",
         ru = "Вы не достигли требуемого уровня.\nТребуется:",
     },
+    err_locked_pj = {
+        en = "The selected difficulty or quickplay is not unlocked",
+        ja = "選択した難易度もしくはクイックプレイがアンロックされていません。",
+    },
     auto_queue = {
         en = "Auto Queue",
         ja = "自動キュー",
@@ -102,11 +106,13 @@ local loc = {
     },
     auric = {
         en = Localize("loc_mission_board_type_auric"),
+    },
+    quickplay = {
+        en = Localize("loc_mission_board_quickplay_header"),
     }
 }
 
-loc.key_start = { en = loc.normal.en }
-loc.key_start_auric = { en = loc.auric.en }
+loc.key_start = { en = loc.quickplay.en }
 
 return loc
 

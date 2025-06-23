@@ -17,15 +17,7 @@ return {
                         keybind_trigger = "pressed",
                         keybind_type = "function_call",
                         function_name = "start_quickplay",
-                    },
-                    {
-                        setting_id = "key_start_auric",
-                        type = "keybind",
-                        default_value = {},
-                        keybind_trigger = "pressed",
-                        keybind_type = "function_call",
-                        function_name = "start_quickplay_auric",
-                    },
+                    }
                 }
             },
             {
