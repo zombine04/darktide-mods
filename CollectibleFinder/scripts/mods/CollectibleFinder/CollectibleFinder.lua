@@ -3,8 +3,8 @@ local mod = get_mod("CollectibleFinder")
 mod._info = {
     title = "Collectible Finder",
     author = "Zombine",
-    date = "2025/05/24",
-    version = "1.3.1"
+    date = "2025/06/25",
+    version = "1.3.2"
 }
 mod:info("Version " .. mod._info.version)
 
@@ -544,7 +544,7 @@ mod:hook_origin(CLASS.CollectiblesManager, "on_gameplay_post_init", function(sel
 	self._destructibles = destructibles -- restored
 end)
 
-mod:hook_safe(CLASS.CollectiblesManager, "_show_destructible_notification", function(self, peer_id, section_id, id)
+mod:hook_safe(CLASS.CollectiblesManager, "_show_destructible_notification", function(self, peer_id, local_player_id, section_id, id)
     local collectible_data = self._destructibles
     local section_data = collectible_data[section_id]
     local data = section_data[id]
