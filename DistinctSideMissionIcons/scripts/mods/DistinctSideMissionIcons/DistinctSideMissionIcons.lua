@@ -1,11 +1,12 @@
---[[
-    title: DistinctSideMissionIcons
-    aouthor: Zombine
-    date: 2025/06/23
-    version: 2.1.0
-]]
 local mod = get_mod("DistinctSideMissionIcons")
-local MissionBoardViewSettings = require("scripts/ui/views/mission_board_view_pj/mission_board_view_settings")
+
+mod._info = {
+    title = "Distinct Side Mission Icons",
+    author = "Zombine",
+    date = "2025/06/23",
+    version = "2.1.0"
+}
+mod:info("Version " .. mod._info.version)
 
 -- ############################################################
 -- Load Package
