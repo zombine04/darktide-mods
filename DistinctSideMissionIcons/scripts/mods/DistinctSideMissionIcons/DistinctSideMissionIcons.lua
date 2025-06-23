@@ -1,12 +1,11 @@
 --[[
     title: DistinctSideMissionIcons
     aouthor: Zombine
-    date: 2025/04/25
-    version: 1.0.0 (2.0.0)
+    date: 2025/06/23
+    version: 2.1.0
 ]]
 local mod = get_mod("DistinctSideMissionIcons")
-local MissionObjectiveTemplates = require("scripts/settings/mission_objective/mission_objective_templates")
-local SideObjectives = MissionObjectiveTemplates.side_mission.objectives
+local MissionBoardViewSettings = require("scripts/ui/views/mission_board_view_pj/mission_board_view_settings")
 
 -- ############################################################
 -- Load Package
@@ -51,12 +50,32 @@ end
 
 -- Mission List
 
-mod:hook_safe(CLASS.MissionBoardView, "_populate_mission_widget", function(self, widget, mission)
-    _replace_icon(widget, mission, "objective_2_icon")
+mod:hook(CLASS.MissionBoardView, "_create_mission_widget_from_mission", function(func, self, mission, blueprint_name, slot)
+    local widget = func(self, mission, blueprint_name, slot)
+
+    if widget then
+        _replace_icon(widget, mission, "side_objective_icon")
+    end
+
+    return widget
 end)
 
 -- Mission Info
 
-mod:hook_safe(CLASS.MissionBoardView, "_set_selected_mission", function(self, mission)
-    _replace_icon(self._widgets_by_name.objective_2, mission, "header_icon")
+mod:hook_safe(CLASS.MissionBoardView, "_update_mission_objectives_panel", function(self, mission)
+    if not mission or mission == "qp_mission_widget" or not mission.sideMission then
+        return
+    end
+
+    local tabs = self._objectives_tabs
+    local num_tabs = #tabs
+
+    for i = 1, num_tabs do
+        local widget = tabs[i]
+        local content = widget.content
+
+        if content.tab_id == "side_objective" then
+            _replace_icon(widget, mission, "icon")
+        end
+    end
 end)
