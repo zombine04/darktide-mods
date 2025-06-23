@@ -88,11 +88,12 @@ local _start_quickplay = function()
         local is_private = mod:get("_is_private")
 
         if difficulty_data and _is_unlocked(difficulty, difficulty_data) then
-            local challenge = tostring(difficulty_data.challenge)
-            local resistance = tostring(difficulty_data.resistance)
-            local quickplay_data = "qp:challenge=" .. challenge .. "|resistance=" .. resistance
+            local qp_string = QPCode.encode({
+                challenge = difficulty_data.challenge,
+                resistance = difficulty_data.resistance
+            })
 
-            Managers.party_immaterium:wanted_mission_selected(quickplay_data, is_private, BackendUtilities.prefered_mission_region)
+            Managers.party_immaterium:wanted_mission_selected(qp_string, is_private, BackendUtilities.prefered_mission_region)
         else
             mod:notify(mod:localize("err_locked_pj"))
         end
