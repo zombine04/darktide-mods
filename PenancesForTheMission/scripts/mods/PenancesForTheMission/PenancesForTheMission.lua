@@ -1,11 +1,13 @@
---[[
-    name: PenancesForTheMission
-    author: Zombine
-    date: 2025/03/25
-    version: 1.0.6
-]]
-
 local mod = get_mod("PenancesForTheMission")
+
+mod._info = {
+    title = "Penances For The Mission",
+    author = "Zombine",
+    date = "2025/06/23",
+    version = "1.1.0"
+}
+mod:info("Version " .. mod._info.version)
+
 local Blueprints = mod:io_dofile("PenancesForTheMission/scripts/mods/PenancesForTheMission/PenancesForTheMission_blueprints")
 local Definitions = mod:io_dofile("PenancesForTheMission/scripts/mods/PenancesForTheMission/PenancesForTheMission_definitions")
 local AchievementCategories = require("scripts/settings/achievements/achievement_categories")
@@ -41,7 +43,7 @@ end)
 
 mod:hook(CLASS.MissionBoardView, "init", function(func, self, ...)
     mod:cache_achievements()
-    mod.modify_definition("scripts/ui/views/mission_board_view/mission_board_view_definitions")
+    mod.modify_definition("scripts/ui/views/mission_board_view_pj/mission_board_view_definitions")
     self._pftm_show_penances = false
 
     func(self, ...)
@@ -76,7 +78,7 @@ mod:hook(CLASS.MissionBoardView, "on_enter", function(func, self)
             alignment = "right_alignment",
             on_pressed_callback = "cb_on_toggle_penances",
             visibility_function = function (parent)
-                return parent._selected_mission
+                return parent._selected_mission_id
             end
         }
     end
@@ -90,7 +92,7 @@ end)
 
 mod:hook_safe(CLASS.MissionBoardView, "update", function(self, dt, t, input_service)
     if self._pftm_grid then
-        local is_visible = mod:is_enabled() and self._pftm_show_penances and self._selected_mission
+        local is_visible = mod:is_enabled() and self._pftm_show_penances and self._selected_mission_id
 
         self._pftm_grid:set_visibility(is_visible)
     end
@@ -227,8 +229,28 @@ local _is_for_the_mission = function(category, achievement_id, mission)
     return is_matched, definition, progress, goal
 end
 
-mod:hook_safe(CLASS.MissionBoardView, "_set_selected_mission", function(self, mission, move_gamepad_cursor, is_flash)
+local _get_mission_data_by_id = function(widgets, id)
+    local num_widgets = #widgets
+
+    for i = 1, num_widgets do
+        local widget = widgets[i]
+        local content = widget.content
+        local mission = content and content.mission
+
+        if mission and mission.id == id then
+            return mission
+        end
+    end
+end
+
+mod:hook_safe(CLASS.MissionBoardView, "_set_selected", function(self, id)
     Blueprints = mod:io_dofile("PenancesForTheMission/scripts/mods/PenancesForTheMission/PenancesForTheMission_blueprints")
+
+    local mission = _get_mission_data_by_id(self._mission_widgets, id)
+
+    if not mission then
+        return
+    end
 
     local achievements_by_category = mod:achievements()
     local grid = self._pftm_grid
@@ -242,7 +264,7 @@ mod:hook_safe(CLASS.MissionBoardView, "_set_selected_mission", function(self, mi
     local penance_list = {}
 
     if mod:get("enable_debug_mode") then
-        mod:dump(mission, "mission", 4)
+        mod:dtf(mission)
     end
 
     for category, achievements in pairs(achievements_by_category) do
@@ -354,7 +376,7 @@ mod.cache_achievements = function(self)
         self._achievements_by_category = achievements_by_category
 
         if debug then
-            mod:dump(achievements_by_category, "achievements", 4)
+            mod:dtf(achievements_by_category)
         end
     end
 end

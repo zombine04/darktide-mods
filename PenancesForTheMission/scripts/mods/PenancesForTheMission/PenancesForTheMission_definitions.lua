@@ -43,7 +43,7 @@ local penance_grid_settings = {
     mask_size = grid_mask_size,
     scrollbar_pass_templates = ScrollbarPassTemplates.terminal_scrollbar,
     scrollbar_width = ScrollbarPassTemplates.terminal_scrollbar.default_width,
-    edge_padding = grid_margin * 2
+    edge_padding = grid_margin * 4
 }
 
 local definitions = {
