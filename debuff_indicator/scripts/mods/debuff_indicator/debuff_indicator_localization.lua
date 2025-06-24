@@ -2,21 +2,32 @@ local mod = get_mod("debuff_indicator")
 local Breeds = require("scripts/settings/breed/breeds")
 
 mod.buff_names = {
+    -- DoT
     "bleed",
     "flamer_assault",
     "rending_debuff",
     "warp_fire",
+    -- Weapons/Blessings
     "increase_impact_received_while_staggered",
     "increase_damage_received_while_staggered",
+    "power_maul_sticky_tick",
+    "increase_damage_taken",
+    -- Psyker
     "psyker_protectorate_spread_chain_lightning_interval_improved",
     "psyker_protectorate_spread_charged_chain_lightning_interval_improved",
     "psyker_force_staff_quick_attack_debuff",
+    -- Ogryn
     "ogryn_recieve_damage_taken_increase_debuff",
     "ogryn_taunt_increased_damage_taken_buff",
     "ogryn_staggering_damage_taken_increase",
+    -- Veteran
     "veteran_improved_tag_debuff",
-    "power_maul_sticky_tick",
-    "increase_damage_taken"
+    -- Arbite
+    "adamant_drone_enemy_debuff",
+    "adamant_drone_talent_debuff",
+    "adamant_melee_weakspot_hits_count_as_stagger_debuff",
+    "adamant_staggered_enemies_deal_less_damage_debuff",
+    "adamant_staggering_increases_damage_taken",
     -- "stagger",
     -- "suppression",
 }
@@ -302,6 +313,21 @@ local loc = {
     },
     veteran_improved_tag_debuff = {
         en = Localize("loc_talent_veteran_improved_tag")
+    },
+    adamant_drone_enemy_debuff = {
+        en = Localize("loc_talent_ability_area_buff_drone")
+    },
+    adamant_drone_talent_debuff = {
+        en = Localize("loc_talent_adamant_drone_debuff_talent")
+    },
+    adamant_melee_weakspot_hits_count_as_stagger_debuff = {
+        en = Localize("loc_talent_adamant_melee_weakspot_hits_count_as_stagger")
+    },
+    adamant_staggered_enemies_deal_less_damage_debuff = {
+        en = Localize("loc_talent_adamant_staggered_enemies_deal_less_damage")
+    },
+    adamant_staggering_increases_damage_taken = {
+        en = Localize("loc_talent_adamant_staggered_enemies_take_more_damage")
     },
     stagger = {
         en = Localize("loc_stagger")
