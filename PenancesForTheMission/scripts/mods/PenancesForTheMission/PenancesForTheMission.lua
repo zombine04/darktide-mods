@@ -3,8 +3,8 @@ local mod = get_mod("PenancesForTheMission")
 mod._info = {
     title = "Penances For The Mission",
     author = "Zombine",
-    date = "2025/06/23",
-    version = "1.1.0"
+    date = "2025/06/24",
+    version = "1.1.1"
 }
 mod:info("Version " .. mod._info.version)
 
@@ -14,7 +14,7 @@ local AchievementCategories = require("scripts/settings/achievements/achievement
 local AchievementTypes = require("scripts/managers/achievements/achievement_types")
 local AchievementUIHelper = require("scripts/managers/achievements/utility/achievement_ui_helper")
 local CircumstanceTemplates = require("scripts/settings/circumstance/circumstance_templates")
-local Danger = require("scripts/utilities/danger")
+local DangerSettings = require("scripts/settings/difficulty/danger_settings")
 local MissionTemplates = require("scripts/settings/mission/mission_templates")
 local MissionTypes = require("scripts/settings/mission/mission_types")
 local ViewElementGrid = require("scripts/ui/view_elements/view_element_grid/view_element_grid")
@@ -100,7 +100,7 @@ end)
 
 -- Update Penance list
 
-local _is_for_the_mission = function(category, achievement_id, mission)
+local _is_for_the_mission = function(category, achievement_id, mission, page_index)
     local achievement_manager = Managers.achievements
     local player = Managers.player:local_player_safe(1);
     local is_matched = false
@@ -112,14 +112,15 @@ local _is_for_the_mission = function(category, achievement_id, mission)
         local player_id = player.remote and player.stat_id or player:local_player_id()
         local mission_map = mission.map
         local mission_template = MissionTemplates[mission_map]
-        local mission_difficulty = Danger.calculate_danger(mission.challenge, mission.resistance)
+        local mission_difficulty = page_index
+        local difficulty_data = DangerSettings[mission_difficulty]
         local mission_zone = mission_template.zone_id
         local mission_type = MissionTypes[mission_template.mission_type].index or "operation"
         local mission_circumstance = mission.circumstance and CircumstanceTemplates[mission.circumstance]
         local mission_circumstance_tag = mission_circumstance and mission_circumstance.theme_tag
         local side_objective = mission.flags.side and mission.sideMission
         local is_flash = mission.flags.flash
-        local is_auric = mission.category and mission.category == "auric"
+        local is_auric = difficulty_data and difficulty_data.is_auric
 
         -- fix differences
         if mission_zone == "tank_foundry" then
@@ -270,7 +271,7 @@ mod:hook_safe(CLASS.MissionBoardView, "_set_selected", function(self, id)
     for category, achievements in pairs(achievements_by_category) do
         for i = 1, #achievements do
             local achievement_id = achievements[i]
-            local is_matched, achievement_definition, progress, goal = _is_for_the_mission(category, achievement_id, mission)
+            local is_matched, achievement_definition, progress, goal = _is_for_the_mission(category, achievement_id, mission, self._page_index)
 
             if is_matched and achievement_definition then
                 penance_list[#penance_list + 1] = {
