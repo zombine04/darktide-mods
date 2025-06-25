@@ -3,8 +3,8 @@ local mod = get_mod("who_are_you")
 mod._info = {
     title = "Who Are You",
     author = "Zombine",
-    date = "2025/06/24",
-    version = "3.7.2",
+    date = "2025/06/25",
+    version = "3.7.3",
 }
 mod:info("Version " .. mod._info.version)
 
@@ -316,7 +316,7 @@ mod:hook_safe(CLASS.HudElementWorldMarkers, "_calculate_markers", function(self,
     local ref = "nameplate"
 
     for marker_type, markers in pairs(markers_by_type) do
-        if string.match(marker_type, ref) then
+        if marker_type:match(ref) and not marker_type:match("companion") then
             for i = 1, #markers do
                 local marker = markers[i]
                 local is_combat = marker_type == "nameplate_party"
