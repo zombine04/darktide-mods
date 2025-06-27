@@ -244,6 +244,7 @@ local loc = {
     breed_captain = {
         en = "Captains",
         ja = "キャプテン",
+        ["zh-cn"] = "连长",
     },
     bleed = {
         en = "Bleeding",

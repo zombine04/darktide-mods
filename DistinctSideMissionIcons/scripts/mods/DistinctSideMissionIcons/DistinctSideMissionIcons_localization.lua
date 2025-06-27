@@ -4,10 +4,12 @@ local SideObjectives = MissionObjectiveTemplates.side_mission.objectives
 local loc = {
     mod_name = {
         en = "Distinct Side Mission Icons",
+        ["zh-cn"] = "区分次要目标图标",
     },
     mod_description = {
         en = "Change the side mission icons in the mission terminal to be distinguishable.",
         ja = "ミッションターミナルでサイドミッションのアイコンを見分けられるよう変更します。",
+        ["zh-cn"] = "在任务终端中修改次要目标的图标，以作区分。",
     },
     color = {
         en = "Color",
@@ -18,6 +20,7 @@ local loc = {
     icon = {
         en = "Icon",
         ja = "アイコン",
+        ["zh-cn"] = "图标",
     },
     default = {
         en = "default",

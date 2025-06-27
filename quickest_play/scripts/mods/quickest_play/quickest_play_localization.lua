@@ -43,6 +43,7 @@ local loc = {
     err_locked_pj = {
         en = "The selected difficulty or quickplay is not unlocked",
         ja = "選択した難易度もしくはクイックプレイがアンロックされていません。",
+        ["zh-cn"] = "当前所选难度或快速匹配尚未解锁",
     },
     auto_queue = {
         en = "Auto Queue",

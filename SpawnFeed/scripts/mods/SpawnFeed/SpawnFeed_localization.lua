@@ -71,6 +71,7 @@ local loc = {
     breed_captain = {
         en = "Captains",
         ja = "キャプテン",
+        ["zh-cn"] = "连长",
     },
     default = {
         en = "Default",
@@ -95,6 +96,7 @@ local loc = {
     sound = {
         en = "Sound Effect",
         ja = "効果音",
+        ["zh-cn"] = "音效",
     },
     debug = {
         en = "Debug",

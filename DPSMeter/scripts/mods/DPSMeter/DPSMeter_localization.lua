@@ -11,10 +11,12 @@ return {
     group_calc_settings = {
         en = "Calculation Settings",
         ja = "計算の設定",
+        ["zh-cn"] = "计算设置",
     },
     group_display_settings = {
         en = "Display Settings",
         ja = "表示設定",
+        ["zh-cn"] = "显示设置",
     },
     group_keybinds = {
         en = "Keybinds",
@@ -30,6 +32,7 @@ return {
     group_misc = {
         en = "Misc",
         ja = "その他",
+        ["zh-cn"] = "杂项",
     },
     calc_method = {
         en = "Calculation Method",
@@ -57,14 +60,17 @@ return {
     reset_timer = {
         en = "Reset Timer (for Average Moethod)",
         ja = "リセットタイマー（平均用）",
+        ["zh-cn"] = "重置计时器（平均时）",
     },
     ignore_overkill_damage = {
         en = "Ignore Overkill Damage",
         ja = "キル時の超過ダメージを無視する",
+        ["zh-cn"] = "忽略溢出伤害",
     },
     ignore_overkill_damage_tooltip = {
         en = "If the damage is higher than the remaining health, the health value is counted as damage.",
         ja = "ダメージが残りのヘルスよりも高かった場合、ヘルスの値をダメージとしてカウントします。",
+        ["zh-cn"] = "如果伤害超过剩余生命值，则以生命值作为伤害值。",
     },
     decimals = {
         en = "Decimal Places",
@@ -85,10 +91,12 @@ return {
     enable_auto_hide = {
         en = "Auto-hide",
         ja = "自動非表示",
+        ["zh-cn"] = "自动隐藏",
     },
     hide_timer = {
         en = "Auto-hide Timer",
         ja = "自動非表示タイマー",
+        ["zh-cn"] = "自动隐藏计时器",
     },
     font_size = {
         en = "Size",
