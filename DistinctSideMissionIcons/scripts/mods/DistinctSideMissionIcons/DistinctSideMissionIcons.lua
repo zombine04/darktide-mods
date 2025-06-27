@@ -3,8 +3,8 @@ local mod = get_mod("DistinctSideMissionIcons")
 mod._info = {
     title = "Distinct Side Mission Icons",
     author = "Zombine",
-    date = "2025/06/23",
-    version = "2.1.0"
+    date = "2025/06/27",
+    version = "2.1.1"
 }
 mod:info("Version " .. mod._info.version)
 

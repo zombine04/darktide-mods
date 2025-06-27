@@ -3,8 +3,8 @@ local mod = get_mod("quickest_play")
 mod._info = {
     title = "Quickest Play",
     author = "Zombine",
-    date = "2025/06/24",
-    version = "1.5.0"
+    date = "2025/06/27",
+    version = "1.5.1"
 }
 mod:info("Version " .. mod._info.version)
 

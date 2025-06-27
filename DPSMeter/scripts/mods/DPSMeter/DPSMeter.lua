@@ -1,10 +1,13 @@
---[[
-    title: DPSMeter
-    author: Zombine
-    date: 2025/02/05
-    version: 1.1.0
-]]
 local mod = get_mod("DPSMeter")
+
+mod._info = {
+    title = "DPS Meter",
+    author = "Zombine",
+    date = "2025/06/27",
+    versino = "1.1.1",
+}
+mod:info("Version " .. mod._info.version)
+
 local Status = table.enum("hidden" ,"idle", "active")
 local class_name = "HudElementDPSMeter"
 local icons = {
