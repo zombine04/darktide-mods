@@ -4,7 +4,7 @@ mod._info = {
     title = "Debuff Indicator",
     author = "Zombine",
     date = "2025/06/27",
-    version = "1.7.1"
+    version = "1.7.2"
 }
 mod:info("Version " .. mod._info.version)
 
