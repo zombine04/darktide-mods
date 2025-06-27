@@ -1,18 +1,20 @@
---[[
-    name: PenancesForTheMission
-    author: Zombine
-    date: 2025/03/25
-    version: 1.0.6
-]]
-
 local mod = get_mod("PenancesForTheMission")
+
+mod._info = {
+    title = "Penances For The Mission",
+    author = "Zombine",
+    date = "2025/06/24",
+    version = "1.1.1"
+}
+mod:info("Version " .. mod._info.version)
+
 local Blueprints = mod:io_dofile("PenancesForTheMission/scripts/mods/PenancesForTheMission/PenancesForTheMission_blueprints")
 local Definitions = mod:io_dofile("PenancesForTheMission/scripts/mods/PenancesForTheMission/PenancesForTheMission_definitions")
 local AchievementCategories = require("scripts/settings/achievements/achievement_categories")
 local AchievementTypes = require("scripts/managers/achievements/achievement_types")
 local AchievementUIHelper = require("scripts/managers/achievements/utility/achievement_ui_helper")
 local CircumstanceTemplates = require("scripts/settings/circumstance/circumstance_templates")
-local Danger = require("scripts/utilities/danger")
+local DangerSettings = require("scripts/settings/difficulty/danger_settings")
 local MissionTemplates = require("scripts/settings/mission/mission_templates")
 local MissionTypes = require("scripts/settings/mission/mission_types")
 local ViewElementGrid = require("scripts/ui/view_elements/view_element_grid/view_element_grid")
@@ -41,7 +43,7 @@ end)
 
 mod:hook(CLASS.MissionBoardView, "init", function(func, self, ...)
     mod:cache_achievements()
-    mod.modify_definition("scripts/ui/views/mission_board_view/mission_board_view_definitions")
+    mod.modify_definition("scripts/ui/views/mission_board_view_pj/mission_board_view_definitions")
     self._pftm_show_penances = false
 
     func(self, ...)
@@ -76,7 +78,7 @@ mod:hook(CLASS.MissionBoardView, "on_enter", function(func, self)
             alignment = "right_alignment",
             on_pressed_callback = "cb_on_toggle_penances",
             visibility_function = function (parent)
-                return parent._selected_mission
+                return parent._selected_mission_id
             end
         }
     end
@@ -90,7 +92,7 @@ end)
 
 mod:hook_safe(CLASS.MissionBoardView, "update", function(self, dt, t, input_service)
     if self._pftm_grid then
-        local is_visible = mod:is_enabled() and self._pftm_show_penances and self._selected_mission
+        local is_visible = mod:is_enabled() and self._pftm_show_penances and self._selected_mission_id
 
         self._pftm_grid:set_visibility(is_visible)
     end
@@ -98,7 +100,7 @@ end)
 
 -- Update Penance list
 
-local _is_for_the_mission = function(category, achievement_id, mission)
+local _is_for_the_mission = function(category, achievement_id, mission, page_index)
     local achievement_manager = Managers.achievements
     local player = Managers.player:local_player_safe(1);
     local is_matched = false
@@ -110,14 +112,15 @@ local _is_for_the_mission = function(category, achievement_id, mission)
         local player_id = player.remote and player.stat_id or player:local_player_id()
         local mission_map = mission.map
         local mission_template = MissionTemplates[mission_map]
-        local mission_difficulty = Danger.calculate_danger(mission.challenge, mission.resistance)
+        local mission_difficulty = page_index
+        local difficulty_data = DangerSettings[mission_difficulty]
         local mission_zone = mission_template.zone_id
         local mission_type = MissionTypes[mission_template.mission_type].index or "operation"
         local mission_circumstance = mission.circumstance and CircumstanceTemplates[mission.circumstance]
         local mission_circumstance_tag = mission_circumstance and mission_circumstance.theme_tag
         local side_objective = mission.flags.side and mission.sideMission
         local is_flash = mission.flags.flash
-        local is_auric = mission.category and mission.category == "auric"
+        local is_auric = difficulty_data and difficulty_data.is_auric
 
         -- fix differences
         if mission_zone == "tank_foundry" then
@@ -227,8 +230,28 @@ local _is_for_the_mission = function(category, achievement_id, mission)
     return is_matched, definition, progress, goal
 end
 
-mod:hook_safe(CLASS.MissionBoardView, "_set_selected_mission", function(self, mission, move_gamepad_cursor, is_flash)
+local _get_mission_data_by_id = function(widgets, id)
+    local num_widgets = #widgets
+
+    for i = 1, num_widgets do
+        local widget = widgets[i]
+        local content = widget.content
+        local mission = content and content.mission
+
+        if mission and mission.id == id then
+            return mission
+        end
+    end
+end
+
+mod:hook_safe(CLASS.MissionBoardView, "_set_selected", function(self, id)
     Blueprints = mod:io_dofile("PenancesForTheMission/scripts/mods/PenancesForTheMission/PenancesForTheMission_blueprints")
+
+    local mission = _get_mission_data_by_id(self._mission_widgets, id)
+
+    if not mission then
+        return
+    end
 
     local achievements_by_category = mod:achievements()
     local grid = self._pftm_grid
@@ -242,13 +265,13 @@ mod:hook_safe(CLASS.MissionBoardView, "_set_selected_mission", function(self, mi
     local penance_list = {}
 
     if mod:get("enable_debug_mode") then
-        mod:dump(mission, "mission", 4)
+        mod:dtf(mission)
     end
 
     for category, achievements in pairs(achievements_by_category) do
         for i = 1, #achievements do
             local achievement_id = achievements[i]
-            local is_matched, achievement_definition, progress, goal = _is_for_the_mission(category, achievement_id, mission)
+            local is_matched, achievement_definition, progress, goal = _is_for_the_mission(category, achievement_id, mission, self._page_index)
 
             if is_matched and achievement_definition then
                 penance_list[#penance_list + 1] = {
@@ -354,7 +377,7 @@ mod.cache_achievements = function(self)
         self._achievements_by_category = achievements_by_category
 
         if debug then
-            mod:dump(achievements_by_category, "achievements", 4)
+            mod:dtf(achievements_by_category)
         end
     end
 end

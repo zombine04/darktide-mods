@@ -43,7 +43,7 @@ local function _create_character_text(marker)
 end
 
 mod:hook_safe(CLASS.HudElementWorldMarkers, "event_add_world_marker_unit", function(self, marker_type, unit, callback, data)
-    if marker_type:match("nameplate") then
+    if marker_type:match("nameplate") and not marker_type:match("companion") then
         local markers = self._markers_by_type[marker_type]
         local len = #markers
 

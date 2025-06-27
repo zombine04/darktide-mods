@@ -3,19 +3,42 @@ local mod = get_mod("CollectibleFinder")
 mod._collectibles = {
     {
         name = "grimoire",
-        loc = "loc_pickup_side_mission_pocketable_01"
+        loc = "loc_pickup_side_mission_pocketable_01",
+        hud_icon = "content/ui/materials/icons/pocketables/hud/grimoire",
+        is_side_objective = true,
+        is_counted_at_pickup = true,
     },
     {
         name = "tome",
-        loc = "loc_pickup_side_mission_pocketable_02"
+        loc = "loc_pickup_side_mission_pocketable_02",
+        hud_icon = "content/ui/materials/icons/pocketables/hud/scripture",
+        is_side_objective = true,
+        is_counted_at_pickup = true,
     },
     {
         name = "collectible_01_pickup", -- Martyr's Skull
-        loc = "loc_pickup_collectible"
+        loc = "loc_pickup_collectible",
+        hud_icon = "content/ui/materials/icons/achievements/categories/category_endeavour",
     },
     {
         name = "idol",
-        loc = "loc_destructible_01"
+        loc = "loc_destructible_01",
+        hud_icon = "content/ui/materials/icons/achievements/categories/category_heretics",
+        is_destructible = true,
+    },
+    {
+        name = "skulls_01_pickup", -- Tainted Skull
+        loc = "loc_tainted_skull_pickup",
+        hud_icon = "content/ui/materials/hud/interactions/icons/enemy",
+        is_destructible = true,
+        disable_by_default = true,
+    },
+    {
+        name = "communications_hack_device",
+        loc = "loc_pickup_side_mission_communications_hack_device",
+        hud_icon = "content/ui/materials/icons/pocketables/hud/corrupted_auspex_scanner",
+        is_side_objective = true,
+        -- it doesn't proceed when picking up
     },
 }
 

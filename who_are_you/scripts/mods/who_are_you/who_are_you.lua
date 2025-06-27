@@ -1,10 +1,13 @@
---[[
-    title: who_are_you
-    author: Zombine
-    date: 2025/03/29
-    version: 3.7.0
-]]
 local mod = get_mod("who_are_you")
+
+mod._info = {
+    title = "Who Are You",
+    author = "Zombine",
+    date = "2025/06/25",
+    version = "3.7.3",
+}
+mod:info("Version " .. mod._info.version)
+
 local NumericUI = get_mod("NumericUI")
 local ProfileUtils = require("scripts/utilities/profile_utils")
 local TextUtils = require("scripts/utilities/ui/text")
@@ -265,7 +268,7 @@ local function _create_character_text(marker)
 end
 
 mod:hook_safe(CLASS.HudElementWorldMarkers, "event_add_world_marker_unit", function(self, marker_type, unit, callback, data)
-    if marker_type:match("nameplate") then
+    if marker_type:match("nameplate") and not marker_type:match("companion") then
         local markers = self._markers_by_type[marker_type]
         local len = #markers
 
@@ -313,7 +316,7 @@ mod:hook_safe(CLASS.HudElementWorldMarkers, "_calculate_markers", function(self,
     local ref = "nameplate"
 
     for marker_type, markers in pairs(markers_by_type) do
-        if string.match(marker_type, ref) then
+        if marker_type:match(ref) and not marker_type:match("companion") then
             for i = 1, #markers do
                 local marker = markers[i]
                 local is_combat = marker_type == "nameplate_party"

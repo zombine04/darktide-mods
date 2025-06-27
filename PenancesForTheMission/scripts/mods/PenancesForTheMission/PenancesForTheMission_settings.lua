@@ -52,7 +52,7 @@ local grid_settings = {
             item_height
         },
         item_size = {
-            grid_size[1] - grid_margin * 2,
+            grid_size[1],
             item_height
         }
     }

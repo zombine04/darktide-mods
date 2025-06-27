@@ -1,10 +1,13 @@
---[[
-    title: true_level
-    author: Zombine
-    date: 2025/03/29
-    version: 1.9.0
-]]
 local mod = get_mod("true_level")
+
+mod._info = {
+    title = "True Level",
+    author = "Zombine",
+    date = "2025/06/24",
+    version = "1.9.2",
+}
+mod:info("Version " .. mod._info.version)
+
 local ProfileUtils = require("scripts/utilities/profile_utils")
 
 mod._self = mod:persistent_table("self")

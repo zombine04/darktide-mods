@@ -2,20 +2,32 @@ local mod = get_mod("debuff_indicator")
 local Breeds = require("scripts/settings/breed/breeds")
 
 mod.buff_names = {
+    -- DoT
     "bleed",
     "flamer_assault",
     "rending_debuff",
     "warp_fire",
+    -- Weapons/Blessings
     "increase_impact_received_while_staggered",
     "increase_damage_received_while_staggered",
+    "power_maul_sticky_tick",
+    "increase_damage_taken",
+    -- Psyker
     "psyker_protectorate_spread_chain_lightning_interval_improved",
     "psyker_protectorate_spread_charged_chain_lightning_interval_improved",
     "psyker_force_staff_quick_attack_debuff",
+    -- Ogryn
     "ogryn_recieve_damage_taken_increase_debuff",
     "ogryn_taunt_increased_damage_taken_buff",
+    "ogryn_staggering_damage_taken_increase",
+    -- Veteran
     "veteran_improved_tag_debuff",
-    "power_maul_sticky_tick",
-    "increase_damage_taken"
+    -- Arbite
+    "adamant_drone_enemy_debuff",
+    "adamant_drone_talent_debuff",
+    "adamant_melee_weakspot_hits_count_as_stagger_debuff",
+    "adamant_staggered_enemies_deal_less_damage_debuff",
+    "adamant_staggering_increases_damage_taken",
     -- "stagger",
     -- "suppression",
 }
@@ -34,11 +46,14 @@ mod.display_style_names = {
     "count",
 }
 
-mod.display_group_names = {
-    "debuff",
-    "dot",
-    "stagger",
-    "suppression",
+mod.mutators = {
+    chaos_armored_infected = "chaos_newly_infected",
+    chaos_hound_mutator = "chaos_hound",
+    chaos_lesser_mutated_poxwalker = "chaos_poxwalker",
+    chaos_mutated_poxwalker = "chaos_poxwalker",
+    chaos_mutator_daemonhost = "chaos_daemonhost",
+    chaos_mutator_ritualist = "cultist_ritualist",
+    cultist_mutant_mutator = "cultist_mutant",
 }
 
 local loc = {
@@ -226,6 +241,11 @@ local loc = {
         ["zh-cn"] = "怪物",
         ru = "Монстры",
     },
+    breed_captain = {
+        en = "Captains",
+        ja = "キャプテン",
+        ["zh-cn"] = "连长",
+    },
     bleed = {
         en = "Bleeding",
         ja = "出血",
@@ -289,8 +309,26 @@ local loc = {
     ogryn_taunt_increased_damage_taken_buff = {
         en = Localize("loc_talent_ogryn_taunt_damage_taken_increase")
     },
+    ogryn_staggering_damage_taken_increase = {
+        en = Localize("loc_talent_ogryn_big_bully_heavy_hits")
+    },
     veteran_improved_tag_debuff = {
         en = Localize("loc_talent_veteran_improved_tag")
+    },
+    adamant_drone_enemy_debuff = {
+        en = Localize("loc_talent_ability_area_buff_drone")
+    },
+    adamant_drone_talent_debuff = {
+        en = Localize("loc_talent_adamant_drone_debuff_talent")
+    },
+    adamant_melee_weakspot_hits_count_as_stagger_debuff = {
+        en = Localize("loc_talent_adamant_melee_weakspot_hits_count_as_stagger")
+    },
+    adamant_staggered_enemies_deal_less_damage_debuff = {
+        en = Localize("loc_talent_adamant_staggered_enemies_deal_less_damage")
+    },
+    adamant_staggering_increases_damage_taken = {
+        en = Localize("loc_talent_adamant_staggered_enemies_take_more_damage")
     },
     stagger = {
         en = Localize("loc_stagger")

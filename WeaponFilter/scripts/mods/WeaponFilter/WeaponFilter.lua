@@ -1,8 +1,8 @@
 --[[
     name: WeaponFilter
     author: Zombine
-    date: 2025/01/28
-    version: 1.0.3
+    date: 2025/03/31
+    version: 1.0.4
 ]]
 local mod = get_mod("WeaponFilter")
 local Definitions = mod:io_dofile("WeaponFilter/scripts/mods/WeaponFilter/Definitions")

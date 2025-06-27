@@ -1,6 +1,6 @@
 local mod = get_mod("PenancesForTheMission")
 local AchievementUIHelper = require("scripts/managers/achievements/utility/achievement_ui_helper")
-local MissionBoardViewSettings = require("scripts/ui/views/mission_board_view/mission_board_view_settings")
+local MissionBoardViewStyles = require("scripts/ui/views/mission_board_view_pj/mission_board_view_styles")
 local Settings = mod:io_dofile("PenancesForTheMission/scripts/mods/PenancesForTheMission/PenancesForTheMission_settings")
 
 local grid_settings = Settings.grid
@@ -29,7 +29,7 @@ local blueprints = {
                 style = {
                     vertical_alignment = "top",
                     horizontal_alignment = "left",
-                    color = MissionBoardViewSettings.color_background,
+                    color = Color.black(200, true),
                     size = list_settings.item_size,
                     offset = {
                         0,
@@ -44,7 +44,7 @@ local blueprints = {
                 value = "content/ui/materials/frames/frame_tile_2px",
                 style = {
                     scale_to_material = true,
-                    color = MissionBoardViewSettings.color_frame,
+                    color = Color.terminal_frame(255, true),
                     offset = {
                         0,
                         0,
@@ -58,7 +58,7 @@ local blueprints = {
                 value = "content/ui/materials/frames/frame_corner_2px",
                 style = {
                     scale_to_material = true,
-                    color = MissionBoardViewSettings.color_corner,
+                    color = Color.terminal_corner(255, true),
                     offset = {
                         0,
                         0,
@@ -101,7 +101,7 @@ local blueprints = {
                     text_vertical_alignment = "center",
                     font_type = "proxima_nova_bold",
                     font_size = list_settings.font_large,
-                    text_color = MissionBoardViewSettings.color_main_light,
+                    text_color = Color.terminal_text_header(255, true),
                     size = list_settings.title_size,
                     offset = {
                         list_settings.main_offset,
@@ -120,7 +120,7 @@ local blueprints = {
                     horizontal_alignment = "left",
                     text_vertical_alignment = "top",
                     font_size = list_settings.font_medium,
-                    text_color = MissionBoardViewSettings.color_gray,
+                    text_color = Color.terminal_text_body_sub_header(255, true),
                     size = list_settings.desc_size,
                     offset = {
                         list_settings.main_offset,
@@ -140,7 +140,7 @@ local blueprints = {
                     text_vertical_alignment = "center",
                     text_horizontal_alignment = "right",
                     font_size = list_settings.font_large,
-                    text_color = MissionBoardViewSettings.color_main,
+                    text_color = Color.terminal_text_header(255, true),
                     size = list_settings.counter_size,
                     offset = {
                         list_settings.main_offset + list_settings.title_size[1],

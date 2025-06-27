@@ -1,11 +1,15 @@
---[[
-    title: CollectibleFinder
-    author: Zombine
-    date: 2024/06/27
-    version: 1.1.5
-]]
 local mod = get_mod("CollectibleFinder")
+
+mod._info = {
+    title = "Collectible Finder",
+    author = "Zombine",
+    date = "2025/06/23",
+    version = "1.3.2"
+}
+mod:info("Version " .. mod._info.version)
+
 local CollectibleFinderMarker = mod:io_dofile("CollectibleFinder/scripts/mods/CollectibleFinder/CollectibleFinder_marker")
+local Component = require("scripts/utilities/component")
 local TextUtils = require("scripts/utilities/ui/text")
 local UISettings = require("scripts/settings/ui/ui_settings")
 local REPEAT_DELAY = 1
@@ -38,10 +42,10 @@ local _get_slot_item_name = function(player_unit)
 end
 
 local _item_name_to_pickup_name = function(item_name)
-    if string.match(item_name, "tome_pocketable") then
-        return "tome"
-    elseif string.match(item_name, "grimoire_pocketable") then
-        return "grimoire"
+    local pickup_name = item_name:gsub("_pocketable$", "")
+
+    if table.find_by_key(mod._collectibles, "name", pickup_name) then
+        return pickup_name
     end
 
     return "unknown"
@@ -65,8 +69,34 @@ local _is_collectible = function(name)
     return false
 end
 
+local _is_hack_device = function(pickup_name)
+    return pickup_name == "communications_hack_device"
+end
+
 local _is_penance = function(pickup_name)
     return pickup_name == "collectible_01_pickup"
+end
+
+local _is_special_pickup = function(pickup_name)
+    local is_special_pickup = false
+    local index = table.find_by_key(mod._collectibles, "name", pickup_name)
+
+    if index then
+        is_special_pickup = not mod._collectibles[index].is_counted_at_pickup
+    end
+
+    return is_special_pickup
+end
+
+local _is_destructible = function(pickup_name)
+    local is_destructible = false
+    local index = table.find_by_key(mod._collectibles, "name", pickup_name)
+
+    if index then
+        is_destructible = mod._collectibles[index].is_destructible
+    end
+
+    return is_destructible
 end
 
 local _is_enabled = function(name)
@@ -79,6 +109,10 @@ end
 
 local _is_collected = function(unit)
     return Unit.get_data(unit, "cf_collected")
+end
+
+local _has_indicator_id = function(unit)
+    return Unit.has_data(unit, "cf_indicator_id")
 end
 
 local _set_notified = function(unit, val)
@@ -262,18 +296,16 @@ mod:hook_safe(CLASS.SideMissionPickupExtension, "_register_to_mission_objective"
     end
 end)
 
--- Martyr's Skull
+-- Martyr's Skull / Communication Device
 
-mod:hook_safe(CLASS.HudElementWorldMarkers, "event_add_world_marker_unit", function(self, marker_type, unit, callback, data)
-    if marker_type == "interaction" then
-        local pickup_name = Unit.get_data(unit, "pickup_type")
+mod:hook_safe(CLASS.HudElementInteraction, "_on_interaction_marker_spawned", function(self, unit)
+    local pickup_name = Unit.get_data(unit, "pickup_type")
 
-        if _is_penance(pickup_name) and _is_enabled(pickup_name) then
-            _set_tracking(unit, true)
-            _add_marker(unit)
-            mod._tracked_unit = unit
-            mod.debug.echo("tracker added: " .. pickup_name)
-        end
+    if _is_special_pickup(pickup_name) and _is_enabled(pickup_name) then
+        _set_tracking(unit, true)
+        _add_marker(unit)
+        mod._tracked_unit = unit
+        mod.debug.echo("tracker added: " .. pickup_name)
     end
 end)
 
@@ -324,12 +356,12 @@ mod:hook_safe(CollectibleFinderMarker, "update_function", function(_, _, widget,
 
                     mod.debug.notify_sensed(unit, distance)
                 end
-            else
-                if is_repeatable and not _is_collected(unit) and _is_notified(unit) and _can_repeat(unit, t) then
+            elseif _is_notified(unit) then
+                if is_repeatable and not _is_collected(unit)  and _can_repeat(unit, t) then
                     _set_notified(unit, false)
                 end
 
-                if use_icon_indicator then
+                if use_icon_indicator and _has_indicator_id(unit) then
                     Managers.event:trigger("event_cf_remove_icon_indicator", unit)
                 end
             end
@@ -341,14 +373,14 @@ end)
 -- Scan Pocketable Slot
 -- ##############################
 
-local _get_vars = function(player)
+local _get_player_and_slot_info = function(player)
     local player_unit = player.player_unit
     local player_name = player:name()
     local item_name = _get_slot_item_name(player_unit)
     local is_collectible = _is_collectible(item_name)
-    local pickup_name = mod._owners[player_unit]
+    local logged_pickup_name = mod._owners[player_unit]
 
-    return player_unit, player_name, item_name, is_collectible, pickup_name
+    return player_unit, player_name, item_name, is_collectible, logged_pickup_name
 end
 
 mod.update = function()
@@ -360,20 +392,20 @@ mod.update = function()
 
         for _, player in pairs(players) do
             if player and player:is_human_controlled() then
-                local player_unit, player_name, item_name, is_collectible, pickup_name = _get_vars(player)
+                local player_unit, player_name, item_name, is_collectible, logged_pickup_name = _get_player_and_slot_info(player)
 
-                if is_collectible and not pickup_name then
-                    pickup_name = _item_name_to_pickup_name(item_name)
+                if is_collectible and not logged_pickup_name then
+                    local current_pickup_name = _item_name_to_pickup_name(item_name)
 
                     for owner_unit, owned_pickup_name in pairs(mod._owners) do
                         local owner = Managers.player:player_by_unit(owner_unit)
 
                         if owner then
-                            local _, owner_name, _, has_book = _get_vars(owner)
+                            local _, owner_name, _, has_book = _get_player_and_slot_info(owner)
 
-                            if not has_book and pickup_name == owned_pickup_name then
-                                if mod:get("enable_give_notif_" .. pickup_name) then
-                                    _show_notification("collectible_given", false, owner, owner_name, pickup_name, player, player_name)
+                            if not has_book and current_pickup_name == owned_pickup_name then
+                                if mod:get("enable_give_notif_" .. current_pickup_name) then
+                                    _show_notification("collectible_given", false, owner, owner_name, current_pickup_name, player, player_name)
                                 end
 
                                 mod._owners[owner_unit] = nil
@@ -386,32 +418,31 @@ mod.update = function()
                         end
                     end
 
-                    mod._owners[player_unit] = pickup_name
+                    mod._owners[player_unit] = current_pickup_name
                     mod.debug.char_name(player, true)
                 end
             end
         end
 
-        if mod._tracked_unit then
-            local unit = mod._tracked_unit
-            local unit_is_alive = Unit.alive(unit)
-            local tracked_pickup_name = unit_is_alive and "tome" or "grimoire"
+        local tracked_unit = mod._tracked_unit
 
-            for _, player in pairs(players) do
-                if player and player:is_human_controlled() then
-                    local player_unit, player_name, _, is_collectible, pickup_name = _get_vars(player)
+        if tracked_unit then
+            if Unit.alive(tracked_unit) then
+                local tracked_pickup_name = _get_pickup_name(tracked_unit)
 
-                    if not is_collectible and pickup_name == tracked_pickup_name then
-                        if mod:get("enable_drop_notif_" .. pickup_name) then
-                            _show_notification("collectible_dropped", false, player, player_name, pickup_name)
+                for _, player in pairs(players) do
+                    if player and player:is_human_controlled() then
+                        local player_unit, player_name, _, is_collectible, logged_pickup_name = _get_player_and_slot_info(player)
+
+                        if not is_collectible and logged_pickup_name == tracked_pickup_name then
+                            if mod:get("enable_drop_notif_" .. logged_pickup_name) then
+                                _show_notification("collectible_dropped", false, player, player_name, logged_pickup_name)
+                            end
+
+                            _set_tracking(tracked_unit, nil)
+                            mod.debug.echo("tracker removed: " .. logged_pickup_name)
+                            mod._owners[player_unit] = nil
                         end
-
-                        if unit_is_alive then
-                            _set_tracking(unit, nil)
-                        end
-
-                        mod.debug.echo("tracker removed: " .. pickup_name)
-                        mod._owners[player_unit] = nil
                     end
                 end
             end
@@ -434,8 +465,17 @@ mod:hook(CLASS.InteracteeExtension, "stopped", function(func, self, result)
         local pickup_name = _get_pickup_name(unit)
 
         if _is_collectible(pickup_name) then
-            if mod:get("enable_pickup_notif_" .. pickup_name) and (_is_tracking(unit) or mod:get("enable_drop_notif_" .. pickup_name)) then
-                _show_notification("collectible_picked_up", false, player, player_name, pickup_name)
+            if _is_tracking(unit) or mod:get("enable_drop_notif_" .. pickup_name) then
+                if _is_destructible(pickup_name) then
+                    -- pickup but is destructed when interact
+                    if mod:get("enable_destruct_notif_" .. pickup_name) then
+                        _show_notification("collectible_destructed", false, player, player_name, pickup_name)
+                    end
+                else
+                    if mod:get("enable_pickup_notif_" .. pickup_name) then
+                        _show_notification("collectible_picked_up", false, player, player_name, pickup_name)
+                    end
+                end
             end
 
             if Unit.alive(unit) then
@@ -453,7 +493,58 @@ end)
 
 -- Remove tracker when destructed
 
-mod:hook_safe(CLASS.CollectiblesManager, "_show_destructible_notification", function(self, peer_id, section_id, id)
+mod:hook_origin(CLASS.CollectiblesManager, "on_gameplay_post_init", function(self, level_seed)
+    -- Restored self._destructibles removed in Hotfix 1.7.5
+    self._seed = level_seed
+
+	local destructibles = {} -- restored
+
+    self._num_destructibles = 0
+
+    for section_id = 1, #self._destructible_data do
+        local section = self._destructible_data[section_id]
+        local num_collectible = #section
+        local random_id = self:_random(1, num_collectible)
+
+        if not destructibles[section_id] then
+            destructibles[section_id] = {} -- restored
+        end
+
+        if num_collectible < 4 then
+            Log.error("CollectiblesManager", "There are only %s destructible collectibles in section %s", num_collectible, section_id)
+        end
+
+        local new_entry = table.clone(self._destructible_data[section_id][random_id])
+
+        new_entry.id = 1
+        destructibles[section_id][#destructibles[section_id] + 1] = new_entry -- restored
+
+        local destructible_extension = ScriptUnit.has_extension(new_entry.unit, "destructible_system")
+
+        destructible_extension:set_collectible_data(new_entry)
+        Unit.flow_event(new_entry.unit, "destructible_enabled")
+        table.remove(self._destructible_data[section_id], random_id)
+
+        self._num_destructibles = self._num_destructibles + 1
+    end
+
+    for section_id = 1, #self._destructible_data do
+        local section_data = self._destructible_data[section_id]
+
+        for id = 1, #section_data do
+            local data = section_data[id]
+            local unit = data.unit
+
+            Component.event(unit, "disable_visibility")
+            Component.event(unit, "destructible_disable")
+            Unit.set_unit_visibility(unit, false)
+        end
+    end
+
+	self._destructibles = destructibles -- restored
+end)
+
+mod:hook_safe(CLASS.CollectiblesManager, "_show_destructible_notification", function(self, peer_id, local_player_id, section_id, id)
     local collectible_data = self._destructibles
     local section_data = collectible_data[section_id]
     local data = section_data[id]
