@@ -4,7 +4,7 @@ mod._info = {
     title = "DPS Meter",
     author = "Zombine",
     date = "2025/06/27",
-    versino = "1.1.1",
+    version = "1.1.2",
 }
 mod:info("Version " .. mod._info.version)
 
