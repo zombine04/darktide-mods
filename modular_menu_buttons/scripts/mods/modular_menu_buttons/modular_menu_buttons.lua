@@ -262,21 +262,19 @@ end
 -- Avoid crash in the sacrifice menu
 
 mod:hook(CLASS.UIWorldSpawner, "create_viewport", function(func, self, camera_unit, viewport_name, viewport_type, viewport_layer, shading_environment, ...)
-    local game_mode_manager = Managers.state.game_mode
-    local gamemode_name = game_mode_manager and game_mode_manager:game_mode_name() or "unknown"
-
-    if viewport_name == "ui_crafting_view_sacrifice_viewport" and gamemode_name ~= "hub" then
+    if viewport_name == "ui_crafting_view_sacrifice_viewport" and mod._current_state ~= "hub" and mod._current_state ~= "prologue_hub" then
         shading_environment = "content/shading_environments/ui/crafting_view"
     end
 
     func(self, camera_unit, viewport_name, viewport_type, viewport_layer, shading_environment, ...)
 end)
 
--- remove terminal hologram outline
+-- Remove terminal hologram outline
+
 mod:hook(CLASS.MissionBoardView, "_set_hologram_outline", function(func, self, value)
-    if mod._current_state ~= "hub" then
+    if mod._current_state ~= "hub" and mod._current_state ~= "prologue_hub" then
         value = false
     end
 
-    func(self, false)
+    func(self, value)
 end)
