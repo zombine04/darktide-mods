@@ -1,18 +1,12 @@
 local mod = get_mod("true_level")
 local ref = "team_panel"
 
-local _switch_level_feature = function(func, self, ...)
-    if mod.is_enabled_feature(ref) then
-        self._supported_features.level = true
-    else
-        self._supported_features.level = false
-    end
-
-    func(self, ...)
+local _switch_level_feature = function(self)
+    self._supported_features.level = mod.is_enabled_feature(ref)
 end
 
-mod:hook(CLASS.HudElementPersonalPlayerPanel, "update", _switch_level_feature)
-mod:hook(CLASS.HudElementTeamPlayerPanel, "update", _switch_level_feature)
+mod:hook_safe(CLASS.HudElementPersonalPlayerPanel, "update", _switch_level_feature)
+mod:hook_safe(CLASS.HudElementTeamPlayerPanel, "update", _switch_level_feature)
 
 -- hub
 
