@@ -58,4 +58,4 @@ local grid_settings = {
     }
 }
 
-return settings("PenancesForTheMissionSettings", grid_settings)
+return grid_settings

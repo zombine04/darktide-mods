@@ -9,8 +9,7 @@ local grid_size = grid_settings.grid_size
 local grid_mask_size = grid_settings.grid_mask_size
 local item_size = list_settings.item_size
 
-mod.modify_definition = function(path)
-    local definition = require(path)
+mod.modify_definition = function(definition)
     local scenegraph = definition.scenegraph_definition
     local widget = definition.widget_definitions
 
