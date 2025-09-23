@@ -3,8 +3,8 @@ local mod = get_mod("modular_menu_buttons")
 mod._info = {
     title = "Modular Menu Buttons",
     author = "Zombine",
-    date = "2025/06/28",
-    version = "1.2.5"
+    date = "2025/09/24",
+    version = "1.2.6"
 }
 mod:info("Version " .. mod._info.version)
 
@@ -63,16 +63,14 @@ mod:hook(CLASS.UIManager, "open_view", function(func, self, view_name, transitio
         end
 
         local nm = Managers.narrative
+        local promise = nm:load_character_narrative(character_id)
 
-        if not nm:is_narrative_loaded_for_player_character() then
-            local promise = nm:load_character_narrative(character_id)
+        promise:next(function()
+            return func(self, view_name, transition_time, close_previous, close_all, close_transition_time, context, settings_override)
+        end)
 
-            promise:next(function()
-                return func(self, view_name, transition_time, close_previous, close_all, close_transition_time, context, settings_override)
-            end)
+        return false
 
-            return false
-        end
     end
 
     return func(self, view_name, transition_time, close_previous, close_all, close_transition_time, context, settings_override)
