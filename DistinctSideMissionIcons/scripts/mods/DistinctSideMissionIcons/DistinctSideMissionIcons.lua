@@ -3,8 +3,8 @@ local mod = get_mod("DistinctSideMissionIcons")
 mod._info = {
     title = "Distinct Side Mission Icons",
     author = "Zombine",
-    date = "2025/06/27",
-    version = "2.1.1"
+    date = "2025/12/03",
+    version = "2.1.2"
 }
 mod:info("Version " .. mod._info.version)
 
@@ -63,7 +63,7 @@ end)
 
 -- Mission Info
 
-mod:hook_safe(CLASS.MissionBoardView, "_update_mission_objectives_panel", function(self, mission)
+mod:hook_safe(CLASS.ViewElementMissionBoardObjectivesInfo, "_update_mission_objective_info_panel", function(self, mission)
     if not mission or mission == "qp_mission_widget" or not mission.sideMission then
         return
     end

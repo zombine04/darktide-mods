@@ -1,10 +1,18 @@
 --[[
     title: name_it
     author: Zombine
-    date: 2024/10/14
-    version: 1.3.5
+    date: 2025/12/03
+    version: 1.3.6
 ]]
 local mod = get_mod("name_it")
+
+mod._info = {
+    title = "Name It",
+    author = "Zombine",
+    date = "2025/12/03",
+    version = "1.3.6"
+}
+mod:info("Version " .. mod._info.version)
 
 -- ##################################################
 -- Requires
@@ -381,12 +389,23 @@ mod:hook_safe("ConstantElementPopupHandler", "update", function(self)
     end
 end)
 
-mod:hook("ConstantElementPopupHandler", "_get_text_height", function(func, self, description_text, ...)
+mod:hook("ConstantElementPopupHandler", "_update_popup_text_height", function(func, self, ...)
+    local widgets_by_name = self._widgets_by_name
+    local title_text_widget = widgets_by_name.title_text
+    local description_text_widget = widgets_by_name.description_text
+    local description_text = description_text_widget.content.text
+    local total_height = func(self, ...)
+
     if mod._show_input_field and description_text == Localize("loc_popup_description_change_name") then
-       return input_height + 20
+       local title_offset = self:scenegraph_position(title_text_widget.scenegraph_id)
+       local button_offset = self:scenegraph_position("button_pivot")
+
+       self:set_scenegraph_position(title_text_widget.scenegraph_id, nil, title_offset[2] - 30)
+       self:set_scenegraph_position("button_pivot", nil, button_offset[2] + 30)
+       total_height = total_height + 60
     end
 
-    return func(self, description_text, ...)
+    return total_height
 end)
 
 -- ##################################################

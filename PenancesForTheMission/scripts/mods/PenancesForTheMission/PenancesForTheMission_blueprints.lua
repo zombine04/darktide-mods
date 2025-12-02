@@ -1,6 +1,5 @@
 local mod = get_mod("PenancesForTheMission")
 local AchievementUIHelper = require("scripts/managers/achievements/utility/achievement_ui_helper")
-local MissionBoardViewStyles = require("scripts/ui/views/mission_board_view_pj/mission_board_view_styles")
 local Settings = mod:io_dofile("PenancesForTheMission/scripts/mods/PenancesForTheMission/PenancesForTheMission_settings")
 
 local grid_settings = Settings.grid

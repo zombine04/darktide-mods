@@ -1,10 +1,12 @@
---[[
-    title: keep_dodging
-    author: Zombine
-    date: 2025/03/31
-    version: 1.1.2
-]]
 local mod = get_mod("keep_dodging")
+
+mod._info = {
+    title = "Keep Dodging",
+    author = "Zombine",
+    date = "2025/12/03",
+    version = "1.1.3"
+}
+mod:info("Version " .. mod._info.version)
 
 -- ############################################################
 -- Register Hud Element

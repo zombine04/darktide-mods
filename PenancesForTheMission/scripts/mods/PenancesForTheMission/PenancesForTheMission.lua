@@ -3,8 +3,8 @@ local mod = get_mod("PenancesForTheMission")
 mod._info = {
     title = "Penances For The Mission",
     author = "Zombine",
-    date = "2025/09/24",
-    version = "1.1.2"
+    date = "2025/12/03",
+    version = "1.1.3"
 }
 mod:info("Version " .. mod._info.version)
 

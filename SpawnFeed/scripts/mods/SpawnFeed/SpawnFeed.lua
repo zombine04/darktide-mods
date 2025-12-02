@@ -6,8 +6,8 @@ local weakened_suffix = "_weakened"
 mod._info = {
     title = "Spawn Feed",
     author = "Zombine",
-    date = "2025/09/24",
-    version = "1.2.5"
+    date = "2025/12/03",
+    version = "1.2.6"
 }
 mod:info("Version " .. mod._info.version)
 
