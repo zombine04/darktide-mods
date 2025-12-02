@@ -99,8 +99,16 @@ table.sort(color_option, function(a, b)
     return a.text < b.text
 end)
 
+local excluded_buffs = {
+    psyker_protectorate_spread_charged_chain_lightning_interval_improved = true,
+    neurotoxin_interval_buff2 = true,
+    neurotoxin_interval_buff3 = true,
+    exploding_toxin_interval_buff = true,
+	toxin_damage_debuff_monster = true
+}
+
 for _, buff_name in ipairs(mod.buff_names) do
-    if not string.match(buff_name, "psyker_protectorate_spread_charged") then
+    if not excluded_buffs[buff_name] then
         widgets_debuff[#widgets_debuff + 1] = {
             setting_id = "group_" .. buff_name,
             type = "group",
@@ -168,6 +176,10 @@ local widgets_breed = {
         type = "captain",
         sub_widgets = {}
     },
+    {
+        type = "misc",
+        sub_widgets = {}
+    },
 }
 
 local _is_special_enemy = function(smart_tag_target_type)
@@ -185,6 +197,8 @@ local _type_by_tags = function(tags)
         type = "monster"
     elseif tags.captain or tags.cultist_captain then
         type = "captain"
+    elseif tags.ritualist then
+        type = "misc"
     end
 
     return type
