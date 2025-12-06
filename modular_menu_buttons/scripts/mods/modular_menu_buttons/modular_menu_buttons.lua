@@ -1,10 +1,13 @@
---[[
-    title: modular_menu_buttons
-    author: Zombine
-    date: 2025/03/27
-    version: 1.2.4
-]]
 local mod = get_mod("modular_menu_buttons")
+
+mod._info = {
+    title = "Modular Menu Buttons",
+    author = "Zombine",
+    date = "2025/09/24",
+    version = "1.2.6"
+}
+mod:info("Version " .. mod._info.version)
+
 local COOP_MISSIONS = {
     coop_complete_objective = true,
     survival = true
@@ -14,7 +17,7 @@ local COOP_MISSIONS = {
 
 mod._package_ids = mod:persistent_table("package_ids")
 
-mod:hook_safe("UIManager", "load_view", function(self, view_name, reference_name)
+mod:hook_safe(CLASS.UIManager, "load_view", function(self, view_name, reference_name)
     local packages = {
         "packages/ui/hud/world_markers/world_markers",
         "packages/ui/views/masteries_overview_view/masteries_overview_view"
@@ -46,12 +49,20 @@ end
 
 -- Load Narratives
 
-mod:hook("UIManager", "open_view", function(func, self, view_name, transition_time, close_previous, close_all, close_transition_time, context, settings_override)
-    local nm = Managers.narrative
-    local pm = Managers.player
+mod:hook(CLASS.UIManager, "open_view", function(func, self, view_name, transition_time, close_previous, close_all, close_transition_time, context, settings_override)
+    if view_name == "system_view" then
+        local player = Managers.player:local_player(1)
+        local profile = player:profile()
+        local account_id = player:account_id()
+        local character_id = profile.character_id
+        local mbs = Managers.data_service.mission_board
 
-    if view_name == "system_view" and not nm:is_narrative_loaded_for_player_character() then
-        local character_id = pm:local_player_backend_profile().character_id
+        if mbs then
+            -- loading mission fix
+            mbs:fetch_player_journey_data(account_id, character_id)
+        end
+
+        local nm = Managers.narrative
         local promise = nm:load_character_narrative(character_id)
 
         promise:next(function()
@@ -59,6 +70,7 @@ mod:hook("UIManager", "open_view", function(func, self, view_name, transition_ti
         end)
 
         return false
+
     end
 
     return func(self, view_name, transition_time, close_previous, close_all, close_transition_time, context, settings_override)
@@ -169,7 +181,7 @@ local get_new_content = function(original_content)
     return content
 end
 
-mod:hook("SystemView", "init", function(func, self, ...)
+mod:hook(CLASS.SystemView, "init", function(func, self, ...)
     if not Managers.state.mission then
         local MissionManager = require("scripts/managers/mission/mission_manager")
         Managers.state.mission = MissionManager:new()
@@ -186,13 +198,13 @@ mod:hook("SystemView", "init", function(func, self, ...)
     SystemView.super.init(self, new_defs, ...)
 end)
 
-mod:hook("SystemView", "_setup_content_widgets", function(func, self, content, ...)
+mod:hook(CLASS.SystemView, "_setup_content_widgets", function(func, self, content, ...)
     mod._current_state = get_current_state()
 
     return func(self, get_new_content(content), ...)
 end)
 
-mod:hook_safe("SystemView", "on_enter", function(self)
+mod:hook_safe(CLASS.SystemView, "on_enter", function(self)
     local widgets = self._widgets_by_name
     local num_btn = 0
 
@@ -217,7 +229,7 @@ end)
 
 -- For Psykanium in Lobby and Main Menu
 
-mod:hook_safe("TrainingGroundsOptionsView", "_start_training_grounds", function()
+mod:hook_safe(CLASS.TrainingGroundsOptionsView, "_start_training_grounds", function()
     if mod._current_state == "mission" then
         Managers.party_immaterium:leave_party()
     elseif mod._current_state == "main_menu" or mod._current_state == "lobby" then
@@ -238,8 +250,8 @@ local go_to_training_ground = function(func, ...)
     return func(...)
 end
 
-mod:hook("StateLoading", "update", go_to_training_ground)
-mod:hook("StateMainMenu", "update", go_to_training_ground)
+mod:hook(CLASS.StateLoading, "update", go_to_training_ground)
+mod:hook(CLASS.StateMainMenu, "update", go_to_training_ground)
 
 mod.on_all_mods_loaded = function()
     mod._current_state = get_current_state()
@@ -247,13 +259,20 @@ end
 
 -- Avoid crash in the sacrifice menu
 
-mod:hook("UIWorldSpawner", "create_viewport", function(func, self, camera_unit, viewport_name, viewport_type, viewport_layer, shading_environment, ...)
-    local game_mode_manager = Managers.state.game_mode
-    local gamemode_name = game_mode_manager and game_mode_manager:game_mode_name() or "unknown"
-
-    if viewport_name == "ui_crafting_view_sacrifice_viewport" and gamemode_name ~= "hub" then
+mod:hook(CLASS.UIWorldSpawner, "create_viewport", function(func, self, camera_unit, viewport_name, viewport_type, viewport_layer, shading_environment, ...)
+    if viewport_name == "ui_crafting_view_sacrifice_viewport" and mod._current_state ~= "hub" and mod._current_state ~= "prologue_hub" then
         shading_environment = "content/shading_environments/ui/crafting_view"
     end
 
     func(self, camera_unit, viewport_name, viewport_type, viewport_layer, shading_environment, ...)
+end)
+
+-- Remove terminal hologram outline
+
+mod:hook(CLASS.MissionBoardView, "_set_hologram_outline", function(func, self, value)
+    if mod._current_state ~= "hub" and mod._current_state ~= "prologue_hub" then
+        value = false
+    end
+
+    func(self, value)
 end)

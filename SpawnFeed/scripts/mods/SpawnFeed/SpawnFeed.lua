@@ -6,8 +6,8 @@ local weakened_suffix = "_weakened"
 mod._info = {
     title = "Spawn Feed",
     author = "Zombine",
-    date = "2025/06/27",
-    version = "1.2.4"
+    date = "2025/12/03",
+    version = "1.2.6"
 }
 mod:info("Version " .. mod._info.version)
 
@@ -25,10 +25,11 @@ local _is_weakened = function(unit, breed)
     if max_health < initial_max_health then
         is_weakened = true
     else
-        local havoc_mananger = Managers.state.havoc
+        local is_havoc = Managers.state.difficulty:get_parsed_havoc_data()
 
-        if havoc_mananger:is_havoc() then
-            local havoc_health_override_value = havoc_mananger:get_modifier_value("modify_monster_health")
+        if is_havoc then
+            local havoc_extension = Managers.state.game_mode:game_mode():extension("havoc")
+            local havoc_health_override_value = havoc_extension and havoc_extension:get_modifier_value("modify_monster_health")
 
             if havoc_health_override_value then
                 local multiplied_max_health = initial_max_health + initial_max_health * havoc_health_override_value

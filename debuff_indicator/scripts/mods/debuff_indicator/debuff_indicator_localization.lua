@@ -7,12 +7,17 @@ mod.buff_names = {
     "flamer_assault",
     "rending_debuff",
     "warp_fire",
+	"neurotoxin_interval_buff",
+	"neurotoxin_interval_buff2",
+	"neurotoxin_interval_buff3",
+	"exploding_toxin_interval_buff",
     -- Weapons/Blessings
     "increase_impact_received_while_staggered",
     "increase_damage_received_while_staggered",
     "power_maul_sticky_tick",
     "increase_damage_taken",
     -- Psyker
+	"psyker_discharge_damage_debuff",
     "psyker_protectorate_spread_chain_lightning_interval_improved",
     "psyker_protectorate_spread_charged_chain_lightning_interval_improved",
     "psyker_force_staff_quick_attack_debuff",
@@ -22,12 +27,18 @@ mod.buff_names = {
     "ogryn_staggering_damage_taken_increase",
     -- Veteran
     "veteran_improved_tag_debuff",
+	-- Zealot
+	"zealot_bled_enemies_take_more_damage_effect",
     -- Arbite
     "adamant_drone_enemy_debuff",
     "adamant_drone_talent_debuff",
     "adamant_melee_weakspot_hits_count_as_stagger_debuff",
     "adamant_staggered_enemies_deal_less_damage_debuff",
     "adamant_staggering_increases_damage_taken",
+	-- Broker
+	"broker_punk_rage_improved_shout_debuff",
+	"toxin_damage_debuff",
+	"toxin_damage_debuff_monster",
     -- "stagger",
     -- "suppression",
 }
@@ -38,6 +49,10 @@ mod.keywords = {
 
 mod.merged_buffs = {
     psyker_protectorate_spread_charged_chain_lightning_interval_improved = "psyker_protectorate_spread_chain_lightning_interval_improved",
+	neurotoxin_interval_buff2 = "neurotoxin_interval_buff",
+	neurotoxin_interval_buff3 = "neurotoxin_interval_buff",
+	exploding_toxin_interval_buff = "neurotoxin_interval_buff",
+	toxin_damage_debuff_monster = "toxin_damage_debuff",
 }
 
 mod.display_style_names = {
@@ -47,13 +62,13 @@ mod.display_style_names = {
 }
 
 mod.mutators = {
-    chaos_armored_infected = "chaos_newly_infected",
     chaos_hound_mutator = "chaos_hound",
     chaos_lesser_mutated_poxwalker = "chaos_poxwalker",
     chaos_mutated_poxwalker = "chaos_poxwalker",
     chaos_mutator_daemonhost = "chaos_daemonhost",
     chaos_mutator_ritualist = "cultist_ritualist",
     cultist_mutant_mutator = "cultist_mutant",
+	renegade_flamer_mutator = "renegade_flamer",
 }
 
 local loc = {
@@ -279,6 +294,10 @@ local loc = {
         ["zh-tw"] = "隊長",
         ["zh-cn"] = "连长",
     },
+    breed_misc = {
+        en = "Miscellaneous",
+        ja = "その他",
+    },
     bleed = {
         en = "Bleeding",
         ja = "出血",
@@ -314,6 +333,9 @@ local loc = {
         ru = "Наэлектризован",
         ["zh-tw"] = "觸電",
     },
+    neurotoxin_interval_buff = {
+        en = "Chem Toxin",
+	},
     power_maul_sticky_tick = {
         en = "Shock",
         ja = "電撃",
@@ -333,6 +355,9 @@ local loc = {
     psyker_biomancer_smite_vulnerable_debuff = {
         en = Localize("loc_talent_biomancer_smite_increases_non_warp_damage")
     },
+	psyker_discharge_damage_debuff = {
+		en = Localize("loc_talent_psyker_shout_damage_per_warp_charge")
+	},
     psyker_protectorate_spread_chain_lightning_interval_improved = {
         en = Localize("loc_talent_psyker_chain_lightning_improved_target_buff")
     },
@@ -354,6 +379,9 @@ local loc = {
     veteran_improved_tag_debuff = {
         en = Localize("loc_talent_veteran_improved_tag")
     },
+    zealot_bled_enemies_take_more_damage_effect = {
+        en = Localize("loc_talent_zealot_bled_enemies_take_more_damage")
+    },
     adamant_drone_enemy_debuff = {
         en = Localize("loc_talent_ability_area_buff_drone")
     },
@@ -368,6 +396,15 @@ local loc = {
     },
     adamant_staggering_increases_damage_taken = {
         en = Localize("loc_talent_adamant_staggered_enemies_take_more_damage")
+    },
+    toxin_damage_debuff = {
+        en = Localize("loc_talent_broker_passive_reduced_damage_by_toxined")
+    },
+    toxin_damage_debuff_monster = {
+        en = Localize("loc_talent_broker_passive_reduced_damage_by_toxined")
+    },
+    broker_punk_rage_improved_shout_debuff = {
+        en = Localize("loc_talent_broker_ability_punk_rage_sub_3")
     },
     stagger = {
         en = Localize("loc_stagger")

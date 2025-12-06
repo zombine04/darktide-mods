@@ -5,11 +5,13 @@ local loc = {
     mod_name = {
         en = "Distinct Side Mission Icons",
         ["zh-cn"] = "区分次要目标图标",
+        ru = "Уникальные значки побочных миссий",
     },
     mod_description = {
         en = "Change the side mission icons in the mission terminal to be distinguishable.",
         ja = "ミッションターミナルでサイドミッションのアイコンを見分けられるよう変更します。",
         ["zh-cn"] = "在任务终端中修改次要目标的图标，以作区分。",
+        ru = "Distinct Side Mission Icons - Изменяет значки побочных миссий на терминале, чтобы их можно было различить.",
     },
     color = {
         en = "Color",
@@ -21,6 +23,7 @@ local loc = {
         en = "Icon",
         ja = "アイコン",
         ["zh-cn"] = "图标",
+        ru = "Значок",
     },
     default = {
         en = "default",

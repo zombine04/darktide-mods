@@ -74,9 +74,9 @@ local _is_duplicated = function(a)
 end
 
 for i, name in ipairs(Color.list) do
-    if not _is_duplicated(Color[name](255, true)) then
+    -- if not _is_duplicated(Color[name](255, true)) then
         options.color[#options.color + 1] = { text = name, value = name }
-    end
+    -- end
 end
 
 table.sort(options.color, function(a, b)

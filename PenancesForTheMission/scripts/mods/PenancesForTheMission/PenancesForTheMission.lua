@@ -3,8 +3,8 @@ local mod = get_mod("PenancesForTheMission")
 mod._info = {
     title = "Penances For The Mission",
     author = "Zombine",
-    date = "2025/06/24",
-    version = "1.1.1"
+    date = "2025/12/03",
+    version = "1.1.3"
 }
 mod:info("Version " .. mod._info.version)
 
@@ -41,15 +41,16 @@ end)
 
 -- Setup
 
-mod:hook(CLASS.MissionBoardView, "init", function(func, self, ...)
+mod:hook_safe(CLASS.MissionBoardView, "init", function(self)
     mod:cache_achievements()
-    mod.modify_definition("scripts/ui/views/mission_board_view_pj/mission_board_view_definitions")
-    self._pftm_show_penances = false
+    mod.modify_definition(self._definitions)
 
-    func(self, ...)
+    self.cb_on_toggle_penances = function(self)
+        self._pftm_show_penances = not self._pftm_show_penances
+    end
 end)
 
-mod:hook(CLASS.MissionBoardView, "on_enter", function(func, self)
+mod:hook_safe(CLASS.MissionBoardView, "on_enter", function(self)
     -- setup grid
     Definitions = mod:io_dofile("PenancesForTheMission/scripts/mods/PenancesForTheMission/PenancesForTheMission_definitions")
 
@@ -61,33 +62,19 @@ mod:hook(CLASS.MissionBoardView, "on_enter", function(func, self)
     self._pftm_grid:present_grid_layout({}, {})
 
     -- add input legend
-    local legend_inputs = self._definitions.legend_inputs
     local key_toggle = mod:get("keybind_toggle")
-    local display_name = "loc_penance_menu_panel_option_browser"
 
     if key_toggle ~= "off" then
-        local index = table.find_by_key(legend_inputs, "display_name", display_name)
-
-        if index then
-            table.remove(legend_inputs, index)
+        local input_legend_element = self:_element("input_legend")
+        local display_name = "loc_penance_menu_panel_option_browser"
+        local alignment = "right_alignment"
+        local on_pressed_callback = callback(self, "cb_on_toggle_penances")
+        local visibility_function = function (parent)
+            return parent._selected_mission_id
         end
 
-        legend_inputs[#legend_inputs + 1] = {
-            input_action = key_toggle,
-            display_name = display_name,
-            alignment = "right_alignment",
-            on_pressed_callback = "cb_on_toggle_penances",
-            visibility_function = function (parent)
-                return parent._selected_mission_id
-            end
-        }
+        input_legend_element:add_entry(display_name, key_toggle, visibility_function, on_pressed_callback, alignment)
     end
-
-    self.cb_on_toggle_penances = function(self)
-        self._pftm_show_penances = not self._pftm_show_penances
-    end
-
-    func(self)
 end)
 
 mod:hook_safe(CLASS.MissionBoardView, "update", function(self, dt, t, input_service)

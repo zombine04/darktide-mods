@@ -166,6 +166,37 @@ local _merge_psyker_smite_debuff = function(buff_texts)
     return buff_texts
 end
 
+local _merge_broker_toxin_debuff = function(buff_texts)
+    local buff_name = "neurotoxin_interval_buff"
+    local buff_variants = {
+		"neurotoxin_interval_buff2",
+		"neurotoxin_interval_buff3",
+		"exploding_toxin_interval_buff"
+	}
+
+	local total_stacks = 0
+
+    if buff_texts[buff_name] then
+		total_stacks = total_stacks + (buff_texts[buff_name].stacks or 0)
+	end
+
+	for _, variant in ipairs(buff_variants) do
+        if buff_texts[variant] then
+            total_stacks = total_stacks + (buff_texts[variant].stacks or 0)
+			buff_texts[variant] = nil
+		end
+	end
+
+    if total_stacks > 0 then
+        buff_texts[buff_name] = {
+            display_name = mod:localize(buff_name),
+            stacks = total_stacks
+        }
+    end
+
+    return buff_texts
+end
+
 local _is_rending_debuff = function(buff_name)
     return buff_name:match("rending") and buff_name:match("debuff")
 end
@@ -208,6 +239,7 @@ local _add_buff_and_debuff = function(buff_ext, buffs, stat_buffs)
 
     buff_texts = _get_rending_debuff_multiplier(buff_texts, stat_buffs)
     buff_texts = _merge_psyker_smite_debuff(buff_texts)
+	buff_texts = _merge_broker_toxin_debuff(buff_texts)
 end
 
 local _add_buff_and_debuff_by_keywords = function(buff_ext, keywords)
@@ -285,7 +317,7 @@ function template.update_function(parent, ui_renderer, widget, marker, template,
     content.body_text = ""
 
     if mod._setting_changed then
-        _update_settings(style, marker.template)
+        _update_settings(style, template)
         mod._setting_changed = false
     end
 
