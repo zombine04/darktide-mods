@@ -7,6 +7,7 @@ mod:add_global_localize_strings({
         ja = "名前を変更する",
         ["zh-cn"] = "更改名称",
         ru = "Изменить название",
+        ["zh-tw"] = "更改名稱",
     },
     loc_popup_description_change_name = {
         en = "\n",
@@ -16,18 +17,21 @@ mod:add_global_localize_strings({
         ja = "キャンセル",
         ["zh-cn"] = "取消",
         ru = "Отмена",
+        ["zh-tw"] = "取消",
     },
     loc_reset_all_item_names = {
         en = "Clear All Custom Names",
         ja = "全カスタム名の消去",
         ["zh-cn"] = "清除所有自定义名称",
         ru = "Очистить все изменённые названия",
+        ["zh-tw"] = "清除所有自定義名稱",
     },
     loc_popup_description_reset_all_item_names = {
         en = "Are you sure you want to clear all custom names?",
         ja = "本当に全てのカスタム名を消去してもいいですか？",
         ["zh-cn"] = "你确定要清除所有自定义名称吗？",
         ru = "Вы действительно хотите очистить все изменённые названия?",
+        ["zh-tw"] = "您確定要清除所有自定義名稱嗎？",
     }
 })
 
@@ -36,6 +40,7 @@ local loc = {
         en = "Name It",
         ["zh-cn"] = "物品自定义名称",
         ru = "Назови это",
+        ["zh-tw"] = "物品自定義名稱",
     },
     mod_description = {
         en = "Allows each item to set a custom name.\n" ..
@@ -46,12 +51,15 @@ local loc = {
              "注意：如果要恢复物品默认名称，可以将名称留空再保存，或使用底部的“清除所有”按钮。",
         ru = "Позволяет изменить название любого предмета.\n" ..
              "Внимание:Если вы хотите вернуть стандартное название предмета, сохраните пустую строку или используйте кнопку «Очистить все изменённые названия», расположенную ниже.",
+        ["zh-tw"] = "允許為物品設置不同的自定義名稱。\n" ..
+                "注意：如果要恢復物品預設名稱，可以將名稱留空再保存，或使用底部的“清除所有”按鈕。",
     },
     keybind_change_name = {
         en = "Keybind",
         ja = "キーバインド",
         ["zh-cn"] = "快捷键",
         ru = "Горячая клавиша",
+        ["zh-tw"] = "快捷鍵",
     },
     off = {
         en = Localize("loc_setting_checkbox_off"),
@@ -61,18 +69,21 @@ local loc = {
         ja = "武器のパターン名を置き換える",
         ["zh-cn"] = "替换武器型号名称",
         ru = "Заменить название модели оружия",
+        ["zh-tw"] = "替換武器型號名稱",
     },
     tooltip_replace_pattern_name = {
         en = "Replace the weapon pattern name and mark name with a custom name instead of the weapon category name.",
         ja = "武器カテゴリ名の代わりにパターン名とマーク名をカスタム名に変更する。",
         ["zh-cn"] = "使用自定义名称替换武器的式样和型号名称，而非武器类别名称。",
         ru = "Заменяет название модели оружия на пользовательское название вместо названия категории оружия.",
+        ["zh-tw"] = "使用自定義名稱替換武器的式樣和型號名稱，而非武器類別名稱。",
     },
     enable_ime = {
         en = "Enable IME",
         ja = "IMEを有効にする",
         ["zh-cn"] = "启用输入法",
         ru = "Включить Редактор метода ввода",
+        ["zh-tw"] = "啟用輸入法",
     },
     button_reset_all = {
         en = Localize("loc_reset_all_item_names")
@@ -82,6 +93,7 @@ local loc = {
         ja = "消去しました",
         ["zh-cn"] = "已清除",
         ru = "Очищено",
+        ["zh-tw"] = "已清除",
     }
 }
 
