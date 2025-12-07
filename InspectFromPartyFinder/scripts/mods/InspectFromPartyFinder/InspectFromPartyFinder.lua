@@ -1,10 +1,13 @@
---[[
-    title: InspectFromPartyFinder
-    author: Zombine
-    date: 2025/03/31
-    version: 1.0.3
-]]
 local mod = get_mod("InspectFromPartyFinder")
+
+mod._info = {
+    title = "Inspect from Party Finder",
+    author = "Zombine",
+    date = "2025/12/07",
+    version = "1.0.4"
+}
+mod:info("Version " .. mod._info.version)
+
 local ButtonPassTemplates = require("scripts/ui/pass_templates/button_pass_templates")
 
 local function player_request_terminal_button_change_function_inspect(content, style)
@@ -253,8 +256,16 @@ mod:hook_safe(CLASS.GroupFinderView, "init", function(self)
     end
 end)
 
--- listed_group
+-- close havoc_background_view to prevent overwriting tutorial_overlay in stimm lab
+mod:hook_safe(CLASS.GroupFinderView, "on_enter", function(self)
+    local ui_manager = Managers.ui
 
+    if ui_manager:view_active("havoc_background_view") then
+        ui_manager:close_view("havoc_background_view")
+    end
+end)
+
+-- listed_group
 mod:hook_safe(CLASS.GroupFinderView, "_update_listed_group", function(self)
     local own_group = self._own_group_visualization
     local members = own_group.members
@@ -275,7 +286,6 @@ mod:hook_safe(CLASS.GroupFinderView, "_update_listed_group", function(self)
 end)
 
 -- preview_grid
-
 mod:hook_safe(CLASS.GroupFinderView, "_populate_preview_grid", function(self)
     local grid = self._preview_grid
     local widgets = grid and grid:widgets()
@@ -311,7 +321,6 @@ mod:hook_safe(CLASS.GroupFinderView, "update", function(self)
     end
 
     -- player_request_grid
-
     local grid = self._player_request_grid
     local widgets = grid and grid:widgets()
 
