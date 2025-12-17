@@ -336,6 +336,7 @@ local loc = {
     },
     neurotoxin_interval_buff = {
         en = "Chem Toxin",
+        ja = "ケム毒",
 		["zh-cn"] = "化学毒素",
 	},
     power_maul_sticky_tick = {

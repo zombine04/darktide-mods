@@ -3,8 +3,8 @@ local mod = get_mod("debuff_indicator")
 mod._info = {
     title = "Debuff Indicator",
     author = "Zombine",
-    date = "2025/12/03",
-    version = "1.7.3"
+    date = "2025/12/17",
+    version = "1.7.4"
 }
 mod:info("Version " .. mod._info.version)
 
