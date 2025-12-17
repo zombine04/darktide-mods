@@ -1,10 +1,12 @@
---[[
-    title: RememberDifficulty
-    author: Zombine
-    date: 2025/03/27
-    version: 1.0.1
-]]
 local mod = get_mod("RememberDifficulty")
+
+mod._info = {
+    title = "Remember Difficulty",
+    author = "Zombine",
+    date = "2025/12/17",
+    version = "1.0.1"
+}
+mod:info("Version " .. mod._info.version)
 
 local _save_selected_difficulty_index = function(self, index)
     local view_name = self.view_name

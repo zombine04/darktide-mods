@@ -1,16 +1,10 @@
---[[
-    title: name_it
-    author: Zombine
-    date: 2025/12/17
-    version: 1.3.7
-]]
 local mod = get_mod("name_it")
 
 mod._info = {
     title = "Name It",
     author = "Zombine",
-    date = "2025/12/03",
-    version = "1.3.6"
+    date = "2025/12/17",
+    version = "1.3.7"
 }
 mod:info("Version " .. mod._info.version)
 
