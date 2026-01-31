@@ -3,8 +3,8 @@ local mod = get_mod("modular_menu_buttons")
 mod._info = {
     title = "Modular Menu Buttons",
     author = "Zombine",
-    date = "2025/09/24",
-    version = "1.2.6"
+    date = "2026/01/31",
+    version = "1.2.1"
 }
 mod:info("Version " .. mod._info.version)
 
@@ -117,21 +117,34 @@ local _get_setting_id_from_text = function(text)
     end
 end
 
-local _edit_existing_content = function(default_contnent)
-
-    for i, setting in ipairs(default_contnent) do
+local _edit_existing_content = function(default, main)
+    for i, setting in ipairs(default) do
         if setting.text == "loc_character_view_display_name" or
            setting.text == "loc_achievements_view_display_name" or
            setting.text == "loc_social_view_display_name" or
            setting.text == "loc_exit_to_main_menu_display_name" or
            setting.text == "loc_group_finder_menu_title" then
-            default_contnent[i].validation_function = function()
+            default[i].validation_function = function()
                 return mod:get(_get_setting_id_from_text(setting.text))
             end
         end
     end
 
-    return default_contnent
+    -- replace quit func if in main menu (Patch 1.10.4)
+    if mod._current_state == 'main_menu' then
+        local loc_quit = "loc_quit_game_display_name"
+        local index = table.find_by_key(main, "text", loc_quit)
+
+        if index ~= nil then
+            local target_index = table.find_by_key(default, "text", loc_quit)
+
+            if target_index ~= nil then
+                default[target_index] = main[index]
+            end
+        end
+    end
+
+    return default
 end
 
 local get_new_content = function(original_content)
@@ -173,7 +186,7 @@ local get_new_content = function(original_content)
     end
 
     table.insert(content.default, 5, { type = "spacing_vertical"})
-    content.default = _edit_existing_content(content.default)
+    content.default = _edit_existing_content(content.default, content.StateMainMenu)
     content.StateMainMenu = nil
 
     --mod:dump(content, "content", 2)
