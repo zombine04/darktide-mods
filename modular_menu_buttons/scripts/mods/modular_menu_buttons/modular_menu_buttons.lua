@@ -4,7 +4,7 @@ mod._info = {
     title = "Modular Menu Buttons",
     author = "Zombine",
     date = "2026/01/31",
-    version = "1.2.1"
+    version = "1.2.7"
 }
 mod:info("Version " .. mod._info.version)
 
