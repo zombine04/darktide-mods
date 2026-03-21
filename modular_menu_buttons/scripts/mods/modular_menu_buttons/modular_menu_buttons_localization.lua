@@ -26,7 +26,7 @@ local loc = {
     lobby = {
         en = Localize("loc_hud_presence_matchmaking")
     },
-    coop_complete_objective = {
+    mission = {
         en = Localize("loc_hud_presence_mission")
     },
 }

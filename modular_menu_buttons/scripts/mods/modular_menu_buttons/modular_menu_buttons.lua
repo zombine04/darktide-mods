@@ -3,14 +3,15 @@ local mod = get_mod("modular_menu_buttons")
 mod._info = {
     title = "Modular Menu Buttons",
     author = "Zombine",
-    date = "2026/01/31",
-    version = "1.2.7"
+    date = "2026/03/21",
+    version = "1.2.8"
 }
 mod:info("Version " .. mod._info.version)
 
 local COOP_MISSIONS = {
     coop_complete_objective = true,
-    survival = true
+    survival = true,
+    expedition = true,
 }
 
 -- Load Assets
@@ -123,7 +124,8 @@ local _edit_existing_content = function(default, main)
            setting.text == "loc_achievements_view_display_name" or
            setting.text == "loc_social_view_display_name" or
            setting.text == "loc_exit_to_main_menu_display_name" or
-           setting.text == "loc_group_finder_menu_title" then
+           setting.text == "loc_group_finder_menu_title" or
+           setting.text == "loc_store_view_display_name" then
             default[i].validation_function = function()
                 return mod:get(_get_setting_id_from_text(setting.text))
             end
@@ -147,33 +149,27 @@ local _edit_existing_content = function(default, main)
     return default
 end
 
-local get_new_content = function(original_content)
-    local content = table.clone(original_content)
+local _get_insert_pos = function(default)
+    local pos = nil
 
-    table.remove(content.default, 5)
-    table.remove(content.default, 5)
-    table.insert(content.default, 5, {
-        text = "loc_credits_view_title",
-        icon = "content/ui/materials/icons/system/escape/credits",
-        type = "button",
-        trigger_function = function()
-            Managers.ui:open_view("credits_view")
-        end,
-        validation_function = function()
-            return mod:get(_format_setting_id("credits_view"))
-        end
-    })
-
-    for i, setting in ipairs(content.default) do
-        if setting.type == "large_button" then
-            content.default[i].type = "button"
+    for i, content in ipairs(default) do
+        if content.type == "spacing_vertical" then
+            pos = i
+            break
         end
     end
 
-    local additional_content = table.clone(mod._content_list)
-    table.reverse(additional_content)
+    while default[pos + 1].type == "spacing_vertical" do
+        table.remove(default, pos)
+    end
 
-    for _, setting in ipairs(additional_content) do
+    return pos
+end
+
+local _add_main_menu_specific_content = function(default, pos)
+    for i = 1, 2 do
+        local setting = mod._content_list_main_menu[i]
+
         setting.trigger_function = function()
             Managers.ui:open_view(setting.name)
         end
@@ -182,10 +178,42 @@ local get_new_content = function(original_content)
             return mod:get(_format_setting_id(setting.name))
         end
 
-        table.insert(content.default, 5, setting)
+        table.insert(default, pos + i, setting)
+    end
+end
+
+local _normalize_button_size = function(default)
+    for i, setting in ipairs(default) do
+        if setting.type == "large_button" then
+            default[i].type = "button"
+        end
+    end
+end
+
+local get_new_content = function(original_content)
+    local content = table.clone(original_content)
+    local pos = _get_insert_pos(content.default)
+
+    if pos == nil then
+        return content
     end
 
-    table.insert(content.default, 5, { type = "spacing_vertical"})
+    _add_main_menu_specific_content(content.default, pos)
+    _normalize_button_size(content.default)
+
+    for i, setting in ipairs(mod._content_list) do
+        setting.trigger_function = function()
+            Managers.ui:open_view(setting.name)
+        end
+
+        setting.validation_function = function ()
+            return mod:get(_format_setting_id(setting.name))
+        end
+
+        table.insert(content.default, pos - 1 + i, setting)
+    end
+
+    table.insert(content.default, pos, { type = "spacing_vertical"})
     content.default = _edit_existing_content(content.default, content.StateMainMenu)
     content.StateMainMenu = nil
 

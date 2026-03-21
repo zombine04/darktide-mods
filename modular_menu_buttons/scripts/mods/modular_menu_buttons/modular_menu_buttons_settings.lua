@@ -61,12 +61,45 @@ mod._content_list = {
         }
     },
     {
+        name = "barber_vendor_background_view",
+        text = "loc_body_shop_view_display_name",
+        type = "button",
+        icon = "content/ui/materials/hud/interactions/icons/barber",
+        group = {
+            "main_menu",
+            "hub",
+            "shooting_range",
+        }
+    },
+    {
         name = "mission_board_view",
         text = "loc_mission_board_view",
         type = "button",
         icon = "content/ui/materials/hud/interactions/icons/mission_board",
         group = {
             "main_menu",
+            "hub",
+            "shooting_range",
+        }
+    },
+    {
+        name = "expedition_view",
+        text = "loc_expeditions_view",
+        type = "button",
+        icon = "content/ui/materials/hud/interactions/icons/expeditions",
+        group = {
+            "main_menu",
+            "hub",
+            "shooting_range",
+        }
+    },
+    {
+        name = "havoc_background_view",
+        text = "loc_havoc_name",
+        type = "button",
+        icon = "content/ui/materials/hud/interactions/icons/havoc",
+        group = {
+            -- "main_menu",
             "hub",
             "shooting_range",
         }
@@ -82,41 +115,6 @@ mod._content_list = {
             "shooting_range",
             "lobby",
             "mission",
-        }
-    },
-    {
-        name = "barber_vendor_background_view",
-        text = "loc_body_shop_view_display_name",
-        type = "button",
-        icon = "content/ui/materials/hud/interactions/icons/barber",
-        group = {
-            "main_menu",
-            "hub",
-            "shooting_range",
-        }
-    },
-    {
-        name = "store_view",
-        text = "loc_store_view_display_name",
-        type = "button",
-        icon = "content/ui/materials/icons/system/escape/premium_store",
-        group = {
-            "main_menu",
-            "hub",
-            "shooting_range",
-            "lobby",
-            "mission",
-        }
-    },
-    {
-        name = "havoc_background_view",
-        text = "loc_havoc_name",
-        type = "button",
-        icon = "content/ui/materials/hud/interactions/icons/havoc",
-        group = {
-            -- "main_menu",
-            "hub",
-            "shooting_range",
         }
     }
 }
@@ -163,12 +161,34 @@ mod._content_list_default = {
             "shooting_range",
         }
     },
+    {
+        name = "store_view",
+        text = "loc_store_view_display_name",
+        group = {
+            "main_menu",
+            "hub",
+            "shooting_range",
+            "lobby",
+            "mission",
+        }
+    },
 }
 
 mod._content_list_main_menu = {
     {
+        name = "news_view",
+        text = "loc_news_view_title",
+        type = "button",
+        icon = "content/ui/materials/icons/system/escape/news",
+        group = {
+            "main_menu",
+        }
+    },
+    {
         name = "credits_view",
         text = "loc_credits_view_title",
+        type = "button",
+        icon = "content/ui/materials/icons/system/escape/credits",
         group = {
             "main_menu",
         }
@@ -176,6 +196,8 @@ mod._content_list_main_menu = {
     {
         name = "main_menu_view",
         text = "loc_exit_to_main_menu_display_name",
+        type = "button",
+        icon = "content/ui/materials/icons/system/escape/change_character",
         group = {
             "hub",
             "shooting_range",
