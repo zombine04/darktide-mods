@@ -118,14 +118,9 @@ local _get_setting_id_from_text = function(text)
     end
 end
 
-local _edit_existing_content = function(default, main)
+local _edit_existing_content = function(default, main_menu)
     for i, setting in ipairs(default) do
-        if setting.text == "loc_character_view_display_name" or
-           setting.text == "loc_achievements_view_display_name" or
-           setting.text == "loc_social_view_display_name" or
-           setting.text == "loc_exit_to_main_menu_display_name" or
-           setting.text == "loc_group_finder_menu_title" or
-           setting.text == "loc_store_view_display_name" then
+        if setting.text and table.find_by_key(mod._content_list_default, "text", setting.text) then
             default[i].validation_function = function()
                 return mod:get(_get_setting_id_from_text(setting.text))
             end
@@ -135,13 +130,13 @@ local _edit_existing_content = function(default, main)
     -- replace quit func if in main menu (Patch 1.10.4)
     if mod._current_state == 'main_menu' then
         local loc_quit = "loc_quit_game_display_name"
-        local index = table.find_by_key(main, "text", loc_quit)
+        local index = table.find_by_key(main_menu, "text", loc_quit)
 
         if index ~= nil then
             local target_index = table.find_by_key(default, "text", loc_quit)
 
             if target_index ~= nil then
-                default[target_index] = main[index]
+                default[target_index] = main_menu[index]
             end
         end
     end
