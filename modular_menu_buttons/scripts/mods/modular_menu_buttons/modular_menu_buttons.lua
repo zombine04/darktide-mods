@@ -3,8 +3,8 @@ local mod = get_mod("modular_menu_buttons")
 mod._info = {
     title = "Modular Menu Buttons",
     author = "Zombine",
-    date = "2026/03/21",
-    version = "1.2.8"
+    date = "2026/03/23",
+    version = "1.2.9"
 }
 mod:info("Version " .. mod._info.version)
 
@@ -166,12 +166,19 @@ local _get_insert_pos = function(default)
     return pos
 end
 
-local _add_main_menu_specific_content = function(default, pos)
+local _add_main_menu_specific_content = function(default, main_menu, pos)
     for i = 1, 2 do
         local setting = mod._content_list_main_menu[i]
+        local index = table.find_by_key(main_menu, "text", setting.text)
 
-        setting.trigger_function = function()
-            Managers.ui:open_view(setting.name)
+        if index then
+            setting.trigger_function = main_menu[index].trigger_function
+        else
+            setting.trigger_function = function()
+                Managers.ui:open_view(setting.name, nil, nil, nil, nil, {
+                    can_exit = true
+                })
+            end
         end
 
         setting.validation_function = function ()
@@ -198,7 +205,7 @@ local get_new_content = function(original_content)
         return content
     end
 
-    _add_main_menu_specific_content(content.default, pos)
+    _add_main_menu_specific_content(content.default, content.StateMainMenu, pos)
     _normalize_button_size(content.default)
 
     for i, setting in ipairs(mod._content_list) do
