@@ -22,8 +22,23 @@ local _salvage_enabled = function(game_mode)
 end
 
 local _set_widget_visible = function(widget, visible)
-    if widget and widget.content.visible ~= visible then
+    if not widget then
+        return
+    end
+
+    local changed = false
+
+    if widget.visible ~= visible then
+        widget.visible = visible
+        changed = true
+    end
+
+    if widget.content.visible ~= visible then
         widget.content.visible = visible
+        changed = true
+    end
+
+    if changed then
         widget.dirty = true
     end
 end
@@ -62,14 +77,14 @@ local _restore_vanilla_salvage = function(panel, show_widget)
 end
 
 local _trim_previous_salvage = function(text, previous_text)
-    if not previous_text then
+    if not previous_text or previous_text == "" then
         return text
     end
 
     local suffix = " " .. previous_text
 
-    if string.sub(text, -#suffix) == suffix then
-        return string.sub(text, 1, #text - #suffix)
+    while string.sub(text, -#suffix) == suffix do
+        text = string.sub(text, 1, #text - #suffix)
     end
 
     return text
@@ -154,9 +169,19 @@ local _append_player_salvage = function(panel, player, game_mode, style)
 
     local content = widget.content
     local original_text = content.text or ""
+    local text = _player_salvage_text(style, salvage_amount)
     local current_text = _trim_previous_salvage(original_text, panel.tl_salvage_text)
 
+    if panel.tl_salvage_text ~= text then
+        current_text = _trim_previous_salvage(current_text, text)
+    end
+
     if current_text == "" then
+        if current_text ~= original_text then
+            content.text = current_text
+            widget.dirty = true
+        end
+
         return false
     end
 
@@ -166,18 +191,14 @@ local _append_player_salvage = function(panel, player, game_mode, style)
         container_size[1] = math.max(container_size[1], PLAYER_NAME_WITH_SALVAGE_WIDTH)
     end
 
-    if panel.tl_salvage_base_text == current_text
-        and panel.tl_salvage_amount == salvage_amount
-        and panel.tl_salvage_style == style
-        and original_text ~= current_text
-    then
-        return true
-    end
-
-    local text = _player_salvage_text(style, salvage_amount)
     local new_text = current_text .. " " .. text
 
     if original_text == new_text then
+        panel.tl_salvage_text = text
+        panel.tl_salvage_base_text = current_text
+        panel.tl_salvage_amount = salvage_amount
+        panel.tl_salvage_style = style
+
         return true
     end
 

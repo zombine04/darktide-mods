@@ -197,6 +197,15 @@ local _concat_levels = function(ref)
     return result
 end
 
+local _trim_added_levels = function(text)
+    -- Color markup can make the appended level suffix start with "{#color...}"
+    -- instead of a digit, so strip both plain and colored variants.
+    text = text:gsub("%s+%-%s+%d.+", "")
+    text = text:gsub("%s+%-%s+{#.-}%d.+", "")
+
+    return text
+end
+
 mod.replace_level = function(text, true_levels, reference, need_adding)
     _init_levels()
 
@@ -224,7 +233,7 @@ mod.replace_level = function(text, true_levels, reference, need_adding)
     end
 
     if need_adding then
-        text = text:gsub("%s+%-%s+%d.+", "")
+        text = _trim_added_levels(text)
     end
 
     if display_style ~= "none" then
