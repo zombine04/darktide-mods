@@ -83,7 +83,7 @@ local _populate_data = function(base_data, havoc_rank_cadence_high)
         true_levels.needed_xp = xp_per_level - remaining_xp
         true_levels.additional_level = additional_level
         true_levels.true_level = true_level
-        true_levels.prestige = math.floor(current_xp / total_xp)
+        true_levels.prestige = math.floor(true_level / max_level)
         true_levels.havoc_rank = havoc_rank_cadence_high
     end
 

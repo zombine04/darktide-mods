@@ -4,6 +4,7 @@ local ref = "team_panel"
 local SALVAGE_NAME = Localize("loc_expeditions_currency_name_hud")
 local SALVAGE_SYMBOL = mod.get_symbol("salvage")
 local PLAYER_NAME_WITH_SALVAGE_WIDTH = 700
+local RICH_TEXT_RESET = "{#reset()}"
 
 local _expedition_game_mode = function()
     local game_mode_manager = Managers.state.game_mode
@@ -76,18 +77,58 @@ local _restore_vanilla_salvage = function(panel, show_widget)
     end
 end
 
+local _ends_with = function(text, suffix)
+    return suffix ~= "" and string.sub(text, -#suffix) == suffix
+end
+
+local _trim_trailing_resets = function(text)
+    local count = 0
+
+    while _ends_with(text, RICH_TEXT_RESET) do
+        text = string.sub(text, 1, #text - #RICH_TEXT_RESET)
+        count = count + 1
+    end
+
+    return text, count
+end
+
 local _trim_previous_salvage = function(text, previous_text)
     if not previous_text or previous_text == "" then
-        return text
+        return text, "", false
     end
 
-    local suffix = " " .. previous_text
+    local original_text = text
+    local previous_body, previous_reset_count = _trim_trailing_resets(previous_text)
 
-    while string.sub(text, -#suffix) == suffix do
-        text = string.sub(text, 1, #text - #suffix)
+    if previous_body == "" then
+        return original_text, "", false
     end
 
-    return text
+    local suffix = " " .. previous_body
+    local trailing_reset_count = 0
+    local removed = false
+
+    repeat
+        local reset_count
+
+        text, reset_count = _trim_trailing_resets(text)
+
+        if _ends_with(text, suffix) then
+            text = string.sub(text, 1, #text - #suffix)
+            trailing_reset_count = math.max(trailing_reset_count, reset_count - previous_reset_count)
+            removed = true
+        else
+            text = text .. string.rep(RICH_TEXT_RESET, reset_count)
+            break
+        end
+    until false
+
+    if not removed then
+        return original_text, "", false
+    end
+
+    -- Keep formatting resets added after salvage by other HUD mods.
+    return text, string.rep(RICH_TEXT_RESET, trailing_reset_count), true
 end
 
 local _remove_player_salvage = function(panel)
@@ -105,7 +146,8 @@ local _remove_player_salvage = function(panel)
 
     local content = widget.content
     local text = content.text or ""
-    local current_text = _trim_previous_salvage(text, previous_text)
+    local current_text, trailing_text = _trim_previous_salvage(text, previous_text)
+    current_text = current_text .. trailing_text
 
     if current_text ~= text then
         content.text = current_text
@@ -170,15 +212,17 @@ local _append_player_salvage = function(panel, player, game_mode, style)
     local content = widget.content
     local original_text = content.text or ""
     local text = _player_salvage_text(style, salvage_amount)
-    local current_text = _trim_previous_salvage(original_text, panel.tl_salvage_text)
+    local current_text, trailing_text, removed = _trim_previous_salvage(original_text, panel.tl_salvage_text)
 
-    if panel.tl_salvage_text ~= text then
-        current_text = _trim_previous_salvage(current_text, text)
+    if not removed and panel.tl_salvage_text ~= text then
+        current_text, trailing_text = _trim_previous_salvage(current_text, text)
     end
 
     if current_text == "" then
-        if current_text ~= original_text then
-            content.text = current_text
+        local cleaned_text = current_text .. trailing_text
+
+        if cleaned_text ~= original_text then
+            content.text = cleaned_text
             widget.dirty = true
         end
 
@@ -191,7 +235,7 @@ local _append_player_salvage = function(panel, player, game_mode, style)
         container_size[1] = math.max(container_size[1], PLAYER_NAME_WITH_SALVAGE_WIDTH)
     end
 
-    local new_text = current_text .. " " .. text
+    local new_text = current_text .. " " .. text .. trailing_text
 
     if original_text == new_text then
         panel.tl_salvage_text = text
