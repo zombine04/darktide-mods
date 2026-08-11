@@ -3,8 +3,8 @@ local mod = get_mod("true_level")
 mod._info = {
     title = "True Level",
     author = "Zombine",
-    date = "2026/06/24",
-    version = "1.10.1",
+    date = "2026/08/11",
+    version = "1.10.2",
 }
 mod:info("Version " .. mod._info.version)
 

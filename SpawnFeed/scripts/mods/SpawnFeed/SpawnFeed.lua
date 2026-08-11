@@ -6,8 +6,8 @@ local weakened_suffix = "_weakened"
 mod._info = {
     title = "Spawn Feed",
     author = "Zombine",
-    date = "2025/12/03",
-    version = "1.2.6"
+    date = "2026/08/11",
+    version = "1.2.7"
 }
 mod:info("Version " .. mod._info.version)
 
@@ -236,7 +236,7 @@ end)
 -- Modify Notification
 -- ############################################################
 
-mod:hook("ConstantElementNotificationFeed", "_add_notification_message", function(func, self, message_type, data, ...)
+mod:hook("ConstantElementNotificationFeed", "_add_notification_message", function(func, self, message_type, data, notification_id, ...)
     if message_type == "default" and type(data) == "table" and data.is_spawned then
         for i, notification in ipairs(self._notifications) do
             if notification.is_spawned and notification.breed == data.breed then
@@ -255,7 +255,7 @@ mod:hook("ConstantElementNotificationFeed", "_add_notification_message", functio
         local notification_data = self:_generate_notification_data(message_type, message)
 
         if notification_data then
-            local notification = self:_create_notification_entry(notification_data)
+            local notification = self:_create_notification_entry(notification_data, notification_id)
 
             notification.is_spawned = true
             notification.breed = data.breed
