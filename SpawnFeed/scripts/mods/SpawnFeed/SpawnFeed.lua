@@ -6,8 +6,8 @@ local weakened_suffix = "_weakened"
 mod._info = {
     title = "Spawn Feed",
     author = "Zombine",
-    date = "2026/08/11",
-    version = "1.2.7"
+    date = "2026/08/12",
+    version = "1.2.8"
 }
 mod:info("Version " .. mod._info.version)
 
@@ -266,7 +266,7 @@ mod:hook("ConstantElementNotificationFeed", "_add_notification_message", functio
             end
         end
     else
-        func(self, message_type, data, ...)
+        func(self, message_type, data, notification_id, ...)
     end
 end)
 
