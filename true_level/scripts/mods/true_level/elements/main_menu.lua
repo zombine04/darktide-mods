@@ -36,7 +36,7 @@ local _get_all_progression = function(self)
             mod.cache_true_levels(cache, data.id, data, havoc_rank_cadence_high, account_id)
         end
 
-        mod.desync(ref)
+        mod.desynced(ref)
         mod.debug.dump(mod._self, "backend_progression")
     end)
 end

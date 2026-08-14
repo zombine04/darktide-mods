@@ -274,8 +274,8 @@ mod.replace_level = function(text, true_levels, reference, need_adding)
     local levels_text = _concat_levels(reference)
 
     if need_adding and levels_text ~= "" then
-        text = text .. " - " ..  _concat_levels(reference)
-    else
+        text = text .. " - " .. levels_text
+    elseif levels_text == "" or not string.find(text, levels_text, 1, true) then
         text = text:gsub("%d+" .. suffix, levels_text)
     end
 
