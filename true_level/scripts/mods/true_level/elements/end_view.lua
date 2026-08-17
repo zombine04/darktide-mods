@@ -72,7 +72,20 @@ mod:hook_safe(CLASS.EndView, "_set_character_names", function(self)
                         mod._havoc_promises[account_id] = true
                     end
 
-                    content.character_name = mod.replace_level(character_name, true_levels, ref)
+                    local base_name = character_name
+
+                    if slot.tl_name_base_text and slot.tl_name_text == character_name then
+                        base_name = slot.tl_name_base_text
+                    end
+
+                    local new_name = mod.replace_level(base_name, true_levels, ref)
+
+                    if new_name ~= character_name then
+                        content.character_name = new_name
+                    end
+
+                    slot.tl_name_base_text = base_name
+                    slot.tl_name_text = new_name
                 end
             end
         end
