@@ -365,8 +365,6 @@ mod:io_dofile("true_level/scripts/mods/true_level/true_level_debug")
 -- Get Character Progression
 -- ############################################################
 
--- players publish their new havoc clearance only after entering the hub,
--- so keep the clearance of already cached characters in sync with presence
 local _refresh_havoc_clearance = function(presence, true_levels)
     if not true_levels.true_level then
         return
