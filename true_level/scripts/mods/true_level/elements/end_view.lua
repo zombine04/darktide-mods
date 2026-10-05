@@ -3,11 +3,54 @@ local ref = "end_view"
 
 mod:hook_safe(CLASS.EndView, "init", function(self)
     mod.desynced(ref)
-    mod.clear_havoc_assignments()
-    mod.request_local_havoc_assignment()
 end)
 
+-- a havoc mission changes the assignments of its participants:
+-- take the local one from the report and refresh the others in the hub
+local _apply_havoc_report = function(self)
+    local session_report = self._session_report
+
+    if not session_report or session_report.dummy or self.tl_havoc_report == session_report then
+        return
+    end
+
+    self.tl_havoc_report = session_report
+
+    local session_report_raw = session_report.eor
+    local mission = session_report_raw and session_report_raw.mission
+    local game_mode_details = mission and mission.gameModeDetails
+
+    if not game_mode_details or game_mode_details.type ~= "havoc" then
+        return
+    end
+
+    local character_report = session_report.character
+    local havoc_order_reward = character_report and character_report.havoc_order_reward
+
+    -- the reward is only reported if rank or charges changed
+    if havoc_order_reward then
+        mod.set_local_havoc_assignment(tonumber(havoc_order_reward.current_rank), tonumber(havoc_order_reward.current_charges))
+    end
+
+    local team_report = session_report_raw.team
+    local participant_reports = team_report and team_report.participants
+    local player = Managers.player:local_player_safe(1)
+    local local_account_id = player and player:account_id()
+
+    if participant_reports then
+        for i = 1, #participant_reports do
+            local account_id = participant_reports[i].accountId
+
+            if account_id and account_id ~= local_account_id then
+                mod.expire_havoc_assignment(account_id)
+            end
+        end
+    end
+end
+
 mod:hook_safe(CLASS.EndView, "_set_character_names", function(self)
+    _apply_havoc_report(self)
+
     if not mod.is_enabled_feature(ref) then
         return
     end

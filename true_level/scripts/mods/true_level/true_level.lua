@@ -14,10 +14,12 @@ mod._self = mod:persistent_table("self")
 mod._others = mod:persistent_table("others")
 mod._queue = mod:persistent_table("queue")
 mod._havoc_promises = mod:persistent_table("havoc")
-mod._havoc_assignments = mod:persistent_table("havoc_assignments")
-mod._havoc_assignment_promises = mod:persistent_table("havoc_assignment_promises")
+mod._havoc_assignments = mod:persistent_table("havoc_assignment_cache")
+mod._havoc_assignment_pending = {}
+mod._havoc_assignment_queue = {}
+mod._havoc_assignment_active = 0
 mod._havoc_assignment_refs = {}
-mod._havoc_assignment_found = false
+mod._havoc_assignment_changed = false
 mod._havoc_assignment_shared = mod:persistent_table("havoc_assignment_shared")
 mod._havoc_assignment_shared_raw = mod:persistent_table("havoc_assignment_shared_raw")
 mod._havoc_assignment_local = nil
@@ -136,6 +138,24 @@ local HAVOC_CHARGE_SYMBOLS = {
 local SHARE_KEY = "true_level_havoc_assignment"
 local SHARE_MAX_BYTES = 8
 local SHARE_MAX_RANK = 99
+local HAVOC_ASSIGNMENT_TTL = 600
+local HAVOC_ASSIGNMENT_MAX_REQUESTS = 2
+local EXPIRED = -math.huge
+
+local _now = function()
+    local time_manager = Managers.time
+
+    return time_manager and time_manager:has_timer("main") and time_manager:time("main") or 0
+end
+
+-- backend requests only run in the hub and the menus, never during missions or the results screen
+local _can_fetch_havoc_assignment = function()
+    local state_managers = Managers.state
+    local game_mode_manager = state_managers and state_managers.game_mode
+    local game_mode_name = game_mode_manager and game_mode_manager:game_mode_name()
+
+    return not game_mode_name or game_mode_name == "hub" or game_mode_name == "prologue_hub"
+end
 
 local _fetch_local_havoc_assignment = function()
     local havoc_service = Managers.data_service.havoc
@@ -273,40 +293,154 @@ local _update_shared_havoc_assignment = function(presence, account_id)
     end
 
     -- re-render only if this account has already been resolved or requested
-    if previous or mod._havoc_assignments[account_id] ~= nil or mod._havoc_assignment_promises[account_id] then
+    if previous or mod._havoc_assignments[account_id] or mod._havoc_assignment_pending[account_id] then
         mod.desync_all()
     end
 end
 
-local _settle_havoc_assignment = function(account_id, assignment, failed)
-    local promises = mod._havoc_assignment_promises
+-- returns whether the displayed assignment changed
+local _store_havoc_assignment = function(account_id, rank, charges)
+    local assignments = mod._havoc_assignments
+    local entry = assignments[account_id]
+    local changed = false
 
-    promises[account_id] = nil
-    mod._havoc_assignments[account_id] = assignment or false
-
-    if assignment then
-        mod._havoc_assignment_found = true
-        mod.debug.dump(assignment, "havoc_assignment: " .. account_id)
+    if entry then
+        changed = entry.rank ~= rank or entry.charges ~= charges
+    else
+        entry = {}
+        assignments[account_id] = entry
+        changed = rank ~= nil
     end
 
-    -- keep the last published value if the fetch failed
-    if not failed and _is_local_account(account_id) then
-        mod._havoc_assignment_local = assignment
+    entry.rank = rank
+    entry.charges = charges
+    entry.fetched_at = _now()
+
+    if _is_local_account(account_id) then
+        mod._havoc_assignment_local = rank and entry or nil
         _publish_havoc_assignment()
     end
 
-    -- re-render waiting elements once the whole batch has been fetched
-    if next(promises) == nil then
-        local refs = mod._havoc_assignment_refs
+    if changed then
+        mod.debug.dump(entry, "havoc_assignment: " .. account_id)
+    end
 
-        if mod._havoc_assignment_found then
-            for ref in pairs(refs) do
-                mod.desynced(ref)
-            end
+    return changed
+end
+
+-- re-render waiting elements once all queued requests are done
+local _finish_havoc_assignment_batch = function()
+    if next(mod._havoc_assignment_pending) ~= nil then
+        return
+    end
+
+    local refs = mod._havoc_assignment_refs
+
+    if mod._havoc_assignment_changed then
+        for ref in pairs(refs) do
+            mod.desynced(ref)
+        end
+    end
+
+    table.clear(refs)
+    mod._havoc_assignment_changed = false
+end
+
+local _request_next_havoc_assignment = nil
+
+local _settle_havoc_assignment = function(account_id, assignment, failed)
+    local pending = mod._havoc_assignment_pending
+
+    if not pending[account_id] then
+        return
+    end
+
+    pending[account_id] = nil
+    mod._havoc_assignment_active = mod._havoc_assignment_active - 1
+
+    if failed then
+        -- keep the previous value and the last published one, retry once it expires
+        local entry = mod._havoc_assignments[account_id]
+
+        if entry then
+            entry.fetched_at = _now()
+        else
+            mod._havoc_assignments[account_id] = { fetched_at = _now() }
+        end
+    elseif _store_havoc_assignment(account_id, assignment and assignment.rank, assignment and assignment.charges) then
+        mod._havoc_assignment_changed = true
+    end
+
+    _request_next_havoc_assignment()
+    _finish_havoc_assignment_batch()
+end
+
+local _start_havoc_assignment_request = function(account_id)
+    mod._havoc_assignment_active = mod._havoc_assignment_active + 1
+
+    local fetch = _is_local_account(account_id) and _fetch_local_havoc_assignment or _fetch_other_havoc_assignment
+    local ok, promise = pcall(fetch, account_id)
+
+    if not ok then
+        mod.debug.echo("havoc assignment request failed: " .. tostring(promise))
+        _settle_havoc_assignment(account_id, nil, true)
+
+        return
+    end
+
+    promise:next(function(result)
+        _settle_havoc_assignment(account_id, result)
+    end):catch(function(e)
+        mod.debug.dump(e, "havoc_assignment", 3)
+        _settle_havoc_assignment(account_id, nil, true)
+    end)
+end
+
+-- limit concurrent backend requests so bursts are spread out
+_request_next_havoc_assignment = function()
+    local queue = mod._havoc_assignment_queue
+
+    while mod._havoc_assignment_active < HAVOC_ASSIGNMENT_MAX_REQUESTS and queue[1] do
+        local account_id = table.remove(queue, 1)
+
+        if _can_fetch_havoc_assignment() then
+            _start_havoc_assignment_request(account_id)
+        else
+            -- left the hub: request it again the next time it is shown there
+            mod._havoc_assignment_pending[account_id] = nil
+        end
+    end
+end
+
+local _request_havoc_assignment = function(account_id, ref)
+    local pending = mod._havoc_assignment_pending
+
+    if not pending[account_id] then
+        if not _can_fetch_havoc_assignment() then
+            return
         end
 
-        table.clear(refs)
-        mod._havoc_assignment_found = false
+        if not GameParameters.prod_like_backend or not math.is_uuid(account_id) then
+            _store_havoc_assignment(account_id, nil, nil)
+
+            return
+        end
+
+        local queue = mod._havoc_assignment_queue
+
+        pending[account_id] = true
+
+        if _is_local_account(account_id) then
+            table.insert(queue, 1, account_id)
+        else
+            queue[#queue + 1] = account_id
+        end
+
+        _request_next_havoc_assignment()
+    end
+
+    if ref and pending[account_id] then
+        mod._havoc_assignment_refs[ref] = true
     end
 end
 
@@ -317,47 +451,15 @@ local _get_havoc_assignment = function(account_id, ref)
         return shared
     end
 
-    local assignment = mod._havoc_assignments[account_id]
+    local entry = mod._havoc_assignments[account_id]
 
-    if assignment ~= nil then
-        return assignment or nil
+    -- refresh missing or expired entries, but keep showing the old value meanwhile
+    if not entry or _now() - entry.fetched_at >= HAVOC_ASSIGNMENT_TTL then
+        _request_havoc_assignment(account_id, ref)
+        entry = mod._havoc_assignments[account_id]
     end
 
-    if ref then
-        mod._havoc_assignment_refs[ref] = true
-    end
-
-    if mod._havoc_assignment_promises[account_id] then
-        return nil
-    end
-
-    if not GameParameters.prod_like_backend or not math.is_uuid(account_id) then
-        mod._havoc_assignments[account_id] = false
-        return nil
-    end
-
-    local promise = nil
-
-    if _is_local_account(account_id) then
-        promise = _fetch_local_havoc_assignment()
-    else
-        promise = _fetch_other_havoc_assignment(account_id)
-    end
-
-    mod._havoc_assignment_promises[account_id] = true
-
-    promise:next(function(result)
-        _settle_havoc_assignment(account_id, result)
-    end):catch(function(e)
-        mod.debug.dump(e, "havoc_assignment", 3)
-        _settle_havoc_assignment(account_id, nil, true)
-    end)
-
-    return nil
-end
-
-mod.clear_havoc_assignments = function()
-    table.clear(mod._havoc_assignments)
+    return entry and entry.rank and entry or nil
 end
 
 -- fetch the local assignment for sharing, independent of the display settings
@@ -371,6 +473,25 @@ mod.request_local_havoc_assignment = function()
 
     if account_id then
         _get_havoc_assignment(account_id)
+    end
+end
+
+-- the results screen of a havoc mission already reports the new local assignment
+mod.set_local_havoc_assignment = function(rank, charges)
+    local player = Managers.player:local_player_safe(1)
+    local account_id = player and player:account_id()
+
+    if account_id and rank then
+        _store_havoc_assignment(account_id, rank, charges)
+    end
+end
+
+-- the assignment of a havoc mission participant has likely changed
+mod.expire_havoc_assignment = function(account_id)
+    local entry = mod._havoc_assignments[account_id]
+
+    if entry then
+        entry.fetched_at = EXPIRED
     end
 end
 
@@ -614,7 +735,6 @@ end
 
 mod.clear_cache = function ()
     table.clear(mod._others)
-    mod.clear_havoc_assignments()
 end
 
 mod.synced = function(ref)
