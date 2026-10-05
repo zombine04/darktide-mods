@@ -11,8 +11,6 @@ local _text_style = function(widget)
     end
 end
 
--- uses the same line breaking and scaling as the text pass that draws the name;
--- wrap_width is already corrected for the renderer scale that word_wrap applies
 local _fits_one_row = function(ui_renderer, text, font_type, font_size, render_scale, wrap_width)
     local scaled_font_size = math.max(font_size * render_scale, 1)
     local rows = UIRenderer.word_wrap(ui_renderer, text, font_type, scaled_font_size, wrap_width)
@@ -20,7 +18,6 @@ local _fits_one_row = function(ui_renderer, text, font_type, font_size, render_s
     return #rows <= 1
 end
 
--- spaces that reach from the start of the name to the " - " separator
 local _separator_indent = function(ui_renderer, prefix, font_type, font_size)
     local dash_width = UIRenderer.text_size(ui_renderer, "-", font_type, font_size)
     local separator_x = UIRenderer.text_size(ui_renderer, prefix .. " -", font_type, font_size) - dash_width
@@ -33,7 +30,6 @@ local _separator_indent = function(ui_renderer, prefix, font_type, font_size)
     return string.rep(" ", math.floor(separator_x / space_width + 0.5))
 end
 
--- move whole level components that don't fit to a second row, indented to the " - "
 local _wrap_levels = function(ui_renderer, text, font_type, font_size, render_scale, wrap_width)
     local level_texts = mod.get_level_texts()
     local count = #level_texts
@@ -67,8 +63,6 @@ local _wrap_levels = function(ui_renderer, text, font_type, font_size, render_sc
     return first_row .. "\n" .. _separator_indent(ui_renderer, prefix, font_type, font_size) .. second_row
 end
 
--- the tab bar on the right and the title below leave no room to grow, so shrink the
--- name until the added levels fit on one row, and wrap whole levels if they still don't
 local _fit_character_name = function(self, widget)
     local style = _text_style(widget)
 
@@ -84,7 +78,6 @@ local _fit_character_name = function(self, widget)
     local text = content.text
     local max_width = self:_scenegraph_size("character_name")
     local ui_renderer = self._ui_renderer
-    -- the view draws with its own render scale; the renderer scale is only set while drawing
     local render_scale = self._render_scale or 1
     local wrap_width = max_width * render_scale / (ui_renderer.scale or 1)
     local font_type = style.font_type
