@@ -5,6 +5,7 @@ local SALVAGE_NAME = Localize("loc_expeditions_currency_name_hud")
 local SALVAGE_SYMBOL = mod.get_symbol("salvage")
 local PLAYER_NAME_WITH_SALVAGE_WIDTH = 700
 local RICH_TEXT_RESET = "{#reset()}"
+local string_find = string.find
 
 local _expedition_game_mode = function()
     local game_mode_manager = Managers.state.game_mode
@@ -257,6 +258,29 @@ local _append_player_salvage = function(panel, player, game_mode, style)
     return true
 end
 
+local _sync_level_text = function(panel)
+    local level_text = panel.tl_level_text
+    local widget = panel._widgets_by_name.player_name
+
+    if not level_text or not widget then
+        return
+    end
+
+    local content = widget.content
+    local text = content.text
+
+    if not text or text == level_text then
+        return
+    end
+
+    if text == panel.tl_level_base_text then
+        content.text = level_text
+        widget.dirty = true
+    elseif not string_find(text, level_text, 1, true) then
+        panel.tl_modified = false
+    end
+end
+
 local _toggle_level_display = function(self)
     self._supported_features.level = mod.is_enabled_feature(ref)
 end
@@ -356,6 +380,8 @@ mod:hook_safe(CLASS.HudElementTeamPanelHandler, "update", function(self, dt, t, 
             _remove_player_salvage(panel)
             panel._current_player_name = nil
             panel.tl_modified = false
+            panel.tl_level_text = nil
+            panel.tl_level_base_text = nil
             panel.wru_modified = false
         end
 
@@ -369,6 +395,11 @@ mod:hook_safe(CLASS.HudElementTeamPanelHandler, "update", function(self, dt, t, 
 
     for _, data in ipairs(player_panels_array) do
         local panel = data.panel
+
+        if panel.tl_modified then
+            _sync_level_text(panel)
+        end
+
         local is_waiting = mod.is_ready(panel, ref)
 
         if is_waiting then
@@ -385,9 +416,12 @@ mod:hook_safe(CLASS.HudElementTeamPanelHandler, "update", function(self, dt, t, 
                     local content = widget.content
                     local container_size = widget.style.text.size
                     local player_name = content.text
+                    local level_text = mod.replace_level(player_name, true_levels, ref, true)
 
-                    content.text = mod.replace_level(player_name, true_levels, ref, true)
+                    content.text = level_text
                     panel.tl_modified = true
+                    panel.tl_level_text = level_text
+                    panel.tl_level_base_text = player_name
 
                     if container_size then
                         container_size[1] = 500
