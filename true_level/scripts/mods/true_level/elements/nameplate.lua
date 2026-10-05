@@ -2,6 +2,7 @@ local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
 local UISettings = require("scripts/settings/ui/ui_settings")
 local ref = "nameplate"
+local NAMEPLATE_TEXT_WIDTH = 800
 
 local _get_markers_by_id = function()
     local ui_manager = Managers.ui
@@ -128,11 +129,19 @@ mod:hook_safe(CLASS.HudElementNameplates, "update", function(self)
                         local true_levels = mod.get_true_levels(character_id)
 
                         if true_levels then
-                            local content = marker.widget.content
+                            local widget = marker.widget
+                            local content = widget.content
                             local header_text = content.header_text
+                            local header_style = widget.style.header_text
+                            local text_size = header_style and header_style.size
 
                             content.header_text = mod.replace_level(header_text, true_levels, ref, true)
                             marker.tl_modified = true
+
+                            -- keep the added levels on the name line instead of wrapping onto the title
+                            if text_size then
+                                text_size[1] = math.max(text_size[1], NAMEPLATE_TEXT_WIDTH)
+                            end
                             mod.debug.echo(content.header_text)
                         end
                     end
