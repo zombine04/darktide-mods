@@ -365,11 +365,31 @@ mod:io_dofile("true_level/scripts/mods/true_level/true_level_debug")
 -- Get Character Progression
 -- ############################################################
 
+-- players publish their new havoc clearance only after entering the hub,
+-- so keep the clearance of already cached characters in sync with presence
+local _refresh_havoc_clearance = function(presence, true_levels)
+    if not true_levels.true_level then
+        return
+    end
+
+    local havoc_rank_cadence_high = presence:havoc_rank_cadence_high()
+
+    if havoc_rank_cadence_high and havoc_rank_cadence_high ~= true_levels.havoc_rank then
+        true_levels.havoc_rank = havoc_rank_cadence_high
+        mod.desync_all()
+    end
+end
+
 mod:hook_safe(CLASS.PresenceEntryImmaterium, "update_with", function(self, new_entry)
     local key_values = new_entry.key_values
     local character_profile = key_values and key_values.character_profile
     local character_id = key_values and key_values.character_id and key_values.character_id.value
     local cache = mod._others
+    local cached_levels = character_id and cache[character_id]
+
+    if cached_levels then
+        _refresh_havoc_clearance(self, cached_levels)
+    end
 
     if character_profile and character_id and not cache[character_id] then
         local backend_profile_data = ProfileUtils.process_backend_body(cjson.decode(character_profile.value))
