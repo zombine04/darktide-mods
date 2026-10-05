@@ -26,8 +26,10 @@ mod._player_salvage_styles = {
 
 mod._symbols = {
     aquila = "\xEE\x80\xAE",
+    check = "\xEE\x80\x81",
     damage = "\xEE\x80\xA6",
     exp = "\xEE\x80\xB2",
+    havoc_assignment = "\xEE\x80\xA8",
     havoc_rank = "\xEE\x81\x8F",
     level = "\xEE\x80\x86",
     penance = "\xEE\x81\x81",
@@ -130,7 +132,7 @@ local loc = {
         ru = "Приоритет другим уровням",
     },
     prioritize_other_levels_desc = {
-        en = "Hide normal level if prestige level or havoc rank is available.",
+        en = "Hide normal level if prestige level, havoc clearance or havoc assignment is available.",
         ja = "プレステージレベルやハヴォックランクが有効な場合は、通常のレベルを非表示にします。",
         ["zh-cn"] = "如果能显示声望等级或者浩劫等级，则隐藏常规等级。",
         ["zh-tw"] = "若能顯示聲望等級或浩劫等級，則隱藏一般等級。",
@@ -228,25 +230,46 @@ local loc = {
         ru = "Цвет уровня престижа",
     },
     enable_havoc_rank = {
-        en = "Show Havoc Rank",
+        en = "Show Havoc Clearance",
         ja = "ハヴォックランクを表示する",
         ["zh-cn"] = "显示浩劫等级",
         ["zh-tw"] = "顯示浩劫等級",
         ru = "Показывать ранг «Верной смерти»",
     },
     havoc_rank_icon = {
-        en = "Havoc Rank Icon",
+        en = "Havoc Clearance Icon",
         ja = "ハヴォックランクアイコン",
         ["zh-cn"] = "浩劫等级图标",
         ["zh-tw"] = "浩劫等級圖示",
         ru = "Значок ранга «Верной смерти»",
     },
     havoc_rank_color = {
-        en = "Havoc Rank Color",
+        en = "Havoc Clearance Color",
         ja = "ハヴォックランクの色",
         ["zh-cn"] = "浩劫等级颜色",
         ["zh-tw"] = "浩劫等級顏色",
         ru = "Цвет ранга «Верной смерти»",
+    },
+    enable_havoc_assignment = {
+        en = "Show Havoc Assignment",
+    },
+    havoc_assignment_icon = {
+        en = "Havoc Assignment Icon",
+    },
+    havoc_assignment_color = {
+        en = "Havoc Assignment Color",
+    },
+    enable_havoc_assignment_charges = {
+        en = "Show Havoc Assignment Charges",
+    },
+    havoc_assignment_charges_desc = {
+        en = "Show the remaining charges of the assignment. Other players' charges are only available if they also run True Level with \"Share Havoc Assignment\" enabled.",
+    },
+    share_havoc_assignment = {
+        en = "Share Havoc Assignment",
+    },
+    share_havoc_assignment_desc = {
+        en = "Publishes your current Havoc assignment and its remaining charges to other players who also run True Level, so they can see your charges. Turn this off to publish nothing; you will still see the assignments of players who share theirs.",
     },
     level_up = {
         en = "Level Up!",
@@ -373,6 +396,10 @@ for i, ele in pairs(mod._elements) do
     _add_child_loc("enable_havoc_rank", ele)
     _add_child_loc("havoc_rank_icon", ele)
     _add_child_loc("havoc_rank_color", ele)
+    _add_child_loc("enable_havoc_assignment", ele)
+    _add_child_loc("havoc_assignment_icon", ele)
+    _add_child_loc("havoc_assignment_color", ele)
+    _add_child_loc("enable_havoc_assignment_charges", ele)
 end
 
 for i, name in ipairs(Color.list) do
