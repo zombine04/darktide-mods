@@ -572,7 +572,6 @@ local _concat_levels = function(ref)
     return result
 end
 
--- level components added by the last replace_level call, for elements that lay them out themselves
 mod.get_level_texts = function()
     return level_texts
 end

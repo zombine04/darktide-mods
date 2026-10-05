@@ -138,7 +138,6 @@ mod:hook_safe(CLASS.HudElementNameplates, "update", function(self)
                             content.header_text = mod.replace_level(header_text, true_levels, ref, true)
                             marker.tl_modified = true
 
-                            -- keep the added levels on the name line instead of wrapping onto the title
                             if text_size then
                                 text_size[1] = math.max(text_size[1], NAMEPLATE_TEXT_WIDTH)
                             end
