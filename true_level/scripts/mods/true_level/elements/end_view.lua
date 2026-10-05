@@ -5,8 +5,6 @@ mod:hook_safe(CLASS.EndView, "init", function(self)
     mod.desynced(ref)
 end)
 
--- a havoc mission changes the assignments of its participants:
--- take the local one from the report and refresh the others in the hub
 local _apply_havoc_report = function(self)
     local session_report = self._session_report
 
@@ -27,7 +25,6 @@ local _apply_havoc_report = function(self)
     local character_report = session_report.character
     local havoc_order_reward = character_report and character_report.havoc_order_reward
 
-    -- the reward is only reported if rank or charges changed
     if havoc_order_reward then
         mod.set_local_havoc_assignment(tonumber(havoc_order_reward.current_rank), tonumber(havoc_order_reward.current_charges))
     end

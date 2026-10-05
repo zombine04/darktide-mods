@@ -148,7 +148,6 @@ local _now = function()
     return time_manager and time_manager:has_timer("main") and time_manager:time("main") or 0
 end
 
--- backend requests only run in the hub and the menus, never during missions or the results screen
 local _can_fetch_havoc_assignment = function()
     local state_managers = Managers.state
     local game_mode_manager = state_managers and state_managers.game_mode
@@ -214,7 +213,6 @@ local _is_local_account = function(account_id)
     return player and player:account_id() == account_id
 end
 
--- share the local assignment with other True Level users via presence
 local _publish_havoc_assignment = function(clear)
     local value = ""
     local assignment = mod._havoc_assignment_local
@@ -225,7 +223,6 @@ local _publish_havoc_assignment = function(clear)
 
     local published = mod._havoc_assignment_published
 
-    -- nothing to withdraw if nothing has ever been published
     if value == published or (value == "" and published == nil) then
         return
     end
@@ -292,13 +289,11 @@ local _update_shared_havoc_assignment = function(presence, account_id)
         return
     end
 
-    -- re-render only if this account has already been resolved or requested
     if previous or mod._havoc_assignments[account_id] or mod._havoc_assignment_pending[account_id] then
         mod.desync_all()
     end
 end
 
--- returns whether the displayed assignment changed
 local _store_havoc_assignment = function(account_id, rank, charges)
     local assignments = mod._havoc_assignments
     local entry = assignments[account_id]
@@ -328,7 +323,6 @@ local _store_havoc_assignment = function(account_id, rank, charges)
     return changed
 end
 
--- re-render waiting elements once all queued requests are done
 local _finish_havoc_assignment_batch = function()
     if next(mod._havoc_assignment_pending) ~= nil then
         return
@@ -359,7 +353,6 @@ local _settle_havoc_assignment = function(account_id, assignment, failed)
     mod._havoc_assignment_active = mod._havoc_assignment_active - 1
 
     if failed then
-        -- keep the previous value and the last published one, retry once it expires
         local entry = mod._havoc_assignments[account_id]
 
         if entry then
@@ -396,7 +389,6 @@ local _start_havoc_assignment_request = function(account_id)
     end)
 end
 
--- limit concurrent backend requests so bursts are spread out
 _request_next_havoc_assignment = function()
     local queue = mod._havoc_assignment_queue
 
@@ -406,7 +398,6 @@ _request_next_havoc_assignment = function()
         if _can_fetch_havoc_assignment() then
             _start_havoc_assignment_request(account_id)
         else
-            -- left the hub: request it again the next time it is shown there
             mod._havoc_assignment_pending[account_id] = nil
         end
     end
@@ -453,7 +444,6 @@ local _get_havoc_assignment = function(account_id, ref)
 
     local entry = mod._havoc_assignments[account_id]
 
-    -- refresh missing or expired entries, but keep showing the old value meanwhile
     if not entry or _now() - entry.fetched_at >= HAVOC_ASSIGNMENT_TTL then
         _request_havoc_assignment(account_id, ref)
         entry = mod._havoc_assignments[account_id]
@@ -462,7 +452,6 @@ local _get_havoc_assignment = function(account_id, ref)
     return entry and entry.rank and entry or nil
 end
 
--- fetch the local assignment for sharing, independent of the display settings
 mod.request_local_havoc_assignment = function()
     if not mod:get("share_havoc_assignment") then
         return
@@ -476,7 +465,6 @@ mod.request_local_havoc_assignment = function()
     end
 end
 
--- the results screen of a havoc mission already reports the new local assignment
 mod.set_local_havoc_assignment = function(rank, charges)
     local player = Managers.player:local_player_safe(1)
     local account_id = player and player:account_id()
@@ -486,7 +474,6 @@ mod.set_local_havoc_assignment = function(rank, charges)
     end
 end
 
--- the assignment of a havoc mission participant has likely changed
 mod.expire_havoc_assignment = function(account_id)
     local entry = mod._havoc_assignments[account_id]
 
