@@ -1,8 +1,22 @@
 local mod = get_mod("true_level")
+local Profiler = rawget(_G, "Profiler")
+local profiler_start = Profiler and Profiler.start
+local profiler_stop = Profiler and Profiler.stop
 
 mod._debug_mode = mod:get("enable_debug_mode")
 
 mod.debug = {
+    -- Profiler scopes are only recorded while debug mode is enabled.
+    profile_start = function(scope)
+        if mod._debug_mode and profiler_start then
+            profiler_start(scope)
+        end
+    end,
+    profile_stop = function(scope)
+        if mod._debug_mode and profiler_stop then
+            profiler_stop(scope)
+        end
+    end,
     dump = function(table, name, depth)
         if mod._debug_mode then
             mod:dump(table, name, depth)

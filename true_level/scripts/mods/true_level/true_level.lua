@@ -139,6 +139,7 @@ local SHARE_KEY = "true_level_havoc_assignment"
 local SHARE_MAX_BYTES = 8
 local SHARE_MAX_RANK = 99
 local HAVOC_ASSIGNMENT_TTL = 600
+local HAVOC_ASSIGNMENT_MAX_AGE = 3600
 local HAVOC_ASSIGNMENT_MAX_REQUESTS = 2
 local EXPIRED = -math.huge
 
@@ -482,6 +483,25 @@ mod.expire_havoc_assignment = function(account_id)
     end
 end
 
+-- Drop long-unused accounts to keep the session cache bounded. Only called in
+-- the hub, where pruned entries can be fetched again on demand.
+local _prune_havoc_assignments = function()
+    local now = _now()
+    local assignments = mod._havoc_assignments
+    local pending = mod._havoc_assignment_pending
+    local player = Managers.player:local_player_safe(1)
+    local local_account_id = player and player:account_id()
+
+    for account_id, entry in pairs(assignments) do
+        local fetched_at = entry.fetched_at
+
+        if fetched_at ~= EXPIRED and now - fetched_at >= HAVOC_ASSIGNMENT_MAX_AGE
+            and not pending[account_id] and account_id ~= local_account_id then
+            assignments[account_id] = nil
+        end
+    end
+end
+
 local _get_best_setting = function(base_id, reference)
     local setting_id = base_id .. "_" .. reference
     local setting = mod:get(setting_id)
@@ -496,16 +516,87 @@ local _get_best_setting = function(base_id, reference)
     return setting
 end
 
-local t = {}
+-- ############################################################
+-- Settings Cache
+-- ############################################################
 
-local _has_title = function(text)
-    t = {}
+local RESOLVED_SETTING_IDS = {
+    "display_style",
+    "prioritize_other_levels",
+    "level_icon",
+    "level_color",
+    "enable_prestige_level",
+    "prestige_level_icon",
+    "prestige_level_color",
+    "enable_havoc_rank",
+    "havoc_rank_icon",
+    "havoc_rank_color",
+    "enable_havoc_assignment",
+    "havoc_assignment_icon",
+    "havoc_assignment_color",
+    "enable_havoc_assignment_charges",
+}
 
-    for s in text:gmatch("[^\n]+") do
-        t[#t + 1] = s
+local _resolved_settings = {}
+
+local _resolve_settings = function(reference)
+    local settings = _resolved_settings[reference] or {}
+
+    settings.enabled = mod:get("enable_" .. reference)
+
+    for i = 1, #RESOLVED_SETTING_IDS do
+        local base_id = RESOLVED_SETTING_IDS[i]
+
+        settings[base_id] = _get_best_setting(base_id, reference)
     end
 
-    return #t > 1, t[1], t[2]
+    _resolved_settings[reference] = settings
+
+    return settings
+end
+
+local _get_settings = function(reference)
+    return _resolved_settings[reference] or _resolve_settings(reference)
+end
+
+local _refresh_settings = function()
+    local elements = mod._elements
+
+    for i = 1, #elements do
+        _resolve_settings(elements[i])
+    end
+
+    mod._player_salvage_style = mod:get("player_salvage_style")
+    mod._player_salvage_color = mod:get("player_salvage_color")
+end
+
+_refresh_settings()
+
+local string_find = string.find
+local string_sub = string.sub
+
+-- Returns the next non-empty line starting at init, and the position after it.
+local _line_at = function(text, init)
+    local line_start = string_find(text, "[^\n]", init)
+
+    if not line_start then
+        return nil
+    end
+
+    local line_end = string_find(text, "\n", line_start, true)
+
+    if line_end then
+        return string_sub(text, line_start, line_end - 1), line_end + 1
+    end
+
+    return string_sub(text, line_start), nil
+end
+
+local _has_title = function(text)
+    local first_line, next_init = _line_at(text, 1)
+    local second_line = next_init and _line_at(text, next_init)
+
+    return second_line ~= nil, first_line, second_line
 end
 
 local _apply_color_to_text = function(color_code, text)
@@ -518,18 +609,26 @@ end
 local levels = {
     {
         key = "level",
+        symbol_key = "level_custom",
+        color_id = "level_color",
         val = ""
     },
     {
         key = "prestige_level",
+        symbol_key = "prestige_level_custom",
+        color_id = "prestige_level_color",
         val = ""
     },
     {
         key = "havoc_rank",
+        symbol_key = "havoc_rank_custom",
+        color_id = "havoc_rank_color",
         val = ""
     },
     {
         key = "havoc_assignment",
+        symbol_key = "havoc_assignment_custom",
+        color_id = "havoc_assignment_color",
         val = ""
     }
 }
@@ -544,8 +643,7 @@ end
 
 local level_texts = {}
 
-local _concat_levels = function(ref)
-    local result = ""
+local _concat_levels = function(settings)
     local len = #levels
 
     table.clear(level_texts)
@@ -553,23 +651,18 @@ local _concat_levels = function(ref)
     for i = 1, len do
         local level = levels[i]
         if level.val ~= "" then
-            local level_text = level.val .. " " .. mod.get_symbol(level.key .. "_custom")
-            local color_code =  _get_best_setting(level.key .. "_color", ref)
+            local level_text = level.val .. " " .. mod.get_symbol(level.symbol_key)
+            local color_code = settings[level.color_id]
 
             if color_code and color_code ~= "default" and Color[color_code]then
                 level_text = _apply_color_to_text(color_code, level_text)
             end
 
-            if result ~= "" then
-                result = result .. " "
-            end
-
-            result = result .. level_text
             level_texts[#level_texts + 1] = level_text
         end
     end
 
-    return result
+    return table.concat(level_texts, " ")
 end
 
 mod.get_level_texts = function()
@@ -585,18 +678,20 @@ local _trim_added_levels = function(text)
     return text
 end
 
-mod.replace_level = function(text, true_levels, reference, need_adding)
+local _replace_level = function(text, true_levels, reference, need_adding)
     _init_levels()
 
-    mod._symbols.level_custom = _get_best_setting("level_icon", reference)
-    mod._symbols.prestige_level_custom = _get_best_setting("prestige_level_icon", reference)
-    mod._symbols.havoc_rank_custom = _get_best_setting("havoc_rank_icon", reference)
+    local settings = _get_settings(reference)
 
-    local display_style = _get_best_setting("display_style", reference)
-    local show_prestige = _get_best_setting("enable_prestige_level", reference)
-    local show_havoc_rank = _get_best_setting("enable_havoc_rank", reference)
-    local show_havoc_assignment = _get_best_setting("enable_havoc_assignment", reference)
-    local disable_normal_level = _get_best_setting("prioritize_other_levels", reference)
+    mod._symbols.level_custom = settings.level_icon
+    mod._symbols.prestige_level_custom = settings.prestige_level_icon
+    mod._symbols.havoc_rank_custom = settings.havoc_rank_icon
+
+    local display_style = settings.display_style
+    local show_prestige = settings.enable_prestige_level
+    local show_havoc_rank = settings.enable_havoc_rank
+    local show_havoc_assignment = settings.enable_havoc_assignment
+    local disable_normal_level = settings.prioritize_other_levels
     local current_level = true_levels.current_level
     local additional_level = true_levels.additional_level
     local true_level = true_levels.true_level
@@ -654,7 +749,7 @@ mod.replace_level = function(text, true_levels, reference, need_adding)
         if assignment then
             local assignment_text = assignment.rank
 
-            if _get_best_setting("enable_havoc_assignment_charges", reference) then
+            if settings.enable_havoc_assignment_charges then
                 local charges_symbol = HAVOC_CHARGE_SYMBOLS[assignment.charges]
 
                 if charges_symbol then
@@ -662,7 +757,7 @@ mod.replace_level = function(text, true_levels, reference, need_adding)
                 end
             end
 
-            mod._symbols.havoc_assignment_custom = _get_best_setting("havoc_assignment_icon", reference)
+            mod._symbols.havoc_assignment_custom = settings.havoc_assignment_icon
             levels[4].val = assignment_text
         end
     end
@@ -671,7 +766,7 @@ mod.replace_level = function(text, true_levels, reference, need_adding)
         levels[1].val = ""
     end
 
-    local levels_text = _concat_levels(reference)
+    local levels_text = _concat_levels(settings)
 
     if need_adding and levels_text ~= "" then
         text = text .. " - " .. levels_text
@@ -684,6 +779,16 @@ mod.replace_level = function(text, true_levels, reference, need_adding)
     end
 
     return text
+end
+
+mod.replace_level = function(text, true_levels, reference, need_adding)
+    mod.debug.profile_start("true_level_replace_level")
+
+    local result = _replace_level(text, true_levels, reference, need_adding)
+
+    mod.debug.profile_stop("true_level_replace_level")
+
+    return result
 end
 
 mod.get_true_levels = function(character_id)
@@ -705,7 +810,7 @@ mod.get_symbol = function(key)
 end
 
 mod.is_enabled_feature = function(ref)
-    return mod:is_enabled() and mod:get("enable_" .. ref)
+    return mod:is_enabled() and _get_settings(ref).enabled
 end
 
 mod.should_replace = function(ref)
@@ -716,11 +821,46 @@ mod.should_replace = function(ref)
     return false
 end
 
-mod.is_ready = function(target, key)
-    local wru = get_mod("who_are_you")
+local _wru = nil
+local _wru_resolved = false
+local _wru_setting_ids = {}
+
+mod.is_wru_enabled = function(key)
+    if not _wru_resolved then
+        _wru = get_mod("who_are_you")
+        _wru_resolved = true
+    end
+
+    local wru = _wru
+
+    if not wru or not wru:is_enabled() then
+        return false
+    end
+
+    local setting_id = _wru_setting_ids[key]
+
+    if not setting_id then
+        setting_id = "enable_" .. key
+        _wru_setting_ids[key] = setting_id
+    end
+
+    return wru:get(setting_id) and true or false
+end
+
+-- wru_enabled is optional; per-frame callers resolve it once and pass it in.
+mod.is_ready = function(target, key, wru_enabled)
+    -- Already processed targets never wait, so skip the WhoAreYou lookup.
+    if target.tl_modified then
+        return false
+    end
+
+    if wru_enabled == nil then
+        wru_enabled = mod.is_wru_enabled(key)
+    end
+
     local is_waiting = false
 
-    if wru and wru:is_enabled() and wru:get("enable_" .. key) then
+    if wru_enabled then
         is_waiting = target.wru_modified and not target.tl_modified
     else
         is_waiting = not target.tl_modified
@@ -742,8 +882,10 @@ mod.desynced = function(ref)
 end
 
 mod.desync_all = function()
-    for _, element in ipairs(mod._elements) do
-        mod._synced[element] = false
+    local elements = mod._elements
+
+    for i = 1, #elements do
+        mod._synced[elements[i]] = false
     end
 end
 
@@ -831,6 +973,11 @@ end
 
 mod:hook_safe("UIHud", "init", function(self)
     mod._is_in_hub = _is_in_hub()
+
+    if mod._is_in_hub then
+        _prune_havoc_assignments()
+    end
+
     mod.request_local_havoc_assignment()
 end)
 
@@ -844,6 +991,7 @@ end
 
 mod.on_setting_changed = function(id)
     mod._debug_mode = mod:get("enable_debug_mode")
+    _refresh_settings()
     mod._is_in_hub = _is_in_hub()
     mod.desync_all()
 
