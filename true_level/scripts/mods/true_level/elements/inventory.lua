@@ -11,10 +11,11 @@ local _text_style = function(widget)
     end
 end
 
--- uses the same line breaking and scaling as the text pass that draws the name
-local _fits_one_row = function(ui_renderer, text, font_type, font_size, max_width)
-    local scaled_font_size = math.max(font_size * ui_renderer.scale, 1)
-    local rows = UIRenderer.word_wrap(ui_renderer, text, font_type, scaled_font_size, max_width)
+-- uses the same line breaking and scaling as the text pass that draws the name;
+-- wrap_width is already corrected for the renderer scale that word_wrap applies
+local _fits_one_row = function(ui_renderer, text, font_type, font_size, render_scale, wrap_width)
+    local scaled_font_size = math.max(font_size * render_scale, 1)
+    local rows = UIRenderer.word_wrap(ui_renderer, text, font_type, scaled_font_size, wrap_width)
 
     return #rows <= 1
 end
@@ -33,7 +34,7 @@ local _separator_indent = function(ui_renderer, prefix, font_type, font_size)
 end
 
 -- move whole level components that don't fit to a second row, indented to the " - "
-local _wrap_levels = function(ui_renderer, text, font_type, font_size, max_width)
+local _wrap_levels = function(ui_renderer, text, font_type, font_size, render_scale, wrap_width)
     local level_texts = mod.get_level_texts()
     local count = #level_texts
     local levels_text = table.concat(level_texts, " ")
@@ -49,7 +50,7 @@ local _wrap_levels = function(ui_renderer, text, font_type, font_size, max_width
     for i = 1, count do
         local candidate = first_row .. " " .. level_texts[i]
 
-        if not _fits_one_row(ui_renderer, candidate, font_type, font_size, max_width) then
+        if not _fits_one_row(ui_renderer, candidate, font_type, font_size, render_scale, wrap_width) then
             break
         end
 
@@ -83,19 +84,22 @@ local _fit_character_name = function(self, widget)
     local text = content.text
     local max_width = self:_scenegraph_size("character_name")
     local ui_renderer = self._ui_renderer
+    -- the view draws with its own render scale; the renderer scale is only set while drawing
+    local render_scale = self._render_scale or 1
+    local wrap_width = max_width * render_scale / (ui_renderer.scale or 1)
     local font_type = style.font_type
     local font_size = default_font_size
-    local fits = _fits_one_row(ui_renderer, text, font_type, font_size, max_width)
+    local fits = _fits_one_row(ui_renderer, text, font_type, font_size, render_scale, wrap_width)
 
     while not fits and font_size > MIN_FONT_SIZE do
         font_size = font_size - 1
-        fits = _fits_one_row(ui_renderer, text, font_type, font_size, max_width)
+        fits = _fits_one_row(ui_renderer, text, font_type, font_size, render_scale, wrap_width)
     end
 
     style.font_size = font_size
 
     if not fits then
-        content.text = _wrap_levels(ui_renderer, text, font_type, font_size, max_width)
+        content.text = _wrap_levels(ui_renderer, text, font_type, font_size, render_scale, wrap_width)
     end
 end
 
