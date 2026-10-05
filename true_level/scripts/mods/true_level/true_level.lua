@@ -14,6 +14,14 @@ mod._self = mod:persistent_table("self")
 mod._others = mod:persistent_table("others")
 mod._queue = mod:persistent_table("queue")
 mod._havoc_promises = mod:persistent_table("havoc")
+mod._havoc_assignments = mod:persistent_table("havoc_assignments")
+mod._havoc_assignment_promises = mod:persistent_table("havoc_assignment_promises")
+mod._havoc_assignment_refs = {}
+mod._havoc_assignment_found = false
+mod._havoc_assignment_shared = mod:persistent_table("havoc_assignment_shared")
+mod._havoc_assignment_shared_raw = mod:persistent_table("havoc_assignment_shared_raw")
+mod._havoc_assignment_local = nil
+mod._havoc_assignment_published = nil
 mod._xp_settings = mod:persistent_table("xp_settings")
 mod._xp_promise = nil
 mod._synced = {}
@@ -116,6 +124,256 @@ mod.cache_true_levels = function(self_or_others, character_id, base_data, havoc_
     mod.debug.dump(true_levels, character_id)
 end
 
+-- ############################################################
+-- Havoc Assignment
+-- ############################################################
+
+local HAVOC_CHARGE_SYMBOLS = {
+    "\xEE\x80\x91",
+    "\xEE\x80\x92",
+    "\xEE\x80\x93",
+}
+local SHARE_KEY = "true_level_havoc_assignment"
+local SHARE_MAX_BYTES = 8
+local SHARE_MAX_RANK = 99
+
+local _fetch_local_havoc_assignment = function()
+    local havoc_service = Managers.data_service.havoc
+
+    return havoc_service:available_orders():next(function(orders)
+        local current_order = nil
+        local max_rank = 0
+
+        if type(orders) == "table" then
+            for i = 1, #orders do
+                local order = orders[i]
+                local rank = order.data and tonumber(order.data.rank)
+
+                if rank and max_rank < rank then
+                    max_rank = rank
+                    current_order = order
+                end
+            end
+        end
+
+        if current_order then
+            return {
+                rank = max_rank,
+                charges = tonumber(current_order.charges),
+            }
+        end
+
+        return havoc_service:summary():next(function(summary)
+            local summary_order = summary and summary.current_order
+            local rank = summary_order and tonumber(summary_order.rank)
+
+            return rank and { rank = rank } or nil
+        end)
+    end)
+end
+
+local _fetch_other_havoc_assignment = function(account_id)
+    local backend = Managers.backend
+
+    return backend:authenticate():next(function()
+        local path = "/data/" .. account_id .. "/havoc/summary"
+
+        return backend:title_request(path, { method = "GET" })
+    end):next(function(data)
+        local body = data and data.status == 200 and data.body
+        local current_order = body and (body.currentOrder or body.current_order)
+        local rank = current_order and tonumber(current_order.rank)
+
+        return rank and { rank = rank } or nil
+    end)
+end
+
+local _is_local_account = function(account_id)
+    local player = Managers.player:local_player_safe(1)
+
+    return player and player:account_id() == account_id
+end
+
+-- share the local assignment with other True Level users via presence
+local _publish_havoc_assignment = function(clear)
+    local value = ""
+    local assignment = mod._havoc_assignment_local
+
+    if not clear and assignment and mod:get("share_havoc_assignment") then
+        value = assignment.rank .. ":" .. (assignment.charges or "")
+    end
+
+    local published = mod._havoc_assignment_published
+
+    -- nothing to withdraw if nothing has ever been published
+    if value == published or (value == "" and published == nil) then
+        return
+    end
+
+    mod._havoc_assignment_published = value
+
+    local presence_manager = Managers.presence
+
+    if presence_manager and type(presence_manager._update_my_presence) == "function" then
+        pcall(presence_manager._update_my_presence, presence_manager, { [SHARE_KEY] = true })
+    end
+end
+
+local _decode_shared_havoc_assignment = function(raw)
+    if type(raw) ~= "string" or raw == "" or #raw > SHARE_MAX_BYTES then
+        return nil
+    end
+
+    local rank, charges = raw:match("^(%d+):(%d?)$")
+
+    rank = tonumber(rank)
+
+    if not rank or rank < 1 or rank > SHARE_MAX_RANK then
+        return nil
+    end
+
+    return {
+        rank = rank,
+        charges = tonumber(charges),
+    }
+end
+
+local _is_same_havoc_assignment = function(a, b)
+    if a == b then
+        return true
+    elseif not a or not b then
+        return false
+    end
+
+    return a.rank == b.rank and a.charges == b.charges
+end
+
+local _update_shared_havoc_assignment = function(presence, account_id)
+    if not account_id then
+        return
+    end
+
+    local raw = presence:_key_value_string(SHARE_KEY)
+    local shared_raw = mod._havoc_assignment_shared_raw
+
+    if raw == shared_raw[account_id] then
+        return
+    end
+
+    shared_raw[account_id] = raw
+
+    local shared = mod._havoc_assignment_shared
+    local previous = shared[account_id]
+    local assignment = _decode_shared_havoc_assignment(raw)
+
+    shared[account_id] = assignment
+
+    if _is_same_havoc_assignment(previous, assignment) then
+        return
+    end
+
+    -- re-render only if this account has already been resolved or requested
+    if previous or mod._havoc_assignments[account_id] ~= nil or mod._havoc_assignment_promises[account_id] then
+        mod.desync_all()
+    end
+end
+
+local _settle_havoc_assignment = function(account_id, assignment, failed)
+    local promises = mod._havoc_assignment_promises
+
+    promises[account_id] = nil
+    mod._havoc_assignments[account_id] = assignment or false
+
+    if assignment then
+        mod._havoc_assignment_found = true
+        mod.debug.dump(assignment, "havoc_assignment: " .. account_id)
+    end
+
+    -- keep the last published value if the fetch failed
+    if not failed and _is_local_account(account_id) then
+        mod._havoc_assignment_local = assignment
+        _publish_havoc_assignment()
+    end
+
+    -- re-render waiting elements once the whole batch has been fetched
+    if next(promises) == nil then
+        local refs = mod._havoc_assignment_refs
+
+        if mod._havoc_assignment_found then
+            for ref in pairs(refs) do
+                mod.desynced(ref)
+            end
+        end
+
+        table.clear(refs)
+        mod._havoc_assignment_found = false
+    end
+end
+
+local _get_havoc_assignment = function(account_id, ref)
+    local shared = mod._havoc_assignment_shared[account_id]
+
+    if shared then
+        return shared
+    end
+
+    local assignment = mod._havoc_assignments[account_id]
+
+    if assignment ~= nil then
+        return assignment or nil
+    end
+
+    if ref then
+        mod._havoc_assignment_refs[ref] = true
+    end
+
+    if mod._havoc_assignment_promises[account_id] then
+        return nil
+    end
+
+    if not GameParameters.prod_like_backend or not math.is_uuid(account_id) then
+        mod._havoc_assignments[account_id] = false
+        return nil
+    end
+
+    local promise = nil
+
+    if _is_local_account(account_id) then
+        promise = _fetch_local_havoc_assignment()
+    else
+        promise = _fetch_other_havoc_assignment(account_id)
+    end
+
+    mod._havoc_assignment_promises[account_id] = true
+
+    promise:next(function(result)
+        _settle_havoc_assignment(account_id, result)
+    end):catch(function(e)
+        mod.debug.dump(e, "havoc_assignment", 3)
+        _settle_havoc_assignment(account_id, nil, true)
+    end)
+
+    return nil
+end
+
+mod.clear_havoc_assignments = function()
+    table.clear(mod._havoc_assignments)
+end
+
+-- fetch the local assignment for sharing, independent of the display settings
+mod.request_local_havoc_assignment = function()
+    if not mod:get("share_havoc_assignment") then
+        return
+    end
+
+    local player = Managers.player:local_player_safe(1)
+    local account_id = player and player:account_id()
+
+    if account_id then
+        _get_havoc_assignment(account_id)
+    end
+end
+
 local _get_best_setting = function(base_id, reference)
     local setting_id = base_id .. "_" .. reference
     local setting = mod:get(setting_id)
@@ -160,6 +418,10 @@ local levels = {
     },
     {
         key = "havoc_rank",
+        val = ""
+    },
+    {
+        key = "havoc_assignment",
         val = ""
     }
 }
@@ -216,6 +478,7 @@ mod.replace_level = function(text, true_levels, reference, need_adding)
     local display_style = _get_best_setting("display_style", reference)
     local show_prestige = _get_best_setting("enable_prestige_level", reference)
     local show_havoc_rank = _get_best_setting("enable_havoc_rank", reference)
+    local show_havoc_assignment = _get_best_setting("enable_havoc_assignment", reference)
     local disable_normal_level = _get_best_setting("prioritize_other_levels", reference)
     local current_level = true_levels.current_level
     local additional_level = true_levels.additional_level
@@ -267,7 +530,27 @@ mod.replace_level = function(text, true_levels, reference, need_adding)
         end
     end
 
-    if (levels[2].val ~= "" or levels[3].val ~= "") and disable_normal_level then
+    if show_havoc_assignment and true_level then
+        local account_id = true_levels.account_id
+        local assignment = account_id and _get_havoc_assignment(account_id, reference)
+
+        if assignment then
+            local assignment_text = assignment.rank
+
+            if _get_best_setting("enable_havoc_assignment_charges", reference) then
+                local charges_symbol = HAVOC_CHARGE_SYMBOLS[assignment.charges]
+
+                if charges_symbol then
+                    assignment_text = assignment_text .. " " .. charges_symbol
+                end
+            end
+
+            mod._symbols.havoc_assignment_custom = _get_best_setting("havoc_assignment_icon", reference)
+            levels[4].val = assignment_text
+        end
+    end
+
+    if (levels[2].val ~= "" or levels[3].val ~= "" or levels[4].val ~= "") and disable_normal_level then
         levels[1].val = ""
     end
 
@@ -331,6 +614,7 @@ end
 
 mod.clear_cache = function ()
     table.clear(mod._others)
+    mod.clear_havoc_assignments()
 end
 
 mod.synced = function(ref)
@@ -379,6 +663,25 @@ mod:hook_safe(CLASS.PresenceEntryImmaterium, "update_with", function(self, new_e
         mod.cache_true_levels(cache, character_id, backend_progression, havoc_rank_cadence_high, new_entry.account_id)
         mod.debug.echo(backend_profile_data.character.name .. ": " .. character_id)
     end
+
+    if key_values then
+        _update_shared_havoc_assignment(self, new_entry.account_id)
+    end
+end)
+
+-- ############################################################
+-- Share Havoc Assignment
+-- ############################################################
+
+mod:hook(CLASS.PresenceEntryMyself, "create_key_values", function(func, self, white_list)
+    local key_values = func(self, white_list)
+    local published = mod._havoc_assignment_published
+
+    if published and (not white_list or white_list[SHARE_KEY]) then
+        key_values[SHARE_KEY] = published
+    end
+
+    return key_values
 end)
 
 -- ############################################################
@@ -394,6 +697,7 @@ end
 
 mod:hook_safe("UIHud", "init", function(self)
     mod._is_in_hub = _is_in_hub()
+    mod.request_local_havoc_assignment()
 end)
 
 mod.on_game_state_changed = function(status, state_name)
@@ -408,4 +712,17 @@ mod.on_setting_changed = function(id)
     mod._debug_mode = mod:get("enable_debug_mode")
     mod._is_in_hub = _is_in_hub()
     mod.desync_all()
+
+    if id == "share_havoc_assignment" then
+        mod.request_local_havoc_assignment()
+        _publish_havoc_assignment()
+    end
+end
+
+mod.on_enabled = function()
+    _publish_havoc_assignment()
+end
+
+mod.on_disabled = function()
+    _publish_havoc_assignment(true)
 end

@@ -3,6 +3,8 @@ local ref = "end_view"
 
 mod:hook_safe(CLASS.EndView, "init", function(self)
     mod.desynced(ref)
+    mod.clear_havoc_assignments()
+    mod.request_local_havoc_assignment()
 end)
 
 mod:hook_safe(CLASS.EndView, "_set_character_names", function(self)

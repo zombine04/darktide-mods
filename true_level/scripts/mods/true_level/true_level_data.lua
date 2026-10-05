@@ -69,6 +69,12 @@ local data = {
                 default_value = true,
             },
             {
+                setting_id = "share_havoc_assignment",
+                type = "checkbox",
+                default_value = true,
+                tooltip = "share_havoc_assignment_desc",
+            },
+            {
                 setting_id = "global",
                 type = "group",
                 sub_widgets = {
@@ -135,6 +141,31 @@ local data = {
                                 type = "dropdown",
                                 default_value = "default",
                                 options = table.clone(option_tables.color),
+                            },
+                        },
+                    },
+                    {
+                        setting_id = "enable_havoc_assignment",
+                        type = "checkbox",
+                        default_value = true,
+                        sub_widgets = {
+                            {
+                                setting_id = "havoc_assignment_icon",
+                                type = "dropdown",
+                                default_value = mod._symbols.havoc_assignment,
+                                options = table.clone(option_tables.symbol),
+                            },
+                            {
+                                setting_id = "havoc_assignment_color",
+                                type = "dropdown",
+                                default_value = "default",
+                                options = table.clone(option_tables.color),
+                            },
+                            {
+                                setting_id = "enable_havoc_assignment_charges",
+                                type = "checkbox",
+                                default_value = true,
+                                tooltip = "havoc_assignment_charges_desc",
                             },
                         },
                     },
@@ -227,6 +258,33 @@ for i, ele in ipairs(mod._elements) do
                         type = "dropdown",
                         default_value = "use_global",
                         options = get_child_options("color"),
+                    },
+                },
+            },
+            {
+                setting_id = "enable_havoc_assignment_" .. ele,
+                type = "dropdown",
+                default_value = "use_global",
+                options = get_child_options("toggle"),
+                sub_widgets = {
+                    {
+                        setting_id = "havoc_assignment_icon_" .. ele,
+                        type = "dropdown",
+                        default_value = "use_global",
+                        options = get_child_options("symbol"),
+                    },
+                    {
+                        setting_id = "havoc_assignment_color_" .. ele,
+                        type = "dropdown",
+                        default_value = "use_global",
+                        options = get_child_options("color"),
+                    },
+                    {
+                        setting_id = "enable_havoc_assignment_charges_" .. ele,
+                        type = "dropdown",
+                        default_value = "use_global",
+                        tooltip = "havoc_assignment_charges_desc",
+                        options = get_child_options("toggle"),
                     },
                 },
             },
