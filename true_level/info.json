@@ -1,0 +1,11 @@
+{
+  "name": "True Level",
+  "description": "Shows the true level of characters past the level cap, with prestige, Havoc Clearance and Havoc Assignment, on nameplates, the team panel, the inventory, the main menu, the lobby, the social menu, the group finder and the end of mission screen.",
+  "version": "1.11.0",
+  "author": "Zombine & LucLeto",
+  "homepage": "https://www.nexusmods.com/warhammer40kdarktide/mods/156",
+  "source": "https://github.com/zombine04/darktide-mods",
+  "funding": {
+    "kofi": "https://ko-fi.com/zombine"
+  }
+}
