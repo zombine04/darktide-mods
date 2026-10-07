@@ -41,6 +41,10 @@ local _name_max_width = function(self)
 end
 
 mod:hook_safe(CLASS.LobbyView, "_sync_player", function(self, unique_id, player)
+    if not mod.is_enabled_feature(ref) then
+        return
+    end
+
     local spawn_slots = self._spawn_slots
     local slot_id = self:_player_slot_id(unique_id)
     local slot = spawn_slots[slot_id]
@@ -66,7 +70,7 @@ mod:hook_safe(CLASS.LobbyView, "_sync_player", function(self, unique_id, player)
 
     local character_name = content.character_name
 
-    if character_name ~= slot.tl_fitted_name and mod.is_enabled_feature(ref) then
+    if character_name ~= slot.tl_fitted_name then
         local fitted_name = mod.fit_name(self._ui_renderer, character_name, slot.tl_levels_text, panel_widget.style.character_name, _name_max_width(self))
 
         content.character_name = fitted_name
