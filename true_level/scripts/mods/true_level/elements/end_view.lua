@@ -1,5 +1,6 @@
 local mod = get_mod("true_level")
 local ref = "end_view"
+local NAME_GAP = 40
 
 mod:hook_safe(CLASS.EndView, "init", function(self)
     mod.desynced(ref)
@@ -43,6 +44,61 @@ local _apply_havoc_report = function(self)
             end
         end
     end
+end
+
+local _name_max_width = function(self)
+    local world_spawner = self._world_spawner
+    local camera = world_spawner and world_spawner:camera()
+
+    if not camera then
+        return nil
+    end
+
+    local spawn_slots = self._spawn_slots
+    local positions = {}
+
+    for i = 1, #spawn_slots do
+        local boxed_position = spawn_slots[i].boxed_position
+
+        if boxed_position then
+            positions[#positions + 1] = Camera.world_to_screen(camera, Vector3Box.unbox(boxed_position)).x
+        end
+    end
+
+    table.sort(positions)
+
+    local inverse_scale = RESOLUTION_LOOKUP.inverse_scale
+    local max_width = self:_scenegraph_size("panel")
+
+    for i = 2, #positions do
+        local spacing = (positions[i] - positions[i - 1]) * inverse_scale
+
+        if spacing < max_width then
+            max_width = spacing
+        end
+    end
+
+    return max_width - NAME_GAP
+end
+
+local _fit_name = function(self, slot, text, level_texts)
+    if text == slot.tl_fit_source then
+        return slot.tl_fitted_name
+    end
+
+    local max_width = _name_max_width(self)
+
+    if not max_width then
+        return text
+    end
+
+    local levels_text = level_texts and table.concat(level_texts, " ")
+    local fitted_name = mod.fit_name(self._ui_renderer, text, levels_text, slot.widget.style.character_name, max_width)
+
+    slot.tl_fit_source = text
+    slot.tl_fitted_name = fitted_name
+
+    return fitted_name
 end
 
 mod:hook_safe(CLASS.EndView, "_set_character_names", function(self)
@@ -122,12 +178,16 @@ mod:hook_safe(CLASS.EndView, "_set_character_names", function(self)
 
                     local new_name = mod.replace_level(base_name, true_levels, ref)
 
+                    new_name = _fit_name(self, slot, new_name, mod.get_level_texts())
+
                     if new_name ~= character_name then
                         content.character_name = new_name
                     end
 
                     slot.tl_name_base_text = base_name
                     slot.tl_name_text = new_name
+                elseif character_name ~= slot.tl_fitted_name then
+                    content.character_name = _fit_name(self, slot, character_name)
                 end
             end
         end

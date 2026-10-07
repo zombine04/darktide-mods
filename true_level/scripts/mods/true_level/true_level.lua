@@ -9,6 +9,7 @@ mod._info = {
 mod:info("Version " .. mod._info.version)
 
 local ProfileUtils = require("scripts/utilities/profile_utils")
+local UIRenderer = require("scripts/managers/ui/ui_renderer")
 
 mod._self = mod:persistent_table("self")
 mod._others = mod:persistent_table("others")
@@ -789,6 +790,85 @@ mod.replace_level = function(text, true_levels, reference, need_adding)
     mod.debug.profile_stop("true_level_replace_level")
 
     return result
+end
+
+local SINGLE_LINE_FONT_PERCENT = 80
+local WRAP_FONT_PERCENT = 70
+local MIN_WRAP_FONT_SIZE = 10
+
+local _scaled_font_size = function(font_size, percent)
+    return math.floor(font_size * percent / 100)
+end
+
+local _text_width = function(ui_renderer, text, font_type, font_size)
+    local width = UIRenderer.text_size(ui_renderer, text, font_type, font_size)
+
+    return width
+end
+
+local _split_levels = function(text, levels_text)
+    if not levels_text or levels_text == "" then
+        return nil
+    end
+
+    local level_start, level_end = string.find(text, levels_text, 1, true)
+
+    if not level_start then
+        return nil
+    end
+
+    local before = string.gsub(string.sub(text, 1, level_start - 1), "[%s%-]+$", "")
+    local after = string.match(string.sub(text, level_end + 1), "^%s*(.-)%s*$")
+
+    if before == "" and after ~= "" then
+        return levels_text, after
+    elseif after == "" and before ~= "" then
+        return before, levels_text
+    end
+
+    return nil
+end
+
+mod.fit_name = function(ui_renderer, text, levels_text, style, max_width)
+    local default_font_size = style.tl_default_font_size or style.font_size
+    local font_type = style.font_type
+    local first_line, second_line = _split_levels(text, levels_text)
+    local min_font_size = _scaled_font_size(default_font_size, first_line and SINGLE_LINE_FONT_PERCENT or WRAP_FONT_PERCENT)
+    local font_size = default_font_size
+    local width = _text_width(ui_renderer, text, font_type, font_size)
+    local shift = 0
+
+    style.tl_default_font_size = default_font_size
+
+    while width > max_width and font_size > min_font_size do
+        font_size = font_size - 1
+        width = _text_width(ui_renderer, text, font_type, font_size)
+    end
+
+    if width > max_width and first_line then
+        font_size = _scaled_font_size(default_font_size, WRAP_FONT_PERCENT)
+
+        while font_size > MIN_WRAP_FONT_SIZE
+            and math.max(_text_width(ui_renderer, first_line, font_type, font_size), _text_width(ui_renderer, second_line, font_type, font_size)) > max_width do
+            font_size = font_size - 1
+        end
+
+        text = first_line .. "\n" .. second_line
+        shift = (2 * font_size - default_font_size) * (style.line_spacing or 1)
+    end
+
+    style.font_size = font_size
+
+    local offset = style.offset
+
+    if offset[2] ~= style.tl_offset_y then
+        style.tl_base_offset_y = offset[2]
+    end
+
+    offset[2] = style.tl_base_offset_y - shift
+    style.tl_offset_y = offset[2]
+
+    return text
 end
 
 mod.get_true_levels = function(character_id)
