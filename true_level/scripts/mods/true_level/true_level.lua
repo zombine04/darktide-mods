@@ -142,6 +142,7 @@ local SHARE_MAX_RANK = 99
 local HAVOC_ASSIGNMENT_TTL = 600
 local HAVOC_ASSIGNMENT_MAX_AGE = 3600
 local HAVOC_ASSIGNMENT_MAX_REQUESTS = 2
+local HAVOC_ASSIGNMENT_MAX_RANK = 40
 local EXPIRED = -math.huge
 
 local _now = function()
@@ -536,6 +537,7 @@ local RESOLVED_SETTING_IDS = {
     "havoc_assignment_icon",
     "havoc_assignment_color",
     "enable_havoc_assignment_charges",
+    "hide_havoc_assignment_charges_at_max_rank",
 }
 
 local _resolved_settings = {}
@@ -750,7 +752,8 @@ local _replace_level = function(text, true_levels, reference, need_adding)
         if assignment then
             local assignment_text = assignment.rank
 
-            if settings.enable_havoc_assignment_charges then
+            if settings.enable_havoc_assignment_charges
+                and not (settings.hide_havoc_assignment_charges_at_max_rank and assignment.rank >= HAVOC_ASSIGNMENT_MAX_RANK) then
                 local charges_symbol = HAVOC_CHARGE_SYMBOLS[assignment.charges]
 
                 if charges_symbol then
