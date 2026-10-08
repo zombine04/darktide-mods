@@ -113,14 +113,19 @@ mod:hook_safe(CLASS.InventoryBackgroundView, "update", function(self)
         local true_levels = mod.get_true_levels(character_id)
 
         if true_levels then
-            self:_set_player_profile_information(player)
-
             local widget = self._widgets_by_name.character_name
             local content = widget.content
             local character_name = content.text
+            local base_name = character_name
 
-            content.text = mod.replace_level(character_name, true_levels, ref, true)
+            if widget.tl_name_base_text and widget.tl_name_text == character_name then
+                base_name = widget.tl_name_base_text
+            end
+
+            content.text = mod.replace_level(base_name, true_levels, ref, true)
             _fit_character_name(self, widget)
+            widget.tl_name_base_text = base_name
+            widget.tl_name_text = content.text
             mod.synced(ref)
         end
     end
