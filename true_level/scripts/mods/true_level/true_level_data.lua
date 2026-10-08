@@ -166,6 +166,14 @@ local data = {
                                 type = "checkbox",
                                 default_value = true,
                                 tooltip = "havoc_assignment_charges_desc",
+                                sub_widgets = {
+                                    {
+                                        setting_id = "hide_havoc_assignment_charges_at_max_rank",
+                                        type = "checkbox",
+                                        default_value = true,
+                                        tooltip = "hide_havoc_assignment_charges_at_max_rank_desc",
+                                    },
+                                },
                             },
                         },
                     },
@@ -285,6 +293,15 @@ for i, ele in ipairs(mod._elements) do
                         default_value = "use_global",
                         tooltip = "havoc_assignment_charges_desc",
                         options = get_child_options("toggle"),
+                        sub_widgets = {
+                            {
+                                setting_id = "hide_havoc_assignment_charges_at_max_rank_" .. ele,
+                                type = "dropdown",
+                                default_value = "use_global",
+                                tooltip = "hide_havoc_assignment_charges_at_max_rank_desc",
+                                options = get_child_options("toggle"),
+                            },
+                        },
                     },
                 },
             },

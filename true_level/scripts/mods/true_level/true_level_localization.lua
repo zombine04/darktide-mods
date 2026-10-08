@@ -265,6 +265,12 @@ local loc = {
     havoc_assignment_charges_desc = {
         en = "Show the remaining charges of the assignment. Other players' charges are only available if they also run True Level with \"Share Havoc Assignment\" enabled.",
     },
+    hide_havoc_assignment_charges_at_max_rank = {
+        en = "Hide Charges at Max Rank",
+    },
+    hide_havoc_assignment_charges_at_max_rank_desc = {
+        en = "Hide the charges of players at assignment rank 40. Charges can no longer be lost at that rank.",
+    },
     share_havoc_assignment = {
         en = "Share Havoc Assignment",
     },
@@ -400,6 +406,7 @@ for i, ele in pairs(mod._elements) do
     _add_child_loc("havoc_assignment_icon", ele)
     _add_child_loc("havoc_assignment_color", ele)
     _add_child_loc("enable_havoc_assignment_charges", ele)
+    _add_child_loc("hide_havoc_assignment_charges_at_max_rank", ele)
 end
 
 for i, name in ipairs(Color.list) do
