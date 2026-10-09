@@ -5,21 +5,48 @@ local SALVAGE_NAME = Localize("loc_expeditions_currency_name_hud")
 local SALVAGE_SYMBOL = mod.get_symbol("salvage")
 local PLAYER_NAME_WITH_SALVAGE_WIDTH = 700
 local RICH_TEXT_RESET = "{#reset()}"
+local PROFILE_SCOPE = "true_level_team_panel_update"
+local string_find = string.find
+local tostring = tostring
+local math_max = math.max
+
+-- The game mode is fixed for the lifetime of a game mode manager, so resolve it
+-- once per manager instead of every frame for every panel.
+local _cached_game_mode_manager = nil
+local _cached_expedition_game_mode = nil
 
 local _expedition_game_mode = function()
     local game_mode_manager = Managers.state.game_mode
 
-    if not game_mode_manager or game_mode_manager:game_mode_name() ~= "expedition" then
+    if not game_mode_manager then
+        return nil
+    end
+
+    if game_mode_manager == _cached_game_mode_manager then
+        return _cached_expedition_game_mode
+    end
+
+    if game_mode_manager:game_mode_name() ~= "expedition" then
+        _cached_game_mode_manager = game_mode_manager
+        _cached_expedition_game_mode = nil
+
         return nil
     end
 
     local game_mode = game_mode_manager:game_mode()
 
-    return game_mode and game_mode.expedition_currency and game_mode or nil
+    if not game_mode then
+        return nil
+    end
+
+    _cached_game_mode_manager = game_mode_manager
+    _cached_expedition_game_mode = game_mode.expedition_currency and game_mode or nil
+
+    return _cached_expedition_game_mode
 end
 
 local _salvage_enabled = function(game_mode)
-    return game_mode and mod.is_enabled_feature(ref) and mod:get("player_salvage_style") ~= "off"
+    return game_mode and mod.is_enabled_feature(ref) and mod._player_salvage_style ~= "off"
 end
 
 local _set_widget_visible = function(widget, visible)
@@ -131,15 +158,21 @@ local _trim_previous_salvage = function(text, previous_text)
     return text, string.rep(RICH_TEXT_RESET, trailing_reset_count), true
 end
 
+local _reset_salvage_state = function(panel)
+    panel.tl_salvage_text = nil
+    panel.tl_salvage_base_text = nil
+    panel.tl_salvage_widget_text = nil
+    panel.tl_salvage_amount = nil
+    panel.tl_salvage_style = nil
+    panel.tl_salvage_color = nil
+end
+
 local _remove_player_salvage = function(panel)
     local widget = panel._widgets_by_name.player_name
     local previous_text = panel.tl_salvage_text
 
     if not widget or not previous_text then
-        panel.tl_salvage_text = nil
-        panel.tl_salvage_base_text = nil
-        panel.tl_salvage_amount = nil
-        panel.tl_salvage_style = nil
+        _reset_salvage_state(panel)
 
         return
     end
@@ -154,10 +187,7 @@ local _remove_player_salvage = function(panel)
         widget.dirty = true
     end
 
-    panel.tl_salvage_text = nil
-    panel.tl_salvage_base_text = nil
-    panel.tl_salvage_amount = nil
-    panel.tl_salvage_style = nil
+    _reset_salvage_state(panel)
 end
 
 local _player_salvage_amount = function(game_mode, player)
@@ -174,7 +204,7 @@ local _player_salvage_amount = function(game_mode, player)
     return game_mode:expedition_currency(peer_id) or 0
 end
 
-local _player_salvage_text = function(style, salvage_amount)
+local _player_salvage_text = function(style, salvage_amount, color_code)
     local text = ""
 
     if style == "text" then
@@ -182,8 +212,6 @@ local _player_salvage_text = function(style, salvage_amount)
     else
         text = "| " .. tostring(salvage_amount) .. " " .. SALVAGE_SYMBOL
     end
-
-    local color_code = mod:get("player_salvage_color")
 
     if color_code and color_code ~= "default" and Color[color_code] then
         local c = Color[color_code](255, true)
@@ -194,7 +222,15 @@ local _player_salvage_text = function(style, salvage_amount)
     return text
 end
 
-local _append_player_salvage = function(panel, player, game_mode, style)
+local _expand_name_width = function(widget)
+    local container_size = widget.style.text.size
+
+    if container_size then
+        container_size[1] = math_max(container_size[1], PLAYER_NAME_WITH_SALVAGE_WIDTH)
+    end
+end
+
+local _append_player_salvage = function(panel, player, game_mode, style, color_code)
     local widget = panel._widgets_by_name.player_name
 
     if not widget then
@@ -211,7 +247,17 @@ local _append_player_salvage = function(panel, player, game_mode, style)
 
     local content = widget.content
     local original_text = content.text or ""
-    local text = _player_salvage_text(style, salvage_amount)
+
+    -- Nothing changed since the last frame: leave the widget text untouched.
+    -- Other HUD mods may reset the width every frame, so keep enforcing it.
+    if original_text == panel.tl_salvage_widget_text and salvage_amount == panel.tl_salvage_amount
+        and style == panel.tl_salvage_style and color_code == panel.tl_salvage_color then
+        _expand_name_width(widget)
+
+        return true
+    end
+
+    local text = _player_salvage_text(style, salvage_amount, color_code)
     local current_text, trailing_text, removed = _trim_previous_salvage(original_text, panel.tl_salvage_text)
 
     if not removed and panel.tl_salvage_text ~= text then
@@ -229,32 +275,46 @@ local _append_player_salvage = function(panel, player, game_mode, style)
         return false
     end
 
-    local container_size = widget.style.text.size
-
-    if container_size then
-        container_size[1] = math.max(container_size[1], PLAYER_NAME_WITH_SALVAGE_WIDTH)
-    end
+    _expand_name_width(widget)
 
     local new_text = current_text .. " " .. text .. trailing_text
 
-    if original_text == new_text then
-        panel.tl_salvage_text = text
-        panel.tl_salvage_base_text = current_text
-        panel.tl_salvage_amount = salvage_amount
-        panel.tl_salvage_style = style
-
-        return true
+    if original_text ~= new_text then
+        content.text = new_text
+        widget.dirty = true
     end
-
-    content.text = new_text
-    widget.dirty = true
 
     panel.tl_salvage_text = text
     panel.tl_salvage_base_text = current_text
+    panel.tl_salvage_widget_text = new_text
     panel.tl_salvage_amount = salvage_amount
     panel.tl_salvage_style = style
+    panel.tl_salvage_color = color_code
 
     return true
+end
+
+local _sync_level_text = function(panel)
+    local level_text = panel.tl_level_text
+    local widget = panel._widgets_by_name.player_name
+
+    if not level_text or not widget then
+        return
+    end
+
+    local content = widget.content
+    local text = content.text
+
+    if not text or text == level_text then
+        return
+    end
+
+    if text == panel.tl_level_base_text then
+        content.text = level_text
+        widget.dirty = true
+    elseif not string_find(text, level_text, 1, true) then
+        panel.tl_modified = false
+    end
 end
 
 local _toggle_level_display = function(self)
@@ -342,20 +402,23 @@ mod:hook_safe(CLASS.HudElementTeamPanelHandler, "_add_panel", function()
     mod.desynced(ref)
 end)
 
-mod:hook_safe(CLASS.HudElementTeamPanelHandler, "update", function(self, dt, t, ui_renderer)
+local _update_team_panels = function(self)
     if not mod.is_enabled_feature(ref) then
         return
     end
 
     local player_panels_array = self._player_panels_array
+    local num_panels = #player_panels_array
 
     if mod.should_replace(ref) then
-        for _, data in ipairs(player_panels_array) do
-            local panel = data.panel
+        for i = 1, num_panels do
+            local panel = player_panels_array[i].panel
 
             _remove_player_salvage(panel)
             panel._current_player_name = nil
             panel.tl_modified = false
+            panel.tl_level_text = nil
+            panel.tl_level_base_text = nil
             panel.wru_modified = false
         end
 
@@ -366,10 +429,24 @@ mod:hook_safe(CLASS.HudElementTeamPanelHandler, "update", function(self, dt, t, 
 
     local game_mode = _expedition_game_mode()
     local salvage_enabled = _salvage_enabled(game_mode)
+    local salvage_style = mod._player_salvage_style
+    local salvage_color = mod._player_salvage_color
+    local wru_enabled = nil
 
-    for _, data in ipairs(player_panels_array) do
+    for i = 1, num_panels do
+        local data = player_panels_array[i]
         local panel = data.panel
-        local is_waiting = mod.is_ready(panel, ref)
+
+        if panel.tl_modified then
+            _sync_level_text(panel)
+        end
+
+        -- Resolve WhoAreYou at most once per frame, and only for unmodified panels.
+        if wru_enabled == nil and not panel.tl_modified then
+            wru_enabled = mod.is_wru_enabled(ref)
+        end
+
+        local is_waiting = mod.is_ready(panel, ref, wru_enabled)
 
         if is_waiting then
             local player = data.player
@@ -385,9 +462,12 @@ mod:hook_safe(CLASS.HudElementTeamPanelHandler, "update", function(self, dt, t, 
                     local content = widget.content
                     local container_size = widget.style.text.size
                     local player_name = content.text
+                    local level_text = mod.replace_level(player_name, true_levels, ref, true)
 
-                    content.text = mod.replace_level(player_name, true_levels, ref, true)
+                    content.text = level_text
                     panel.tl_modified = true
+                    panel.tl_level_text = level_text
+                    panel.tl_level_base_text = player_name
 
                     if container_size then
                         container_size[1] = 500
@@ -402,12 +482,22 @@ mod:hook_safe(CLASS.HudElementTeamPanelHandler, "update", function(self, dt, t, 
 
         if not player_deleted and player:is_human_controlled() then
             if salvage_enabled then
-                _append_player_salvage(panel, player, game_mode, mod:get("player_salvage_style"))
-                _hide_vanilla_salvage(panel, true)
+                _append_player_salvage(panel, player, game_mode, salvage_style, salvage_color)
+
+                -- The panel update hook already re-hides it every frame.
+                if not panel.tl_vanilla_salvage_hidden then
+                    _hide_vanilla_salvage(panel, true)
+                end
             elseif panel.tl_vanilla_salvage_hidden or panel.tl_salvage_text then
                 _remove_player_salvage(panel)
                 _restore_vanilla_salvage(panel, game_mode ~= nil)
             end
         end
     end
+end
+
+mod:hook_safe(CLASS.HudElementTeamPanelHandler, "update", function(self, dt, t, ui_renderer)
+    mod.debug.profile_start(PROFILE_SCOPE)
+    _update_team_panels(self)
+    mod.debug.profile_stop(PROFILE_SCOPE)
 end)
