@@ -537,7 +537,6 @@ local RESOLVED_SETTING_IDS = {
     "havoc_assignment_icon",
     "havoc_assignment_color",
     "enable_havoc_assignment_charges",
-    "hide_havoc_assignment_charges_at_max_rank",
 }
 
 local _resolved_settings = {}
@@ -632,7 +631,8 @@ local levels = {
         key = "havoc_assignment",
         symbol_key = "havoc_assignment_custom",
         color_id = "havoc_assignment_color",
-        val = ""
+        val = "",
+        merged = false
     }
 }
 
@@ -641,6 +641,7 @@ local _init_levels = function()
         local level = levels[i]
 
         level.val = ""
+        level.merged = false
     end
 end
 
@@ -654,14 +655,19 @@ local _concat_levels = function(settings)
     for i = 1, len do
         local level = levels[i]
         if level.val ~= "" then
-            local level_text = level.val .. " " .. mod.get_symbol(level.symbol_key)
+            local symbol = mod.get_symbol(level.symbol_key)
+            local level_text = level.merged and symbol or level.val .. " " .. symbol
             local color_code = settings[level.color_id]
 
             if color_code and color_code ~= "default" and Color[color_code]then
                 level_text = _apply_color_to_text(color_code, level_text)
             end
 
-            level_texts[#level_texts + 1] = level_text
+            if level.merged then
+                level_texts[#level_texts] = level_texts[#level_texts] .. " " .. level_text
+            else
+                level_texts[#level_texts + 1] = level_text
+            end
         end
     end
 
@@ -751,14 +757,16 @@ local _replace_level = function(text, true_levels, reference, need_adding)
 
         if assignment then
             local assignment_text = assignment.rank
+            local charges_symbol = nil
 
-            if settings.enable_havoc_assignment_charges
-                and not (settings.hide_havoc_assignment_charges_at_max_rank and assignment.rank >= HAVOC_ASSIGNMENT_MAX_RANK) then
-                local charges_symbol = HAVOC_CHARGE_SYMBOLS[assignment.charges]
+            if settings.enable_havoc_assignment_charges and assignment.rank < HAVOC_ASSIGNMENT_MAX_RANK then
+                charges_symbol = HAVOC_CHARGE_SYMBOLS[assignment.charges]
+            end
 
-                if charges_symbol then
-                    assignment_text = assignment_text .. " " .. charges_symbol
-                end
+            if charges_symbol then
+                assignment_text = assignment_text .. " " .. charges_symbol
+            else
+                levels[4].merged = tonumber(levels[3].val) == assignment.rank
             end
 
             mod._symbols.havoc_assignment_custom = settings.havoc_assignment_icon
