@@ -133,7 +133,7 @@ local loc = {
     },
     prioritize_other_levels_desc = {
         en = "Hide normal level if prestige level, havoc clearance or havoc assignment is available.",
-        ja = "プレステージレベルやハヴォックランクが有効な場合は、通常のレベルを非表示にします。",
+        ja = "プレステージレベルやハヴォッククリアランス、ハヴォック任務ランクが有効な場合は、通常のレベルを非表示にします。",
         ["zh-cn"] = "如果能显示声望等级或者浩劫等级，则隐藏常规等级。",
         ["zh-tw"] = "若能顯示聲望等級或浩劫等級，則隱藏一般等級。",
         ru = "Скрыть обычный уровень, если доступен уровень престижа или ранг хаоса.",
@@ -231,39 +231,44 @@ local loc = {
     },
     enable_havoc_rank = {
         en = "Show Havoc Clearance",
-        ja = "ハヴォックランクを表示する",
+        ja = "ハヴォッククリアランスを表示する",
         ["zh-cn"] = "显示浩劫等级",
         ["zh-tw"] = "顯示浩劫等級",
         ru = "Показывать ранг «Верной смерти»",
     },
     havoc_rank_icon = {
         en = "Havoc Clearance Icon",
-        ja = "ハヴォックランクアイコン",
+        ja = "ハヴォッククリアランスアイコン",
         ["zh-cn"] = "浩劫等级图标",
         ["zh-tw"] = "浩劫等級圖示",
         ru = "Значок ранга «Верной смерти»",
     },
     havoc_rank_color = {
         en = "Havoc Clearance Color",
-        ja = "ハヴォックランクの色",
+        ja = "ハヴォッククリアランスの色",
         ["zh-cn"] = "浩劫等级颜色",
         ["zh-tw"] = "浩劫等級顏色",
         ru = "Цвет ранга «Верной смерти»",
     },
     enable_havoc_assignment = {
         en = "Show Havoc Assignment",
+        ja = "ハヴォック任務ランクを表示する",
     },
     havoc_assignment_icon = {
         en = "Havoc Assignment Icon",
+        ja = "ハヴォック任務ランクアイコン",
     },
     havoc_assignment_color = {
         en = "Havoc Assignment Color",
+        ja = "ハヴォック任務ランクの色",
     },
     enable_havoc_assignment_charges = {
         en = "Show Havoc Assignment Charges",
+        ja = "ハヴォック任務の残り回数を表示する",
     },
     havoc_assignment_charges_desc = {
         en = "Show the remaining charges of the assignment. Charges are not shown at assignment rank 40, where they can no longer be lost. Other players' charges are only available if they also run True Level.",
+        ja = "現在の任務に挑戦可能な残り回数を表示します。ランク40では残り回数が減らないため表示されません。他のプレイヤーの残り回数は、そのプレイヤーがTrue Levelを利用している場合のみ表示されます。",
     },
     level_up = {
         en = "Level Up!",
