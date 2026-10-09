@@ -4,7 +4,7 @@ mod._info = {
     title = "True Level",
     author = "Zombine",
     date = "2026/10/09",
-    version = "1.11.4",
+    version = "1.11.5",
 }
 mod:info("Version " .. mod._info.version)
 
