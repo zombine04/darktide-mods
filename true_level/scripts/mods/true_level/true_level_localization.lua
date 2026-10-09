@@ -263,13 +263,7 @@ local loc = {
         en = "Show Havoc Assignment Charges",
     },
     havoc_assignment_charges_desc = {
-        en = "Show the remaining charges of the assignment. Charges are not shown at assignment rank 40, where they can no longer be lost. Other players' charges are only available if they also run True Level with \"Share Havoc Assignment\" enabled.",
-    },
-    share_havoc_assignment = {
-        en = "Share Havoc Assignment",
-    },
-    share_havoc_assignment_desc = {
-        en = "Publishes your current Havoc assignment and its remaining charges to other players who also run True Level, so they can see your charges. Turn this off to publish nothing; you will still see the assignments of players who share theirs.",
+        en = "Show the remaining charges of the assignment. Charges are not shown at assignment rank 40, where they can no longer be lost. Other players' charges are only available if they also run True Level.",
     },
     level_up = {
         en = "Level Up!",

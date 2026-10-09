@@ -220,7 +220,7 @@ local _publish_havoc_assignment = function(clear)
     local value = ""
     local assignment = mod._havoc_assignment_local
 
-    if not clear and assignment and mod:get("share_havoc_assignment") then
+    if not clear and assignment then
         value = assignment.rank .. ":" .. (assignment.charges or "")
     end
 
@@ -456,10 +456,6 @@ local _get_havoc_assignment = function(account_id, ref)
 end
 
 mod.request_local_havoc_assignment = function()
-    if not mod:get("share_havoc_assignment") then
-        return
-    end
-
     local player = Managers.player:local_player_safe(1)
     local account_id = player and player:account_id()
 
@@ -1085,11 +1081,6 @@ mod.on_setting_changed = function(id)
     _refresh_settings()
     mod._is_in_hub = _is_in_hub()
     mod.desync_all()
-
-    if id == "share_havoc_assignment" then
-        mod.request_local_havoc_assignment()
-        _publish_havoc_assignment()
-    end
 end
 
 mod.on_enabled = function()

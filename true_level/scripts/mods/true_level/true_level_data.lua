@@ -69,12 +69,6 @@ local data = {
                 default_value = true,
             },
             {
-                setting_id = "share_havoc_assignment",
-                type = "checkbox",
-                default_value = true,
-                tooltip = "share_havoc_assignment_desc",
-            },
-            {
                 setting_id = "global",
                 type = "group",
                 sub_widgets = {
