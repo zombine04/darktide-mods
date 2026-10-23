@@ -4,7 +4,7 @@ mod._info = {
     title = "Who Are You",
     author = "Zombine",
     date = "2025/12/03",
-    version = "3.7.4",
+    version = "3.8.0",
 }
 mod:info("Version " .. mod._info.version)
 
@@ -12,6 +12,12 @@ local NumericUI = get_mod("NumericUI")
 local ProfileUtils = require("scripts/utilities/profile_utils")
 local TextUtils = require("scripts/utilities/ui/text")
 local UISettings = require("scripts/settings/ui/ui_settings")
+local math_huge = math.huge
+local math_min = math.min
+local pairs = pairs
+local string_find = string.find
+local string_format = string.format
+local string_gsub = string.gsub
 local ICONS = {
     steam = "\xEE\x81\xAB",
     xbox = "\xEE\x81\xAC",
@@ -19,22 +25,127 @@ local ICONS = {
     ps5 = "\xEE\x81\xB1",
     unknown = "\xEE\x81\xAF"
 }
+-- distinct glyphs of ICONS (psn and ps5 share one)
+local ICON_GLYPHS = {
+    ICONS.steam,
+    ICONS.xbox,
+    ICONS.psn,
+    ICONS.unknown,
+}
+local NUM_ICONS = #ICON_GLYPHS
+local ICON_PREFIXES = {}
+
+for i = 1, NUM_ICONS do
+    ICON_PREFIXES[i] = ICON_GLYPHS[i] .. " "
+end
+
+-- resolution state of an account name
+local STATE_UNRESOLVED = "unresolved" -- no usable name yet
+local STATE_TENTATIVE = "tentative" -- usable, but the platform or platform username may still change it
+local STATE_RESOLVED = "resolved"
+
+-- seconds between lookups of a queued account, doubled after each lookup up to the max
+local UNRESOLVED_RETRY_DELAY = 0.1
+local UNRESOLVED_MAX_RETRY_DELAY = 0.5
+local TENTATIVE_RETRY_DELAY = 0.5
+local TENTATIVE_MAX_RETRY_DELAY = 4
+-- unresolved accounts are dropped once nothing has asked for them for this long
+local UNRESOLVED_EXPIRY = 10
+-- tentative names are refined for this long, and rest at least as long before being refined again
+local TENTATIVE_EXPIRY = 30
+
+-- ref -> "enable_<ref>" setting id, e.g. nameplate -> enable_nameplate
+local ENABLE_SETTING_IDS = {}
+
+for i = 1, #mod.modified_elements do
+    local element = mod.modified_elements[i]
+
+    ENABLE_SETTING_IDS[string.sub(element, 2)] = "enable" .. element
+end
 
 mod._account_names = mod:persistent_table("account_names")
-mod._queue = mod:persistent_table("queue")
-mod.current_style = mod:get("display_style")
+
+-- id -> resolution record of every account that was looked up
+local _resolutions = {}
+-- id -> resolution record of the accounts that are still being looked up
+local _queue = {}
+
+mod._resolutions = _resolutions
+mod._queue = _queue
+
+-- settings read every frame are cached here instead of calling mod:get
+local _enabled = {}
+
+local _refresh_settings = function()
+    mod.current_style = mod:get("display_style")
+
+    for ref, setting_id in pairs(ENABLE_SETTING_IDS) do
+        _enabled[ref] = mod:get(setting_id)
+    end
+end
+
+_refresh_settings()
+
+-- bumped whenever a cached name changes, so rendered names get rebuilt
+local _name_revision = 0
+-- seconds summed from update's dt (DMF passes no t)
+local _clock = 0
+-- earliest next_check in the queue
+local _next_check = math_huge
 
 -- ##############################
 -- Manage Account Names
 -- ##############################
 
-mod.is_unknown = function(account_name)
-    if string.match(account_name, ICONS.unknown) then
-        return true
+local _get_record = function(id)
+    local record = _resolutions[id]
+
+    if not record then
+        record = {
+            state = STATE_UNRESOLVED,
+            next_check = 0,
+            retry_delay = UNRESOLVED_RETRY_DELAY,
+            expires_at = 0,
+            rest_until = 0,
+            -- measurements for tuning the delays, see debug_who_are_you
+            requested_at = _clock,
+            checks = 0,
+        }
+        _resolutions[id] = record
     end
 
-    for _, icon in pairs(ICONS) do
-        account_name = string.gsub(account_name, icon .. " ", "")
+    return record
+end
+
+local _schedule = function(record, delay)
+    local next_check = _clock + delay
+
+    record.next_check = next_check
+
+    if next_check < _next_check then
+        _next_check = next_check
+    end
+end
+
+-- (re)starts looking up an account from the shortest retry delay
+local _enqueue = function(id, record, state)
+    local is_tentative = state == STATE_TENTATIVE
+
+    record.state = state
+    record.retry_delay = is_tentative and TENTATIVE_RETRY_DELAY or UNRESOLVED_RETRY_DELAY
+    record.expires_at = _clock + (is_tentative and TENTATIVE_EXPIRY or UNRESOLVED_EXPIRY)
+    _queue[id] = record
+end
+
+local _clear_queue = function()
+    table.clear(_queue)
+    _next_check = math_huge
+end
+
+-- checks the name itself; the platform icon may still be unresolved
+mod.is_unknown = function(account_name)
+    for i = 1, NUM_ICONS do
+        account_name = string_gsub(account_name, ICON_PREFIXES[i], "")
     end
 
     return account_name == "N/A" or account_name == "[unknown]"
@@ -48,55 +159,200 @@ mod.account_name = function(id)
     local account_name = mod._account_names[id]
 
     if account_name then
+        local record = _resolutions[id]
+
+        -- a tentative name that is shown again after resting gets refined again
+        if record and record.state == STATE_TENTATIVE and not _queue[id] and _clock >= record.rest_until then
+            _enqueue(id, record, STATE_TENTATIVE)
+            _schedule(record, 0)
+        end
+
         if mod:get("hide_identifier_tag") then
             account_name = account_name:gsub("#%d+$", "")
         end
     else
-        mod._queue[id] = id
+        local record = _queue[id]
+
+        if record then
+            -- still asked for, so it stays queued
+            record.expires_at = _clock + UNRESOLVED_EXPIRY
+        else
+            record = _get_record(id)
+            _enqueue(id, record, STATE_UNRESOLVED)
+            _schedule(record, 0)
+        end
     end
 
     return account_name
 end
 
-mod.set_account_name = function(id, name)
+-- tentative names stay queued so they can be refined later
+mod.set_account_name = function(id, name, is_tentative)
+    local record = _get_record(id)
+
     mod._account_names[id] = name
-    mod._queue[id] = nil
+
+    if not record.cached_at then
+        record.cached_at = _clock
+        record.first_name_after = _clock - record.requested_at
+    end
+
+    if is_tentative then
+        if record.state ~= STATE_TENTATIVE then
+            _enqueue(id, record, STATE_TENTATIVE)
+            _schedule(record, record.retry_delay)
+        end
+    else
+        record.state = STATE_RESOLVED
+        record.final_name_after = _clock - record.requested_at
+        _queue[id] = nil
+    end
 end
 
 mod.clear_account_names = function()
     for id, _ in pairs(mod._account_names) do
         mod._account_names[id] = nil
     end
+
+    table.clear(_resolutions)
+    _clear_queue()
 end
 
-mod.update = function(dt, t)
-    if not table.is_empty(mod._queue) then
-        for account_id, _ in pairs(mod._queue) do
-            local player_info = Managers.data_service.social:get_player_info_by_account_id(account_id)
+-- vanilla is still resolving the platform or the platform username
+local _is_tentative = function(player_info)
+    local icon = player_info:platform_icon()
 
-            if player_info then
-                local account_name = player_info:user_display_name()
-                local character_name = player_info:character_name()
+    if not icon or icon == ICONS.unknown then
+        return true
+    end
 
-                if not mod.is_unknown(account_name) then
-                    mod.set_account_name(account_id, account_name)
-                    --mod:echo(character_name .. ": " .. account_name)
-                end
+    local presence_manager = Managers.presence
+
+    if not presence_manager then
+        return true
+    end
+
+    local myself = presence_manager:presence_entry_myself()
+    local platform = player_info:platform()
+
+    if myself and platform == myself:platform() then
+        return presence_manager:get_requested_platform_username(platform, player_info:platform_user_id()) == nil
+    end
+
+    return false
+end
+
+local _resolve = function(account_id, record, social)
+    record.checks = record.checks + 1
+
+    local player_info = social:get_player_info_by_account_id(account_id)
+
+    if player_info then
+        local account_name = player_info:user_display_name()
+
+        if not mod.is_unknown(account_name) then
+            local cached_name = mod._account_names[account_id]
+
+            if cached_name and cached_name ~= account_name then
+                _name_revision = _name_revision + 1
             end
+
+            mod.set_account_name(account_id, account_name, _is_tentative(player_info))
+            --mod:echo(player_info:character_name() .. ": " .. account_name)
         end
     end
 end
 
--- change cross platform icon to acutual platform icons (experimental)
+-- only accounts whose retry is due are looked up, so idle frames cost a single compare
+mod.update = function(dt)
+    local clock = _clock + dt
 
-mod:hook_origin("PresenceEntryImmaterium", "platform_icon", function(self)
-    local platform = self._immaterium_entry.platform
+    _clock = clock
 
-    if ICONS[platform] then
-        return ICONS[platform]
+    if clock < _next_check then
+        return
     end
 
-    return ICONS.unknown -- unknown
+    local data_service = Managers.data_service
+    local social = data_service and data_service.social
+
+    if not social then
+        return
+    end
+
+    local queue = _queue
+    local next_check = math_huge
+
+    for account_id, record in pairs(queue) do
+        local record_next_check = record.next_check
+
+        if record_next_check <= clock then
+            if clock >= record.expires_at then
+                queue[account_id] = nil
+                record.rest_until = clock + TENTATIVE_EXPIRY
+            else
+                _resolve(account_id, record, social)
+
+                if queue[account_id] then
+                    local retry_delay = record.retry_delay
+                    local max_retry_delay = record.state == STATE_TENTATIVE and TENTATIVE_MAX_RETRY_DELAY or UNRESOLVED_MAX_RETRY_DELAY
+
+                    record_next_check = clock + retry_delay
+                    record.next_check = record_next_check
+                    record.retry_delay = math_min(retry_delay * 2, max_retry_delay)
+                end
+            end
+        end
+
+        if queue[account_id] and record_next_check < next_check then
+            next_check = record_next_check
+        end
+    end
+
+    _next_check = next_check
+end
+
+-- change cross platform icon to acutual platform icons (experimental)
+-- own and unrecognized platforms are left to vanilla
+
+mod:hook("PresenceEntryImmaterium", "platform_icon", function(func, self, in_platform, ...)
+    local platform = self._immaterium_entry.platform
+
+    if platform == "" then
+        platform = in_platform
+    end
+
+    local icon = platform ~= self._my_own_platform and ICONS[platform]
+
+    if icon then
+        return icon
+    end
+
+    return func(self, in_platform, ...)
+end)
+
+-- a presence update brings the account name and requests the platform username,
+-- so a pending account is looked up right away instead of waiting for its retry
+
+mod:hook_safe("PresenceEntryImmaterium", "update_with", function(self, new_entry)
+    local account_id = new_entry.account_id
+    local record = account_id and _resolutions[account_id]
+
+    if not record then
+        return
+    end
+
+    local state = record.state
+
+    if state == STATE_TENTATIVE then
+        _enqueue(account_id, record, state)
+    elseif state == STATE_UNRESOLVED and _queue[account_id] then
+        record.retry_delay = UNRESOLVED_RETRY_DELAY
+    else
+        return
+    end
+
+    _schedule(record, 0)
 end)
 
 -- ##############################
@@ -111,7 +367,7 @@ local _is_myself = function(account_id)
 end
 
 local _format_inline_code = function(property, value)
-    return string.format("{#%s(%s)}", property, value)
+    return string_format("{#%s(%s)}", property, value)
 end
 
 local _apply_style = function(name, ref)
@@ -121,7 +377,7 @@ local _apply_style = function(name, ref)
         suffix = "_" .. ref
     end
 
-    name = string.format(" (%s){#reset()}", name)
+    name = string_format(" (%s){#reset()}", name)
 
     if mod:get("enable_custom_size" .. suffix) then
         local size = mod:get("sub_name_size" .. suffix)
@@ -134,7 +390,7 @@ local _apply_style = function(name, ref)
 
         if custom_color and Color[custom_color] then
             local c = Color[custom_color](255, true)
-            local rgb = string.format("%s,%s,%s", c[2], c[3], c[4])
+            local rgb = string_format("%s,%s,%s", c[2], c[3], c[4])
 
              name = _format_inline_code("color", rgb) .. name
         end
@@ -148,16 +404,16 @@ local modify_character_name = function(name, account_name, account_id, ref)
     local icon_style = mod:get("platform_icon")
     local prefix = ""
 
-    for platform, icon in pairs(ICONS) do
-        if string.match(account_name, icon) then
-            prefix = icon .. " "
+    for i = 1, NUM_ICONS do
+        if string_find(account_name, ICON_GLYPHS[i], 1, true) then
+            prefix = ICON_PREFIXES[i]
         end
     end
 
     if icon_style == "off" then
-        account_name = string.gsub(account_name, prefix, "")
+        account_name = string_gsub(account_name, prefix, "")
     elseif icon_style == "character_only" then
-        account_name = string.gsub(account_name, prefix, "")
+        account_name = string_gsub(account_name, prefix, "")
         name = prefix .. name
     end
 
@@ -174,16 +430,12 @@ local modify_character_name = function(name, account_name, account_id, ref)
     return name
 end
 
-local is_current_style = function(style)
-    return style == mod.current_style
-end
-
 -- Chat
 
 mod:hook(CLASS.ConstantElementChat, "_participant_displayname", function(func, self, participant)
     local character_name = func(self, participant)
 
-    if mod:get("enable_chat") and character_name and character_name ~= "" then
+    if _enabled.chat and character_name and character_name ~= "" then
         local account_id = participant.account_id
         local account_name = mod.account_name(account_id)
 
@@ -198,7 +450,7 @@ end)
 -- Lobby
 
 mod:hook_safe(CLASS.LobbyView, "_sync_player", function(self, unique_id, player)
-    if not mod:get("enable_lobby") then
+    if not _enabled.lobby then
         return
     end
 
@@ -210,7 +462,7 @@ mod:hook_safe(CLASS.LobbyView, "_sync_player", function(self, unique_id, player)
     if slot then
         local is_synced = slot.synced
 
-        if is_synced and not is_current_style(slot.wru_style) or not slot.wru_modified then
+        if is_synced and slot.wru_style ~= mod.current_style or not slot.wru_modified or slot.wru_revision ~= _name_revision then
             local profile = player:profile()
             local panel_widget = slot.panel_widget
             local panel_content = panel_widget.content
@@ -222,9 +474,10 @@ mod:hook_safe(CLASS.LobbyView, "_sync_player", function(self, unique_id, player)
                 local character_level = profile.current_level .. " \xEE\x80\x86"
                 local modified_name = modify_character_name(character_name, account_name, account_id, ref)
 
-                panel_content.character_name = string.format("%s %s", character_level, modified_name)
+                panel_content.character_name = string_format("%s %s", character_level, modified_name)
                 slot.wru_modified = true
                 slot.wru_style = mod.current_style
+                slot.wru_revision = _name_revision
                 slot.tl_modified = false
             end
         end
@@ -236,6 +489,20 @@ mod:hook_safe(CLASS.LobbyView, "_reset_spawn_slot", function(self, slot)
 end)
 
 -- Nameplate
+
+-- marker types are a fixed set, so each one is classified only once
+local _player_nameplate_types = {}
+
+local _is_player_nameplate = function(marker_type)
+    local is_player_nameplate = _player_nameplate_types[marker_type]
+
+    if is_player_nameplate == nil then
+        is_player_nameplate = marker_type:match("nameplate") ~= nil and not marker_type:match("companion")
+        _player_nameplate_types[marker_type] = is_player_nameplate
+    end
+
+    return is_player_nameplate
+end
 
 local function _create_character_text(marker)
     local player = marker.data
@@ -268,7 +535,7 @@ local function _create_character_text(marker)
 end
 
 mod:hook_safe(CLASS.HudElementWorldMarkers, "event_add_world_marker_unit", function(self, marker_type, unit, callback, data)
-    if marker_type:match("nameplate") and not marker_type:match("companion") then
+    if _is_player_nameplate(marker_type) then
         local markers = self._markers_by_type[marker_type]
         local len = #markers
 
@@ -308,24 +575,26 @@ mod:hook_safe(CLASS.HudElementWorldMarkers, "event_add_world_marker_unit", funct
 end)
 
 mod:hook_safe(CLASS.HudElementWorldMarkers, "_calculate_markers", function(self, dt, t)
-    if not mod:get("enable_nameplate") then
+    if not _enabled.nameplate then
         return
     end
 
     local markers_by_type = self._markers_by_type
-    local ref = "nameplate"
+    local current_style = mod.current_style
+    local name_revision = _name_revision
 
     for marker_type, markers in pairs(markers_by_type) do
-        if marker_type:match(ref) and not marker_type:match("companion") then
+        if _is_player_nameplate(marker_type) then
+            local is_combat = marker_type == "nameplate_party"
+
             for i = 1, #markers do
                 local marker = markers[i]
-                local is_combat = marker_type == "nameplate_party"
 
                 if marker.rank_promise then
                     return
                 end
 
-                if not is_current_style(marker.wru_style) or not marker.wru_modified then
+                if marker.wru_style ~= current_style or not marker.wru_modified or marker.wru_revision ~= name_revision then
                     local player = marker.data
                     local profile = player:profile()
                     local content = marker.widget.content
@@ -405,6 +674,7 @@ mod:hook_safe(CLASS.HudElementWorldMarkers, "_calculate_markers", function(self,
 
                                     marker.wru_modified = true
                                     marker.wru_style = mod.current_style
+                                    marker.wru_revision = name_revision
                                     marker.tl_modified = false
                                 end)
 
@@ -413,6 +683,7 @@ mod:hook_safe(CLASS.HudElementWorldMarkers, "_calculate_markers", function(self,
                         else
                             marker.wru_modified = true
                             marker.wru_style = mod.current_style
+                            marker.wru_revision = name_revision
                             marker.tl_modified = false
                         end
                     end
@@ -425,7 +696,7 @@ end)
 -- Team Hud
 
 local modify_player_panel_name = function(self, dt, t, player)
-    if not mod:get("enable_team_panel") then
+    if not _enabled.team_panel then
         return
     end
 
@@ -438,7 +709,7 @@ local modify_player_panel_name = function(self, dt, t, player)
         container_size[1] = 500
     end
 
-    if not is_current_style(self.wru_style) or not self.wru_modified then
+    if self.wru_style ~= mod.current_style or not self.wru_modified or self.wru_revision ~= _name_revision then
         local profile = player:profile()
         local account_id = player:account_id()
         local account_name = mod.account_name(account_id)
@@ -452,6 +723,7 @@ local modify_player_panel_name = function(self, dt, t, player)
             self:_set_player_name(string_symbol .. modified_name, character_level)
             self.wru_modified = true
             self.wru_style = mod.current_style
+            self.wru_revision = _name_revision
             self.tl_modified = false
         end
     end
@@ -474,7 +746,7 @@ mod:hook_require("scripts/ui/constant_elements/elements/notification_feed/consta
 end)
 
 mod:hook(CLASS.HudElementCombatFeed, "_get_unit_presentation_name", function(func, self, unit)
-    if mod:get("enable_combat_feed") then
+    if _enabled.combat_feed then
         local player_unit_spawn_manager = Managers.state.player_unit_spawn
         local player = unit and player_unit_spawn_manager:owner(unit)
 
@@ -499,12 +771,7 @@ end)
 
 -- Inventory
 
-mod:hook_safe(CLASS.InventoryBackgroundView, "_fetch_character_progression", function(self, player)
-    if not mod:get("enable_inventory") then
-        return
-    end
-
-    local widget = self._widgets_by_name.character_name
+local _modify_inventory_name = function(widget, player)
     local account_id = player:account_id()
     local account_name = mod.account_name(account_id)
 
@@ -514,13 +781,45 @@ mod:hook_safe(CLASS.InventoryBackgroundView, "_fetch_character_progression", fun
         local modified_name = modify_character_name(character_name, account_name, account_id, ref)
 
         widget.content.text = modified_name
+        widget.wru_modified = true
+        widget.wru_style = mod.current_style
+        widget.wru_revision = _name_revision
+    end
+end
+
+mod:hook_safe(CLASS.InventoryBackgroundView, "_set_player_profile_information", function(self, player)
+    if not _enabled.inventory then
+        return
+    end
+
+    local widget = self._widgets_by_name.character_name
+
+    widget.wru_modified = false
+    _modify_inventory_name(widget, player)
+end)
+
+mod:hook_safe(CLASS.InventoryBackgroundView, "update", function(self)
+    if not _enabled.inventory or not self._presentation_profile then
+        return
+    end
+
+    local widget = self._widgets_by_name.character_name
+
+    if widget.wru_modified and widget.wru_style == mod.current_style and widget.wru_revision == _name_revision then
+        return
+    end
+
+    local player = self._preview_player
+
+    if player and not player.__deleted then
+        _modify_inventory_name(widget, player)
     end
 end)
 
 -- Inspect Player
 
 mod:hook(CLASS.PlayerCharacterOptionsView, "_set_player_name", function(func, self, name, ...)
-    if mod:get("enable_inspect_player") then
+    if _enabled.inspect_player then
         local account_id = self._account_id
         local account_name = mod.account_name(account_id)
         local ref = "inspect_player"
@@ -536,7 +835,7 @@ end)
 -- Gourp Finder
 
 mod:hook_safe(CLASS.GroupFinderView, "_update_listed_group", function(self)
-    if not mod:get("enable_group_finder") then
+    if not _enabled.group_finder then
         return
     end
 
@@ -563,13 +862,14 @@ mod:hook_safe(CLASS.GroupFinderView, "_update_listed_group", function(self)
 end)
 
 local requests = {}
+local num_requests = 0
 
 mod:hook_safe(CLASS.GroupFinderView, "update", function(self)
-    if not mod:get("enable_group_finder") then
+    if not _enabled.group_finder then
         return
     end
 
-    for i = 1, #requests do
+    for i = 1, num_requests do
         local request = requests[i]
         local widget = request.widget
         local account_id = request.account_id
@@ -589,11 +889,12 @@ mod:hook_safe(CLASS.GroupFinderView, "update", function(self)
 end)
 
 mod:hook_safe(CLASS.GroupFinderView, "_populate_player_request_grid", function(self)
-    if not mod:get("enable_group_finder") then
+    if not _enabled.group_finder then
         return
     end
 
-    requests = {}
+    table.clear(requests)
+    num_requests = 0
 
     local grid = self._player_request_grid
     local widgets = grid and grid:widgets() or {}
@@ -606,7 +907,8 @@ mod:hook_safe(CLASS.GroupFinderView, "_populate_player_request_grid", function(s
             local widget_type = element.widget_type
 
             if widget_type == "player_request_entry" then
-                requests[#requests + 1] = {
+                num_requests = num_requests + 1
+                requests[num_requests] = {
                     widget = widget,
                     account_id = element.join_request.account_id
                 }
@@ -619,6 +921,7 @@ mod:hook_safe(CLASS.GroupFinderView, "_populate_preview_grid", function(self)
     local grid = self._preview_grid
     local widgets = grid and grid:widgets() or {}
     local player_widgets = {}
+    local num_player_widgets = 0
     local members = nil
 
     for i = 1, #widgets do
@@ -631,13 +934,14 @@ mod:hook_safe(CLASS.GroupFinderView, "_populate_preview_grid", function(self)
             if widget_type == "group" then
                 members = element.group.members
             elseif widget_type == "player_request_entry" then
-                player_widgets[#player_widgets + 1] = widget
+                num_player_widgets = num_player_widgets + 1
+                player_widgets[num_player_widgets] = widget
             end
         end
     end
 
-    if members and not table.is_empty(player_widgets) then
-        for i = 1, #player_widgets do
+    if members and num_player_widgets > 0 then
+        for i = 1, num_player_widgets do
             local widget = player_widgets[i]
             local member = members[i]
             local account_id = member.account_id
@@ -658,23 +962,26 @@ end)
 -- Cycle Style
 -- ##############################
 
+local DISPLAY_STYLES = {
+    "character_first",
+    "account_first",
+    "character_only",
+    "account_only",
+}
+local NUM_DISPLAY_STYLES = #DISPLAY_STYLES
+
 mod.cycle_style = function()
     local ui_manager = Managers.ui
 
     if ui_manager and not ui_manager:chat_using_input() then
+        local current_style = mod.current_style
         local index = 1
-        local display_styles = {
-            "character_first",
-            "account_first",
-            "character_only",
-            "account_only",
-        }
 
-        for i, style in ipairs(display_styles) do
-            if mod.current_style == style then
+        for i = 1, NUM_DISPLAY_STYLES do
+            if current_style == DISPLAY_STYLES[i] then
                 index = i + 1
 
-                if index > #display_styles then
+                if index > NUM_DISPLAY_STYLES then
                     index = 1
                 end
 
@@ -682,7 +989,7 @@ mod.cycle_style = function()
             end
         end
 
-        mod:set("display_style", display_styles[index], true)
+        mod:set("display_style", DISPLAY_STYLES[index], true)
 
         if mod:get("enable_cycle_notif") then
             mod:echo(mod:localize("current_style") .. mod:localize(mod.current_style))
@@ -701,7 +1008,7 @@ mod:hook_safe(CLASS.UIHud, "init", function()
 end)
 
 mod.on_setting_changed = function()
-    mod.current_style = mod:get("display_style")
+    _refresh_settings()
 end
 
 mod.on_game_state_changed = function(status, state_name)
@@ -713,8 +1020,17 @@ mod.on_game_state_changed = function(status, state_name)
             Managers.presence:get_presence(account_id)
         end
 
+        -- the next session asks again for the names it shows
+        _clear_queue()
+
         if mod.is_in_hub then
             mod.clear_account_names()
         end
     end
 end
+
+-- cache age = clock - cached_at
+mod:command("debug_who_are_you", "", function()
+    mod:info(string_format("clock: %.2f", _clock))
+    mod:dump(_resolutions, "resolutions", 2)
+end)
