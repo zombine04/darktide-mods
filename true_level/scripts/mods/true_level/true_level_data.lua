@@ -9,6 +9,19 @@ local option_tables = {
         { text = "player_salvage_style_icon", value = "icon" },
         { text = "off", value = "off" },
     },
+    nameplate_display_location = {
+        { text = "nameplate_display_location_everywhere", value = "everywhere" },
+        { text = "nameplate_display_location_mourningstar_only", value = "mourningstar_only" },
+    },
+    separator = {
+        { text = "separator_space", value = " " },
+        { text = "separator_dot", value = "." },
+        { text = "separator_middle_dot", value = "\xC2\xB7" },
+        { text = "separator_colon", value = ":" },
+        { text = "separator_hyphen", value = "-" },
+        { text = "separator_hash", value = "#" },
+        { text = "separator_pipe", value = "|" },
+    },
     toggle = {
         { text = "on", value = "on" },
         { text = "off", value = "off" },
@@ -163,6 +176,12 @@ local data = {
                             },
                         },
                     },
+                    {
+                        setting_id = "separator",
+                        type = "dropdown",
+                        default_value = " ",
+                        options = table.clone(option_tables.separator),
+                    },
                 }
             },
         }
@@ -282,6 +301,12 @@ for i, ele in ipairs(mod._elements) do
                     },
                 },
             },
+            {
+                setting_id = "separator_" .. ele,
+                type = "dropdown",
+                default_value = "use_global",
+                options = get_child_options("separator"),
+            },
         }
     }
 
@@ -300,6 +325,15 @@ for i, ele in ipairs(mod._elements) do
                         options = table.clone(option_tables.color),
                     }
                 }
+            },
+        })
+    elseif ele == "nameplate" then
+        table.append(widgets[#widgets].sub_widgets, {
+            {
+                setting_id = "nameplate_display_location",
+                type = "dropdown",
+                default_value = "everywhere",
+                options = table.clone(option_tables.nameplate_display_location),
             },
         })
     end

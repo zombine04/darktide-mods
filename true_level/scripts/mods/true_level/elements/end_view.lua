@@ -81,7 +81,7 @@ local _name_max_width = function(self)
     return max_width - NAME_GAP
 end
 
-local _fit_name = function(self, slot, text, level_texts)
+local _fit_name = function(self, slot, text, level_texts, separator)
     if text == slot.tl_fit_source then
         return slot.tl_fitted_name
     end
@@ -92,7 +92,7 @@ local _fit_name = function(self, slot, text, level_texts)
         return text
     end
 
-    local levels_text = level_texts and table.concat(level_texts, " ")
+    local levels_text = level_texts and table.concat(level_texts, separator)
     local fitted_name = mod.fit_name(self._ui_renderer, text, levels_text, slot.widget.style.character_name, max_width)
 
     slot.tl_fit_source = text
@@ -177,8 +177,9 @@ mod:hook_safe(CLASS.EndView, "_set_character_names", function(self)
                     end
 
                     local new_name = mod.replace_level(base_name, true_levels, ref)
+                    local level_texts, separator = mod.get_level_texts()
 
-                    new_name = _fit_name(self, slot, new_name, mod.get_level_texts())
+                    new_name = _fit_name(self, slot, new_name, level_texts, separator)
 
                     if new_name ~= character_name then
                         content.character_name = new_name

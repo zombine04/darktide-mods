@@ -3,8 +3,8 @@ local mod = get_mod("true_level")
 mod._info = {
     title = "True Level",
     author = "Zombine & LucLeto",
-    date = "2026/10/09",
-    version = "1.11.5",
+    date = "2026/10/22",
+    version = "1.12.0",
 }
 mod:info("Version " .. mod._info.version)
 
@@ -27,40 +27,153 @@ mod._havoc_assignment_local = nil
 mod._havoc_assignment_published = nil
 mod._xp_settings = mod:persistent_table("xp_settings")
 mod._xp_promise = nil
+mod._xp_failures = 0
+mod._xp_retry_at = nil
 mod._synced = {}
 mod._is_in_hub = false
+
+local XP_RETRY_BASE_DELAY = 2
+local XP_RETRY_MAX_DELAY = 30
+local XP_MAX_ATTEMPTS = 6
+
+local _now = function()
+    local time_manager = Managers.time
+
+    return time_manager and time_manager:has_timer("main") and time_manager:time("main") or 0
+end
+
+local _validate_xp_table = function(level_array)
+    if type(level_array) ~= "table" then
+        return "expected table, got " .. type(level_array)
+    end
+
+    local max_level = #level_array
+
+    if max_level < 2 then
+        return "expected at least 2 levels, got " .. max_level
+    end
+
+    for i = 1, max_level do
+        local xp = level_array[i]
+
+        if type(xp) ~= "number" then
+            return "level " .. i .. " is " .. type(xp)
+        end
+    end
+
+    if level_array[max_level] <= level_array[max_level - 1] then
+        return "xp does not increase at max level " .. max_level
+    end
+
+    return nil
+end
+
+local _schedule_xp_retry = function(reason)
+    local failures = mod._xp_failures + 1
+
+    mod._xp_failures = failures
+
+    if failures >= XP_MAX_ATTEMPTS then
+        local queued = 0
+
+        for _ in pairs(mod._queue) do
+            queued = queued + 1
+        end
+
+        mod._xp_retry_at = nil
+        Log.warning("true_level", "xp settings unavailable after %d attempts (%s), %d characters waiting; retrying after the next game state change", failures, reason, queued)
+
+        return
+    end
+
+    local delay = math.min(XP_RETRY_MAX_DELAY, XP_RETRY_BASE_DELAY * 2 ^ (failures - 1)) * (0.5 + math.random() * 0.5)
+
+    mod._xp_retry_at = _now() + delay
+    mod:info(string.format("xp settings request failed (%s), retry %d/%d in %.1fs", reason, failures, XP_MAX_ATTEMPTS - 1, delay))
+end
+
 mod._fetch_xp_settings = function()
     local xp_settings = mod._xp_settings
 
-    if table.is_empty(xp_settings) and not mod._xp_promise then
-        local backend_interface = Managers.backend.interfaces
-        local xp_promise = backend_interface.progression:get_xp_table("character")
+    if not table.is_empty(xp_settings) or mod._xp_promise or mod._xp_failures >= XP_MAX_ATTEMPTS then
+        return
+    end
 
-        mod._xp_promise = true
-        mod:info("fetching xp settings...")
+    local retry_at = mod._xp_retry_at
 
-        xp_promise:next(function(xp_per_level_array)
-            local max_level = #xp_per_level_array
+    if retry_at and _now() < retry_at then
+        return
+    end
 
-            xp_settings.level_array = xp_per_level_array
-            xp_settings.total_xp = xp_per_level_array[max_level]
-            xp_settings.max_level = max_level
-            mod.debug.dump(xp_settings, "xp_settings")
+    mod._xp_retry_at = nil
 
-            local queue = mod._queue
+    local progression_interface = Managers.backend.interfaces.progression
+    local ok, xp_promise = pcall(progression_interface.get_xp_table, progression_interface, "character")
 
-            if not table.is_empty(queue) then
-                for char_id, args in pairs(queue) do
-                    mod.cache_true_levels(unpack(args))
-                    queue[char_id] = nil
-                end
+    if not ok then
+        _schedule_xp_retry(tostring(xp_promise))
+
+        return
+    end
+
+    mod._xp_promise = xp_promise
+    mod:info("fetching xp settings...")
+
+    xp_promise:next(function(xp_per_level_array)
+        if mod._xp_promise ~= xp_promise then
+            return
+        end
+
+        mod._xp_promise = nil
+
+        local invalid_reason = _validate_xp_table(xp_per_level_array)
+
+        if invalid_reason then
+            _schedule_xp_retry("invalid xp table: " .. invalid_reason)
+
+            return
+        end
+
+        local max_level = #xp_per_level_array
+
+        xp_settings.level_array = xp_per_level_array
+        xp_settings.total_xp = xp_per_level_array[max_level]
+        xp_settings.max_level = max_level
+        mod._xp_failures = 0
+        mod.debug.dump(xp_settings, "xp_settings")
+
+        local queue = mod._queue
+
+        if not table.is_empty(queue) then
+            for char_id, args in pairs(queue) do
+                mod.cache_true_levels(unpack(args))
+                queue[char_id] = nil
             end
+        end
 
-            mod._xp_promise = nil
-            mod.desync_all()
-        end):catch(function(e)
-            mod:dump(e, "xp_settings", 3)
-        end)
+        mod.desync_all()
+    end):catch(function(e)
+        mod:dump(e, "xp_settings", 3)
+
+        if mod._xp_promise ~= xp_promise then
+            return
+        end
+
+        mod._xp_promise = nil
+        _schedule_xp_retry(type(e) == "table" and "status " .. tostring(e.status) or tostring(e))
+    end)
+end
+
+local _reset_xp_retry = function()
+    if mod._xp_failures == 0 then
+        return
+    end
+
+    mod._xp_failures = 0
+    mod._xp_retry_at = nil
+
+    if next(mod._queue) ~= nil then
+        mod._fetch_xp_settings()
     end
 end
 
@@ -125,6 +238,33 @@ mod.cache_true_levels = function(self_or_others, character_id, base_data, havoc_
     true_levels.account_id = account_id
     self_or_others[character_id] = true_levels
     mod.debug.dump(true_levels, character_id)
+    mod.debug.timing("xp_ready", character_id)
+end
+
+mod.cache_havoc_rank = function(self_or_others, character_id, havoc_rank_cadence_high)
+    if not havoc_rank_cadence_high then
+        return false
+    end
+
+    local true_levels = self_or_others[character_id]
+
+    if not true_levels then
+        local args = mod._queue[character_id]
+
+        if args and args[1] == self_or_others then
+            args[4] = havoc_rank_cadence_high
+        end
+
+        return false
+    end
+
+    if not true_levels.true_level or true_levels.havoc_rank == havoc_rank_cadence_high then
+        return false
+    end
+
+    true_levels.havoc_rank = havoc_rank_cadence_high
+
+    return true
 end
 
 -- ############################################################
@@ -144,12 +284,6 @@ local HAVOC_ASSIGNMENT_MAX_AGE = 3600
 local HAVOC_ASSIGNMENT_MAX_REQUESTS = 2
 local HAVOC_ASSIGNMENT_MAX_RANK = 40
 local EXPIRED = -math.huge
-
-local _now = function()
-    local time_manager = Managers.time
-
-    return time_manager and time_manager:has_timer("main") and time_manager:time("main") or 0
-end
 
 local _can_fetch_havoc_assignment = function()
     local state_managers = Managers.state
@@ -533,6 +667,7 @@ local RESOLVED_SETTING_IDS = {
     "havoc_assignment_icon",
     "havoc_assignment_color",
     "enable_havoc_assignment_charges",
+    "separator",
 }
 
 local _resolved_settings = {}
@@ -566,6 +701,7 @@ local _refresh_settings = function()
 
     mod._player_salvage_style = mod:get("player_salvage_style")
     mod._player_salvage_color = mod:get("player_salvage_color")
+    mod._nameplate_display_location = mod:get("nameplate_display_location")
 end
 
 _refresh_settings()
@@ -642,42 +778,58 @@ local _init_levels = function()
 end
 
 local level_texts = {}
+local level_separator = " "
 
 local _concat_levels = function(settings)
     local len = #levels
+    local separator = settings.separator
 
     table.clear(level_texts)
+    level_separator = separator
 
     for i = 1, len do
         local level = levels[i]
-        if level.val ~= "" then
-            local symbol = mod.get_symbol(level.symbol_key)
-            local level_text = level.merged and symbol or level.val .. " " .. symbol
-            local color_code = settings[level.color_id]
+        local val = level.val
 
-            if color_code and color_code ~= "default" and Color[color_code]then
-                level_text = _apply_color_to_text(color_code, level_text)
-            end
+        if val ~= "" then
+            local symbol = mod.get_symbol(level.symbol_key)
+            local level_text = nil
 
             if level.merged then
-                level_texts[#level_texts] = level_texts[#level_texts] .. " " .. level_text
+                level_text = symbol
+            elseif symbol ~= "" then
+                level_text = val .. separator .. symbol
             else
-                level_texts[#level_texts + 1] = level_text
+                level_text = tostring(val)
+            end
+
+            if level_text ~= "" then
+                local color_code = settings[level.color_id]
+
+                if color_code and color_code ~= "default" and Color[color_code]then
+                    level_text = _apply_color_to_text(color_code, level_text)
+                end
+
+                if level.merged then
+                    level_texts[#level_texts] = level_texts[#level_texts] .. separator .. level_text
+                else
+                    level_texts[#level_texts + 1] = level_text
+                end
             end
         end
     end
 
-    return table.concat(level_texts, " ")
+    return table.concat(level_texts, separator)
 end
 
 mod.get_level_texts = function()
-    return level_texts
+    return level_texts, level_separator
 end
 
 local _trim_added_levels = function(text)
     -- Color markup can make the appended level suffix start with "{#color...}"
     -- instead of a digit, so strip both plain and colored variants.
-    text = text:gsub("%s+%-%s+%d.+", "")
+    text = text:gsub("%s+%-%s+%d.*", "")
     text = text:gsub("%s+%-%s+{#.-}%d.+", "")
 
     return text
@@ -760,7 +912,7 @@ local _replace_level = function(text, true_levels, reference, need_adding)
             end
 
             if charges_symbol then
-                assignment_text = assignment_text .. " " .. charges_symbol
+                assignment_text = assignment_text .. settings.separator .. charges_symbol
             else
                 levels[4].merged = tonumber(levels[3].val) == assignment.rank
             end
@@ -778,7 +930,7 @@ local _replace_level = function(text, true_levels, reference, need_adding)
 
     if need_adding and levels_text ~= "" then
         text = text .. " - " .. levels_text
-    elseif levels_text == "" or not string.find(text, levels_text, 1, true) then
+    elseif levels_text == "" or not string.find(levels_text, suffix, 1, true) or not string.find(text, levels_text, 1, true) then
         text = text:gsub("%d+" .. suffix, levels_text)
     end
 
@@ -909,16 +1061,19 @@ mod.should_replace = function(ref)
 end
 
 local _wru = nil
-local _wru_resolved = false
 local _wru_setting_ids = {}
+local _wru_was_enabled = nil
 
-mod.is_wru_enabled = function(key)
-    if not _wru_resolved then
+local _get_wru = function()
+    if not _wru then
         _wru = get_mod("who_are_you")
-        _wru_resolved = true
     end
 
-    local wru = _wru
+    return _wru
+end
+
+mod.is_wru_enabled = function(key)
+    local wru = _get_wru()
 
     if not wru or not wru:is_enabled() then
         return false
@@ -934,26 +1089,8 @@ mod.is_wru_enabled = function(key)
     return wru:get(setting_id) and true or false
 end
 
--- wru_enabled is optional; per-frame callers resolve it once and pass it in.
-mod.is_ready = function(target, key, wru_enabled)
-    -- Already processed targets never wait, so skip the WhoAreYou lookup.
-    if target.tl_modified then
-        return false
-    end
-
-    if wru_enabled == nil then
-        wru_enabled = mod.is_wru_enabled(key)
-    end
-
-    local is_waiting = false
-
-    if wru_enabled then
-        is_waiting = target.wru_modified and not target.tl_modified
-    else
-        is_waiting = not target.tl_modified
-    end
-
-    return is_waiting
+mod.is_ready = function(target)
+    return not target.tl_modified
 end
 
 mod.clear_cache = function ()
@@ -1069,6 +1206,10 @@ mod:hook_safe("UIHud", "init", function(self)
 end)
 
 mod.on_game_state_changed = function(status, state_name)
+    if status == "enter" then
+        _reset_xp_retry()
+    end
+
     if state_name == "StateGameplay" and status == "exit" and mod._is_in_hub then
         mod.clear_cache()
         mod._is_in_hub = false
@@ -1083,8 +1224,29 @@ mod.on_setting_changed = function(id)
     mod.desync_all()
 end
 
+mod.update = function()
+    local xp_retry_at = mod._xp_retry_at
+
+    if xp_retry_at and _now() >= xp_retry_at then
+        mod._xp_retry_at = nil
+        mod._fetch_xp_settings()
+    end
+
+    local wru = _get_wru()
+    local wru_enabled = wru and wru:is_enabled() or false
+
+    if wru_enabled ~= _wru_was_enabled then
+        if _wru_was_enabled ~= nil then
+            mod.desync_all()
+        end
+
+        _wru_was_enabled = wru_enabled
+    end
+end
+
 mod.on_enabled = function()
     _publish_havoc_assignment()
+    mod.desync_all()
 end
 
 mod.on_disabled = function()

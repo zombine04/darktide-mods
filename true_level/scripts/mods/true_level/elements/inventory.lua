@@ -31,9 +31,9 @@ local _separator_indent = function(ui_renderer, prefix, font_type, font_size)
 end
 
 local _wrap_levels = function(ui_renderer, text, font_type, font_size, render_scale, wrap_width)
-    local level_texts = mod.get_level_texts()
+    local level_texts, separator = mod.get_level_texts()
     local count = #level_texts
-    local levels_text = table.concat(level_texts, " ")
+    local levels_text = table.concat(level_texts, separator)
 
     if count == 0 or string.sub(text, -#levels_text) ~= levels_text then
         return text
@@ -44,7 +44,7 @@ local _wrap_levels = function(ui_renderer, text, font_type, font_size, render_sc
     local num_first_row = 0
 
     for i = 1, count do
-        local candidate = first_row .. " " .. level_texts[i]
+        local candidate = first_row .. (i == 1 and " " or separator) .. level_texts[i]
 
         if not _fits_one_row(ui_renderer, candidate, font_type, font_size, render_scale, wrap_width) then
             break
@@ -58,7 +58,7 @@ local _wrap_levels = function(ui_renderer, text, font_type, font_size, render_sc
         return text
     end
 
-    local second_row = table.concat(level_texts, " ", num_first_row + 1, count)
+    local second_row = table.concat(level_texts, separator, num_first_row + 1, count)
 
     return first_row .. "\n" .. _separator_indent(ui_renderer, prefix, font_type, font_size) .. second_row
 end
@@ -101,32 +101,37 @@ mod:hook_safe(CLASS.InventoryBackgroundView, "init", function(self)
 end)
 
 mod:hook_safe(CLASS.InventoryBackgroundView, "update", function(self)
-    if not mod.should_replace(ref) then
+    if not mod.is_enabled_feature(ref) then
         return
     end
 
     local player = self._preview_player
     local profile = self._presentation_profile
 
-    if player and profile then
-        local character_id = profile.character_id
-        local true_levels = mod.get_true_levels(character_id)
+    if not player or player.__deleted or not profile then
+        return
+    end
 
-        if true_levels then
-            local widget = self._widgets_by_name.character_name
-            local content = widget.content
-            local character_name = content.text
-            local base_name = character_name
+    local widget = self._widgets_by_name.character_name
+    local content = widget.content
+    local character_name = content.text
+    local character_id = profile.character_id
+    local is_current = widget.tl_character_id == character_id and widget.tl_name_text == character_name
 
-            if widget.tl_name_base_text and widget.tl_name_text == character_name then
-                base_name = widget.tl_name_base_text
-            end
+    if is_current and not mod.should_replace(ref) then
+        return
+    end
 
-            content.text = mod.replace_level(base_name, true_levels, ref, true)
-            _fit_character_name(self, widget)
-            widget.tl_name_base_text = base_name
-            widget.tl_name_text = content.text
-            mod.synced(ref)
-        end
+    local true_levels = mod.get_true_levels(character_id)
+
+    if true_levels then
+        local base_name = is_current and widget.tl_name_base_text or character_name
+
+        content.text = mod.replace_level(base_name, true_levels, ref, true)
+        _fit_character_name(self, widget)
+        widget.tl_character_id = character_id
+        widget.tl_name_base_text = base_name
+        widget.tl_name_text = content.text
+        mod.synced(ref)
     end
 end)

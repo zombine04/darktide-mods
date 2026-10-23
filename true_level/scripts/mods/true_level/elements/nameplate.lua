@@ -15,6 +15,10 @@ local _get_markers_by_id = function()
     return markers_by_id
 end
 
+local _is_display_location = function()
+    return mod._nameplate_display_location ~= "mourningstar_only" or mod._is_in_hub
+end
+
 local function _create_character_text(marker)
     local player = marker.data
     local player_manager = Managers.player
@@ -46,6 +50,10 @@ local function _create_character_text(marker)
 end
 
 mod:hook_safe(CLASS.HudElementWorldMarkers, "event_add_world_marker_unit", function(self, marker_type, unit, callback, data)
+    if not _is_display_location() then
+        return
+    end
+
     if marker_type:match("nameplate") and not marker_type:match("companion") then
         local markers = self._markers_by_type[marker_type]
         local len = #markers
@@ -108,6 +116,10 @@ local _update_nameplates = function(self)
         return
     end
 
+    if not _is_display_location() then
+        return
+    end
+
     local nameplates = self._nameplate_units
     -- The world markers element and its lookup table live as long as this HUD.
     local markers_by_id = self._tl_markers_by_id
@@ -118,8 +130,6 @@ local _update_nameplates = function(self)
     end
 
     if markers_by_id then
-        local wru_enabled = nil
-
         for _, data in pairs(nameplates) do
             local id = data.marker_id
             local marker = markers_by_id[id]
@@ -130,32 +140,25 @@ local _update_nameplates = function(self)
                 local player_deleted = player.__deleted
 
                 if not player_deleted then
-                    if wru_enabled == nil then
-                        wru_enabled = mod.is_wru_enabled(ref)
-                    end
+                    local profile = player:profile()
+                    local character_id = profile and profile.character_id
+                    local true_levels = mod.get_true_levels(character_id)
 
-                    local is_waiting = mod.is_ready(marker, ref, wru_enabled)
+                    if true_levels then
+                        local widget = marker.widget
+                        local content = widget.content
+                        local header_text = content.header_text
+                        local header_style = widget.style.header_text
+                        local text_size = header_style and header_style.size
 
-                    if is_waiting then
-                        local profile = player:profile()
-                        local character_id = profile and profile.character_id
-                        local true_levels = mod.get_true_levels(character_id)
+                        content.header_text = mod.replace_level(header_text, true_levels, ref, true)
+                        marker.tl_modified = true
 
-                        if true_levels then
-                            local widget = marker.widget
-                            local content = widget.content
-                            local header_text = content.header_text
-                            local header_style = widget.style.header_text
-                            local text_size = header_style and header_style.size
-
-                            content.header_text = mod.replace_level(header_text, true_levels, ref, true)
-                            marker.tl_modified = true
-
-                            if text_size then
-                                text_size[1] = math.max(text_size[1], NAMEPLATE_TEXT_WIDTH)
-                            end
-                            mod.debug.echo(content.header_text)
+                        if text_size then
+                            text_size[1] = math.max(text_size[1], NAMEPLATE_TEXT_WIDTH)
                         end
+                        mod.debug.echo(content.header_text)
+                        mod.debug.rendered(marker, character_id, ref)
                     end
                 end
             end

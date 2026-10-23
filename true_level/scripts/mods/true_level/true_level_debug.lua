@@ -5,6 +5,16 @@ local profiler_stop = Profiler and Profiler.stop
 
 mod._debug_mode = mod:get("enable_debug_mode")
 
+local _now = function()
+    local time_manager = Managers.time
+
+    return time_manager and time_manager:has_timer("main") and time_manager:time("main") or 0
+end
+
+local _timing = function(stage, character_id, ref)
+    mod:info(string.format("[timing] %s t=%.3f character_id=%s ref=%s", stage, _now(), tostring(character_id), tostring(ref)))
+end
+
 mod.debug = {
     -- Profiler scopes are only recorded while debug mode is enabled.
     profile_start = function(scope)
@@ -37,6 +47,23 @@ mod.debug = {
         if mod._debug_mode then
             mod.debug.echo("{#color(230,60,60)}BEFORE:{#reset()}", prev)
             mod.debug.echo("{#color(60,60,230)}AFTER:{#reset()}", now)
+        end
+    end,
+    timing = function(stage, character_id, ref)
+        if mod._debug_mode then
+            _timing(stage, character_id, ref)
+        end
+    end,
+    rendered = function(target, character_id, ref)
+        if mod._debug_mode then
+            local wru_modified = target.wru_modified and true or false
+
+            if wru_modified and not target.tl_debug_wru then
+                _timing("account_name_ready", character_id, ref)
+            end
+
+            target.tl_debug_wru = wru_modified
+            _timing("ui_rendered", character_id, ref)
         end
     end,
 }

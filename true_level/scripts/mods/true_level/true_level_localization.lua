@@ -93,6 +93,18 @@ local loc = {
         ["zh-tw"] = "玩家回收物顏色",
         ru = "Цвет утиля игрока",
     },
+    nameplate_display_location = {
+        en = "Nameplate Display Location",
+        ja = "ネームプレートの表示場所",
+    },
+    nameplate_display_location_everywhere = {
+        en = "Everywhere",
+        ja = "すべての場所",
+    },
+    nameplate_display_location_mourningstar_only = {
+        en = "Mourningstar Only",
+        ja = "モーニングスターのみ",
+    },
     global = {
         en = "Global",
         ja = "グローバル",
@@ -270,6 +282,38 @@ local loc = {
         en = "Show the remaining charges of the assignment. Charges are not shown at assignment rank 40, where they can no longer be lost. Other players' charges are only available if they also run True Level.",
         ja = "現在の任務に挑戦可能な残り回数を表示します。ランク40では残り回数が減らないため表示されません。他のプレイヤーの残り回数は、そのプレイヤーがTrue Levelを利用している場合のみ表示されます。",
     },
+    separator = {
+        en = "Separator",
+        ja = "区切り文字",
+    },
+    separator_space = {
+        en = "Space",
+        ja = "スペース",
+    },
+    separator_dot = {
+        en = "Dot (.)",
+        ja = "ドット (.)",
+    },
+    separator_middle_dot = {
+        en = "Middle Dot (·)",
+        ja = "中点 (·)",
+    },
+    separator_colon = {
+        en = "Colon (:)",
+        ja = "コロン (:)",
+    },
+    separator_hyphen = {
+        en = "Hyphen (-)",
+        ja = "ハイフン (-)",
+    },
+    separator_hash = {
+        en = "Hash (#)",
+        ja = "シャープ (#)",
+    },
+    separator_pipe = {
+        en = "Pipe (|)",
+        ja = "パイプ (|)",
+    },
     level_up = {
         en = "Level Up!",
         ja = "レベルアップ！",
@@ -399,6 +443,7 @@ for i, ele in pairs(mod._elements) do
     _add_child_loc("havoc_assignment_icon", ele)
     _add_child_loc("havoc_assignment_color", ele)
     _add_child_loc("enable_havoc_assignment_charges", ele)
+    _add_child_loc("separator", ele)
 end
 
 for i, name in ipairs(Color.list) do

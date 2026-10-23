@@ -342,6 +342,63 @@ mod:hook_safe(CLASS.HudElementTeamPlayerPanel, "update", _toggle_vanilla_feature
 
 -- hub
 
+local _progression_promises = {}
+
+local _request_true_levels = function(cache, character_id, account_id)
+    if not character_id or _progression_promises[character_id] then
+        return
+    end
+
+    local havoc_promises = mod._havoc_promises
+    local previous_levels = cache[character_id]
+    local havoc_rank_cadence_high = nil
+    local progression_promise = Managers.backend.interfaces.progression:get_progression("character", character_id)
+    local rank_promise = Managers.data_service.havoc:havoc_rank_cadence_high(account_id)
+
+    _progression_promises[character_id] = progression_promise
+
+    if account_id and not havoc_promises[account_id] then
+        havoc_promises[account_id] = rank_promise
+    end
+
+    progression_promise:next(function(character_progression)
+        if _progression_promises[character_id] ~= progression_promise then
+            return
+        end
+
+        _progression_promises[character_id] = nil
+
+        if cache[character_id] == previous_levels then
+            mod.cache_true_levels(cache, character_id, character_progression, havoc_rank_cadence_high, account_id)
+            mod.desynced(ref)
+        end
+    end):catch(function(e)
+        if _progression_promises[character_id] == progression_promise then
+            _progression_promises[character_id] = nil
+        end
+
+        mod.debug.dump(e, "progression", 3)
+    end)
+
+    rank_promise:next(function(rank)
+        if havoc_promises[account_id] == rank_promise then
+            havoc_promises[account_id] = nil
+        end
+
+        havoc_rank_cadence_high = rank
+
+        if mod.cache_havoc_rank(cache, character_id, rank) then
+            mod.desync_all()
+        end
+    end):catch(function(e)
+        if havoc_promises[account_id] == rank_promise then
+            havoc_promises[account_id] = nil
+        end
+
+        mod.debug.dump(e, "havoc_rank", 3)
+    end)
+end
+
 local _update_team_player_entry = function(self)
     local player = self._data.player
     local player_deleted = player.__deleted
@@ -352,19 +409,8 @@ local _update_team_player_entry = function(self)
         local character_id = profile and profile.character_id
         local true_levels = mod.get_true_levels(character_id)
 
-        if not true_levels and not mod._havoc_promises[account_id] then
-            local progression_promise = Managers.backend.interfaces.progression:get_progression("character", character_id)
-            local rank_promise = Managers.data_service.havoc:havoc_rank_cadence_high(account_id)
-
-            Promise.all(progression_promise, rank_promise):next(function(data)
-                local character_progression, havoc_rank_cadence_high = unpack(data)
-
-                mod._havoc_promises[account_id] = nil
-                mod.cache_true_levels(mod._others, character_id, character_progression, havoc_rank_cadence_high, account_id)
-                mod.desynced(ref)
-            end)
-
-            mod._havoc_promises[account_id] = true
+        if not true_levels then
+            _request_true_levels(mod._others, character_id, account_id)
         end
     end
 end
@@ -375,23 +421,15 @@ mod:hook_safe(CLASS.HudElementTeamPlayerPanelHub, "_set_rich_presence", _update_
 -- handler
 
 mod:hook_safe(CLASS.HudElementTeamPanelHandler, "init", function(self)
-    if not self._tl_promise then
-        local local_player = Managers.player:local_player_safe(1)
-        local account_id = local_player:account_id()
-        local character_id = local_player:character_id()
-        local progression_promise = Managers.backend.interfaces.progression:get_progression("character", character_id)
-        local rank_promise = Managers.data_service.havoc:havoc_rank_cadence_high(account_id)
+    local local_player = Managers.player:local_player_safe(1)
+    local account_id = local_player:account_id()
+    local character_id = local_player:character_id()
 
-        Promise.all(progression_promise, rank_promise):next(function(data)
-            local character_progression, havoc_rank_cadence_high = unpack(data)
+    _request_true_levels(mod._self, character_id, account_id)
+end)
 
-            self._tl_promise = nil
-            mod.cache_true_levels(mod._self, character_id, character_progression, havoc_rank_cadence_high, account_id)
-            mod.desynced(ref)
-        end)
-    end
-
-    self._tl_promise = true
+mod:hook_safe(CLASS.HudElementTeamPanelHandler, "destroy", function()
+    table.clear(_progression_promises)
 end)
 
 mod:hook_safe(CLASS.HudElementTeamPanelHandler, "_remove_panel", function()
@@ -431,7 +469,6 @@ local _update_team_panels = function(self)
     local salvage_enabled = _salvage_enabled(game_mode)
     local salvage_style = mod._player_salvage_style
     local salvage_color = mod._player_salvage_color
-    local wru_enabled = nil
 
     for i = 1, num_panels do
         local data = player_panels_array[i]
@@ -441,14 +478,7 @@ local _update_team_panels = function(self)
             _sync_level_text(panel)
         end
 
-        -- Resolve WhoAreYou at most once per frame, and only for unmodified panels.
-        if wru_enabled == nil and not panel.tl_modified then
-            wru_enabled = mod.is_wru_enabled(ref)
-        end
-
-        local is_waiting = mod.is_ready(panel, ref, wru_enabled)
-
-        if is_waiting then
+        if mod.is_ready(panel) then
             local player = data.player
             local player_deleted = player.__deleted
 
@@ -473,6 +503,7 @@ local _update_team_panels = function(self)
                         container_size[1] = 500
                     end
 
+                    mod.debug.rendered(panel, character_id, ref)
                 end
             end
         end

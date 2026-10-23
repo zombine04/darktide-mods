@@ -1,10 +1,14 @@
 local mod = get_mod("true_level")
 local ProfileUtils = require("scripts/utilities/profile_utils")
 local ref = "group_finder"
+local next = next
+local pairs = pairs
+local _pending_character_ids = {}
 
 -- initialize
 
 mod:hook_safe(CLASS.GroupFinderView, "init", function(self)
+    table.clear(_pending_character_ids)
     mod.desynced(ref)
 end)
 
@@ -72,6 +76,8 @@ local _add_level = function(widget, profile)
 
         content.character_archetype_title = mod.replace_level(character_archetype, true_levels, ref, true)
         widget.tl_modified = true
+    elseif character_id then
+        _pending_character_ids[character_id] = true
     end
 end
 
@@ -121,7 +127,25 @@ local _replace_request_grid = function(self)
     _replace_grid(grid)
 end
 
+local _resolve_pending = function()
+    local resolved = false
+
+    for character_id in pairs(_pending_character_ids) do
+        if mod.get_true_levels(character_id) then
+            _pending_character_ids[character_id] = nil
+            resolved = true
+        end
+    end
+
+    return resolved
+end
+
 mod:hook_safe(CLASS.GroupFinderView, "update", function(self)
+    if next(_pending_character_ids) ~= nil and _resolve_pending() then
+        mod.debug.echo("desync: progression")
+        mod.desynced(ref)
+    end
+
     if not mod.should_replace(ref) then
         return
     end
@@ -129,10 +153,12 @@ mod:hook_safe(CLASS.GroupFinderView, "update", function(self)
     local state = self._state
 
     if state == "browsing" then -- preview
+        table.clear(_pending_character_ids)
         _replace_preview_grid(self)
         mod.synced(ref)
         mod.debug.echo("synced: browsing")
     elseif state == "advertising" then -- own group / requests
+        table.clear(_pending_character_ids)
         _replace_listed_group(self)
         _replace_request_grid(self)
         mod.synced(ref)
