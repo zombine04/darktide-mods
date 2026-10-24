@@ -1,0 +1,11 @@
+{
+  "name": "Inspect from Party Finder",
+  "description": "Adds a function to inspect players in the party finder.",
+  "version": "1.0.5",
+  "author": "Zombine & LucLeto",
+  "homepage": "https://www.nexusmods.com/warhammer40kdarktide/mods/455",
+  "source": "https://github.com/zombine04/darktide-mods",
+  "funding": {
+    "kofi": "https://ko-fi.com/zombine"
+  }
+}

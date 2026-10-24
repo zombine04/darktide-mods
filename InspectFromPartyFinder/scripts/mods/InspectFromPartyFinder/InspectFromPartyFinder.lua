@@ -2,9 +2,9 @@ local mod = get_mod("InspectFromPartyFinder")
 
 mod._info = {
     title = "Inspect from Party Finder",
-    author = "Zombine",
+    author = "Zombine & LucLeto",
     date = "2025/12/07",
-    version = "1.0.4"
+    version = "1.0.5"
 }
 mod:info("Version " .. mod._info.version)
 
@@ -219,8 +219,24 @@ local _open_inventory = function(parent, player)
 end
 
 local _add_pressed_callback = function(self, hotspot, account_id)
-    if hotspot and not hotspot.pressed_callback then
-        hotspot.pressed_callback = callback(self, "cb_on_player_inspect_pressed", account_id)
+    if not hotspot then
+        return
+    end
+
+    local pressed_callback = hotspot.pressed_callback
+
+    -- keep callbacks installed by the game or other mods
+    if pressed_callback and pressed_callback ~= hotspot._ifpf_pressed_callback then
+        return
+    end
+
+    -- widgets are reused, so rebind whenever the displayed player changes
+    if account_id ~= hotspot._ifpf_account_id or account_id and not pressed_callback then
+        pressed_callback = account_id and callback(self, "cb_on_player_inspect_pressed", account_id) or nil
+
+        hotspot.pressed_callback = pressed_callback
+        hotspot._ifpf_pressed_callback = pressed_callback
+        hotspot._ifpf_account_id = account_id
     end
 end
 
@@ -271,17 +287,15 @@ mod:hook_safe(CLASS.GroupFinderView, "_update_listed_group", function(self)
     local members = own_group.members
     local widgets = self._widgets_by_name
 
-    for i = 1, #members do
+    -- visit every slot so emptied ones drop their callback
+    for i = 1, 4 do
         local member = members[i]
+        local widget = widgets["team_member_" .. i]
+        local content = widget.content
+        local hotspot = content.hotspot
+        local account_id = member and member.account_id
 
-        if member then
-            local widget = widgets["team_member_" .. i]
-            local content = widget.content
-            local hotspot = content.hotspot
-            local account_id = member.account_id
-
-            _add_pressed_callback(self, hotspot, account_id)
-        end
+        _add_pressed_callback(self, hotspot, account_id)
     end
 end)
 
